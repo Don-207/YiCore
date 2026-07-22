@@ -1,0 +1,39 @@
+compatible: "yi,stm32-i2c"
+driver: "i2c"
+header: "yi_i2c_stm32.h"
+define: "YI_I2C_STM32_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  clock-bus:
+    type: string
+    required: true
+  clock-enable-mask:
+    type: int
+    required: true
+  event-interrupt:
+    type: identifier
+    required: true
+  error-interrupt:
+    type: identifier
+    required: true
+  scl-pin:
+    type: phandle
+    required: true
+  sda-pin:
+    type: phandle
+    required: true
+  clock-frequency:
+    type: int
+    required: true
+  irq-priority:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 20

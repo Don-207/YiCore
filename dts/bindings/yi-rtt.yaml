@@ -1,0 +1,18 @@
+compatible: "yi,segger-rtt"
+driver: "rtt"
+header: "yi_rtt.h"
+define: "YI_RTT_DEFINE_LEVEL"
+
+properties:
+  up-buffer:
+    type: int
+    default: 0
+  mode:
+    type: string
+    default: no-block-skip
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 10

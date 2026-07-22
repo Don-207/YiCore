@@ -1,0 +1,37 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# YiCore generated DeviceTree sources
+/generated/
+
+# Keil build output and per-user settings
+**/MDK-ARM/*/
+**/MDK-ARM/*.log
+**/MDK-ARM/*.htm
+**/MDK-ARM/*.map
+**/MDK-ARM/*.axf
+**/MDK-ARM/*.hex
+**/MDK-ARM/*.bin
+**/MDK-ARM/*.o
+**/MDK-ARM/*.d
+**/MDK-ARM/*.dep
+**/MDK-ARM/*.lnp
+**/MDK-ARM/*.iex
+**/MDK-ARM/*.uvoptx
+**/MDK-ARM/*.uvguix.*
+**/MDK-ARM/JLinkLog.txt
+**/MDK-ARM/JLinkSettings.ini
+
+# The old root Keil directory can be removed after uVision is closed.
+/MDK-ARM/
+
+# Editors, agents and operating-system metadata
+/.agents/
+/.vscode/
+/.idea/
+.DS_Store
+Thumbs.db
+

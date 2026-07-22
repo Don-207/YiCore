@@ -1,0 +1,15 @@
+compatible: "yi,stm32-clock"
+driver: "clock"
+header: "yi_clock.h"
+define: "YI_CLOCK_DEFINE_LEVEL"
+
+properties:
+  clock-id:
+    type: string
+    required: true
+  init-level:
+    type: string
+    default: pre-kernel
+  init-priority:
+    type: int
+    default: 5

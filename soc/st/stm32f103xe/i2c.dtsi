@@ -1,0 +1,2 @@
+    i2c1: i2c@40005400 { compatible = "yi,stm32-i2c"; reg = <0x40005400>; clock-bus = "apb1"; clock-enable-mask = <0x00200000>; event-interrupt = "I2C1_EV_IRQn"; error-interrupt = "I2C1_ER_IRQn"; status = "disabled"; };
+    i2c2: i2c@40005800 { compatible = "yi,stm32-i2c"; reg = <0x40005800>; clock-bus = "apb1"; clock-enable-mask = <0x00400000>; event-interrupt = "I2C2_EV_IRQn"; error-interrupt = "I2C2_ER_IRQn"; status = "disabled"; };

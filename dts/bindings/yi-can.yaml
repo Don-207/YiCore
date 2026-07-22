@@ -1,0 +1,48 @@
+compatible: "yi,stm32-can"
+driver: "can"
+header: "yi_can.h"
+define: "YI_CAN_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  clock-bus:
+    type: string
+    required: true
+  clock-enable-mask:
+    type: int
+    required: true
+  tx-interrupt:
+    type: identifier
+    required: true
+  rx0-interrupt:
+    type: identifier
+    required: true
+  rx1-interrupt:
+    type: identifier
+    required: true
+  sce-interrupt:
+    type: identifier
+    required: true
+  tx-pin:
+    type: phandle
+    required: true
+  rx-pin:
+    type: phandle
+    required: true
+  bitrate:
+    type: int
+    required: true
+  sample-point:
+    type: int
+    default: 875
+  irq-priority:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 20

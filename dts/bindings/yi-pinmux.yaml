@@ -1,0 +1,33 @@
+compatible: "yi,stm32-pinmux"
+driver: "pinmux"
+header: "yi_pinmux.h"
+define: "YI_PINMUX_DEFINE_LEVEL"
+
+properties:
+  port:
+    type: identifier
+    required: true
+  pin:
+    type: int
+    required: true
+  function:
+    type: string
+    required: true
+  mode:
+    type: string
+    required: true
+  pull:
+    type: string
+    default: none
+  speed:
+    type: string
+    default: low
+  clocks:
+    type: phandle
+    required: true
+  init-level:
+    type: string
+    default: pre-kernel
+  init-priority:
+    type: int
+    default: 20

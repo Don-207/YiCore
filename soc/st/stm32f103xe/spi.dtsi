@@ -1,0 +1,3 @@
+    spi1: spi@40013000 { compatible = "yi,stm32-spi"; reg = <0x40013000>; clock-bus = "apb2"; clock-enable-mask = <0x00001000>; interrupts = "SPI1_IRQn"; status = "disabled"; };
+    spi2: spi@40003800 { compatible = "yi,stm32-spi"; reg = <0x40003800>; clock-bus = "apb1"; clock-enable-mask = <0x00004000>; interrupts = "SPI2_IRQn"; status = "disabled"; };
+    spi3: spi@40003c00 { compatible = "yi,stm32-spi"; reg = <0x40003c00>; clock-bus = "apb1"; clock-enable-mask = <0x00008000>; interrupts = "SPI3_IRQn"; status = "disabled"; };

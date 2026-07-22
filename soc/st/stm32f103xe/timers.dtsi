@@ -1,0 +1,8 @@
+    timers1: timer@40012c00 { compatible = "yi,stm32-timer"; reg = <0x40012c00>; clock-bus = "apb2-timer"; clock-enable-mask = <0x00000800>; interrupts = "TIM1_UP_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers2: timer@40000000 { compatible = "yi,stm32-timer"; reg = <0x40000000>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000001>; interrupts = "TIM2_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers3: timer@40000400 { compatible = "yi,stm32-timer"; reg = <0x40000400>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000002>; interrupts = "TIM3_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers4: timer@40000800 { compatible = "yi,stm32-timer"; reg = <0x40000800>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000004>; interrupts = "TIM4_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers5: timer@40000c00 { compatible = "yi,stm32-timer"; reg = <0x40000c00>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000008>; interrupts = "TIM5_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers6: timer@40001000 { compatible = "yi,stm32-timer"; reg = <0x40001000>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000010>; interrupts = "TIM6_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers7: timer@40001400 { compatible = "yi,stm32-timer"; reg = <0x40001400>; clock-bus = "apb1-timer"; clock-enable-mask = <0x00000020>; interrupts = "TIM7_IRQn"; counter-bits = <16>; status = "disabled"; };
+    timers8: timer@40013400 { compatible = "yi,stm32-timer"; reg = <0x40013400>; clock-bus = "apb2-timer"; clock-enable-mask = <0x00002000>; interrupts = "TIM8_UP_IRQn"; counter-bits = <16>; status = "disabled"; };

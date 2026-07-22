@@ -1,0 +1,24 @@
+compatible: "yi,stm32-internal-flash"
+driver: "flash"
+header: "yi_flash.h"
+define: "YI_STM32_FLASH_DEFINE_LEVEL"
+
+properties:
+  base-address:
+    type: int
+    required: true
+  size:
+    type: int
+    required: true
+  erase-block-size:
+    type: int
+    required: true
+  write-block-size:
+    type: int
+    default: 2
+  init-level:
+    type: string
+    default: pre-kernel
+  init-priority:
+    type: int
+    default: 0

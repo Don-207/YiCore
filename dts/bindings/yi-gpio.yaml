@@ -1,0 +1,47 @@
+compatible: "yi,stm32-gpio"
+driver: "gpio"
+header: "yi_gpio.h"
+define: "YI_DEVICE_DEFINE_WITH_API"
+
+properties:
+  port:
+    type: identifier
+    required: true
+
+  pin:
+    type: int
+    required: true
+
+  clocks:
+    type: phandle
+    required: true
+
+  direction:
+    type: string
+    default: output
+
+  drive:
+    type: string
+    default: push-pull
+
+  pull:
+    type: string
+    default: none
+
+  interrupt:
+    type: string
+    default: none
+
+  irq-priority:
+    type: int
+    default: 10
+
+  init-level:
+    type: string
+    required: false
+    default: pre-kernel
+
+  init-priority:
+    type: int
+    required: false
+    default: 50

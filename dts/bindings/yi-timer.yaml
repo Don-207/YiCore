@@ -1,0 +1,33 @@
+compatible: "yi,stm32-timer"
+driver: "timer"
+header: "yi_timer.h"
+define: "YI_TIMER_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  interrupts:
+    type: identifier
+    required: true
+  clock-bus:
+    type: string
+    required: true
+  clock-enable-mask:
+    type: int
+    required: true
+  counter-bits:
+    type: int
+    required: true
+  tick-frequency:
+    type: int
+    required: true
+  irq-priority:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 10

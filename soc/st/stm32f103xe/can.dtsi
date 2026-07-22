@@ -1,0 +1,1 @@
+    can1: can@40006400 { compatible = "yi,stm32-can"; reg = <0x40006400>; clock-bus = "apb1"; clock-enable-mask = <0x02000000>; tx-interrupt = "USB_HP_CAN1_TX_IRQn"; rx0-interrupt = "USB_LP_CAN1_RX0_IRQn"; rx1-interrupt = "CAN1_RX1_IRQn"; sce-interrupt = "CAN1_SCE_IRQn"; status = "disabled"; };

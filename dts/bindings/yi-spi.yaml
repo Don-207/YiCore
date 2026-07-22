@@ -1,0 +1,42 @@
+compatible: "yi,stm32-spi"
+driver: "spi"
+header: "yi_spi.h"
+define: "YI_SPI_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  clock-bus:
+    type: string
+    required: true
+  clock-enable-mask:
+    type: int
+    required: true
+  interrupts:
+    type: identifier
+    required: true
+  sck-pin:
+    type: phandle
+    required: true
+  miso-pin:
+    type: phandle
+    required: true
+  mosi-pin:
+    type: phandle
+    required: true
+  max-frequency:
+    type: int
+    required: true
+  mode:
+    type: int
+    default: 0
+  irq-priority:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 20

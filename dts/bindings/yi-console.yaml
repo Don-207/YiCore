@@ -1,0 +1,17 @@
+compatible: "yi,console"
+driver: "console"
+header: "yi_console.h"
+define: "YI_CONSOLE_DEFINE_LEVEL"
+
+properties:
+  backend:
+    type: phandle
+    required: true
+  default-console:
+    type: boolean
+  init-level:
+    type: string
+    default: application
+  init-priority:
+    type: int
+    default: 0

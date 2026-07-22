@@ -1,0 +1,5 @@
+    usart1: serial@40013800 { compatible = "yi,stm32-uart"; reg = <0x40013800>; clock-bus = "apb2"; clock-enable-mask = <0x00004000>; interrupts = "USART1_IRQn"; status = "disabled"; };
+    usart2: serial@40004400 { compatible = "yi,stm32-uart"; reg = <0x40004400>; clock-bus = "apb1"; clock-enable-mask = <0x00020000>; interrupts = "USART2_IRQn"; status = "disabled"; };
+    usart3: serial@40004800 { compatible = "yi,stm32-uart"; reg = <0x40004800>; clock-bus = "apb1"; clock-enable-mask = <0x00040000>; interrupts = "USART3_IRQn"; status = "disabled"; };
+    uart4: serial@40004c00 { compatible = "yi,stm32-uart"; reg = <0x40004c00>; clock-bus = "apb1"; clock-enable-mask = <0x00080000>; interrupts = "UART4_IRQn"; status = "disabled"; };
+    uart5: serial@40005000 { compatible = "yi,stm32-uart"; reg = <0x40005000>; clock-bus = "apb1"; clock-enable-mask = <0x00100000>; interrupts = "UART5_IRQn"; status = "disabled"; };

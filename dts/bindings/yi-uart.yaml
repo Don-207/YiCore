@@ -1,0 +1,33 @@
+compatible: "yi,stm32-uart"
+driver: "uart"
+header: "yi_uart_stm32.h"
+define: "YI_UART_STM32_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  clock-bus:
+    type: string
+    required: true
+  clock-enable-mask:
+    type: int
+    required: true
+  interrupts:
+    type: identifier
+    required: true
+  current-speed:
+    type: int
+    required: true
+
+  tx-pin:
+    type: phandle
+    required: true
+
+  rx-pin:
+    type: phandle
+    required: true
+
+  irq-priority:
+    type: int
+    default: 10

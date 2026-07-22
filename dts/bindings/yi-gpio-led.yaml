@@ -1,0 +1,23 @@
+compatible: "yi,gpio-led"
+driver: "led"
+header: "yi_led.h"
+define: "YI_LED_DEFINE_LEVEL"
+
+properties:
+  gpios:
+    type: phandle
+    required: true
+
+  active-low:
+    type: boolean
+    required: false
+
+  init-level:
+    type: string
+    required: false
+    default: application
+
+  init-priority:
+    type: int
+    required: false
+    default: 50
