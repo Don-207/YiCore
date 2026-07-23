@@ -169,6 +169,11 @@ SPI需要`sck-pin`、`miso-pin`、`mosi-pin`、`max-frequency`和模式0至3；I
 `bitrate`和可选的千分比`sample-point`。每个启用实例都会生成独立HAL handle和
 直接IRQ Handler，不依赖CubeMX的`huartN`、`hspiN`、`hi2cN`或`hcanN`对象。
 
+GPIO模拟SPI使用`yi,soft-spi`，通过`sck-gpio`、`miso-gpio`和`mosi-gpio`
+引用三个GPIO设备。`max-frequency`支持1kHz至500kHz，`mode`可设为0、1、2或3，
+分别选择对应的CPOL/CPHA组合。模拟SPI与硬件SPI共用`yi_spi_transceive()`；片选
+由应用使用独立GPIO控制。
+
 ## Console与日志
 
 Console通过任意支持Device流式读写API的设备作为后端。下面是UART后端示例；

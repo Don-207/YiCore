@@ -546,6 +546,29 @@ YI_SOFT_I2C_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priorit
                          {label}_cfg, {label}_data);"""
 
 
+def _generate_soft_spi(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["max-frequency"]
+    mode = item.properties["mode"]
+    if not 1000 <= frequency <= 500000:
+        raise BindingError(f"{item.node.path}: max-frequency must be in range 1000..500000")
+    if mode not in {0, 1, 2, 3}:
+        raise BindingError(f"{item.node.path}: invalid Soft-SPI mode")
+    half_period_us = max(1, 500000 // frequency)
+    return f"""static const yi_soft_spi_config_t {label}_cfg =
+{{
+    .sck_gpio = &{item.properties['sck-gpio'].label},
+    .miso_gpio = &{item.properties['miso-gpio'].label},
+    .mosi_gpio = &{item.properties['mosi-gpio'].label},
+    .max_frequency = {frequency}U,
+    .half_period_us = {half_period_us}U,
+    .mode = {mode}U
+}};
+static yi_soft_spi_data_t {label}_data;
+YI_SOFT_SPI_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+                         {label}_cfg, {label}_data);"""
+
+
 def _generate_can(item: ValidatedNode) -> str:
     label = item.node.label
     reg, bus, mask = _stm32_peripheral(item)
@@ -592,6 +615,7 @@ _GENERATORS = {
     "spi": _generate_spi,
     "i2c": _generate_i2c,
     "soft-i2c": _generate_soft_i2c,
+    "soft-spi": _generate_soft_spi,
     "can": _generate_can,
 }
 

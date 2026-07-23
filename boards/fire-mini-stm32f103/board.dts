@@ -100,6 +100,63 @@
         status = "okay";
     };
 
+    soft_spi0_sck: soft-spi0-sck {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <5>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    soft_spi0_miso: soft-spi0-miso {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <6>;
+        clocks = <&clk_gpioa>;
+        direction = "input";
+        pull = "none";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    soft_spi0_mosi: soft-spi0-mosi {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <7>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    soft_spi0_cs: soft-spi0-cs {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <4>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    soft_spi0: soft-spi0 {
+        compatible = "yi,soft-spi";
+        sck-gpio = <&soft_spi0_sck>;
+        miso-gpio = <&soft_spi0_miso>;
+        mosi-gpio = <&soft_spi0_mosi>;
+        max-frequency = <100000>;
+        mode = <0>;
+        init-level = "post-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
     led0: led0 {
         compatible = "yi,gpio-led";
         gpios = <&gpio_led0>;

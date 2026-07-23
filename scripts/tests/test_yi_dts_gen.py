@@ -84,6 +84,25 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("YI_SOFT_I2C_DEFINE_LEVEL", source)
         self.assertIn('#define YI_DT_BUS_NAME "bus"', header)
 
+    def test_soft_spi_generation_and_mode(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpiob"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <12>;
+                clocks = <&clk>; direction = "output"; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <13>;
+                clocks = <&clk>; direction = "input"; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <14>;
+                clocks = <&clk>; direction = "output"; };
+            bus: bus { compatible = "yi,soft-spi"; sck-gpio = <&sck>;
+                miso-gpio = <&miso>; mosi-gpio = <&mosi>;
+                max-frequency = <100000>; mode = <3>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "soft-spi.dts")
+        self.assertIn(".half_period_us = 5U", source)
+        self.assertIn(".mode = 3U", source)
+        self.assertIn("YI_SOFT_SPI_DEFINE_LEVEL", source)
+        self.assertIn('#define YI_DT_BUS_NAME "bus"', header)
+
     def test_dependency_cycle_is_rejected(self):
         tree = parse_text('''/ {
             a: a { compatible = "yi,gpio-led"; gpios = <&b>; };

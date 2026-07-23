@@ -1,0 +1,27 @@
+compatible: "yi,soft-spi"
+driver: "soft-spi"
+header: "yi_soft_spi.h"
+define: "YI_SOFT_SPI_DEFINE_LEVEL"
+
+properties:
+  sck-gpio:
+    type: phandle
+    required: true
+  miso-gpio:
+    type: phandle
+    required: true
+  mosi-gpio:
+    type: phandle
+    required: true
+  max-frequency:
+    type: int
+    default: 100000
+  mode:
+    type: int
+    default: 0
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 20

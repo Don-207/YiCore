@@ -54,8 +54,9 @@ int yi_spi_init(const void *config)
     return 0;
 }
 
-int yi_spi_transceive(yi_device_t *dev, const uint8_t *tx, uint8_t *rx,
-                      uint16_t length, uint32_t timeout_ms)
+static int yi_spi_stm32_transceive(yi_device_t *dev, const uint8_t *tx,
+                                   uint8_t *rx, uint16_t length,
+                                   uint32_t timeout_ms)
 {
     yi_spi_data_t *data;
     HAL_StatusTypeDef status;
@@ -69,6 +70,19 @@ int yi_spi_transceive(yi_device_t *dev, const uint8_t *tx, uint8_t *rx,
     else
         status = HAL_SPI_Receive(&data->hspi, rx, length, timeout_ms);
     return (status == HAL_OK) ? 0 : -1;
+}
+
+const yi_spi_api_t yi_spi_api = { .transceive = yi_spi_stm32_transceive };
+
+int yi_spi_transceive(yi_device_t *dev, const uint8_t *tx, uint8_t *rx,
+                      uint16_t length, uint32_t timeout_ms)
+{
+    const yi_spi_api_t *api;
+    if(!yi_device_is_ready(dev) || (dev->api == NULL) || (length == 0U) ||
+       (timeout_ms == 0U) || ((tx == NULL) && (rx == NULL))) { return -1; }
+    api = (const yi_spi_api_t *)dev->api;
+    if(api->transceive == NULL) { return -1; }
+    return api->transceive(dev, tx, rx, length, timeout_ms);
 }
 
 void yi_spi_irq_handler(yi_device_t *dev)
