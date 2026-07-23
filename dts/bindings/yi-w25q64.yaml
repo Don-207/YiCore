@@ -1,0 +1,39 @@
+compatible: "winbond,w25q64"
+driver: "w25q64"
+header: "yi_w25q64.h"
+define: "YI_W25Q64_DEFINE_LEVEL"
+
+properties:
+  bus:
+    type: phandle
+    required: true
+  cs-gpio:
+    type: phandle
+    required: true
+  spi-frequency:
+    type: int
+    required: true
+  spi-mode:
+    type: int
+    default: 0
+  size:
+    type: int
+    default: 8388608
+  erase-block-size:
+    type: int
+    default: 4096
+  write-block-size:
+    type: int
+    default: 1
+  program-timeout-ms:
+    type: int
+    default: 100
+  erase-timeout-ms:
+    type: int
+    default: 5000
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

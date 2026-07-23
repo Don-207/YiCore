@@ -1,0 +1,30 @@
+compatible: "atmel,24c02"
+driver: "at24c02"
+header: "yi_at24c02.h"
+define: "YI_AT24C02_DEFINE_LEVEL"
+
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 80
+  size:
+    type: int
+    default: 256
+  page-size:
+    type: int
+    default: 8
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  write-timeout-ms:
+    type: int
+    default: 20
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30
