@@ -16,9 +16,6 @@ properties:
   max-frequency:
     type: int
     default: 100000
-  mode:
-    type: int
-    default: 0
   init-level:
     type: string
     default: post-kernel

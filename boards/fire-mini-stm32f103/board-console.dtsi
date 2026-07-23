@@ -1,0 +1,17 @@
+    rtt0: rtt0 {
+        compatible = "yi,segger-rtt";
+        up-buffer = <0>;
+        mode = "no-block-skip";
+        init-level = "post-kernel";
+        init-priority = <10>;
+        status = "okay";
+    };
+
+    console0: console0 {
+        compatible = "yi,console";
+        backend = <&rtt0>;
+        default-console;
+        init-level = "application";
+        init-priority = <0>;
+        status = "disabled";
+    };

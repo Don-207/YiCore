@@ -1,0 +1,26 @@
+    flash0: flash0 {
+        compatible = "yi,stm32-internal-flash";
+        base-address = <0x08000000>;
+        size = <0x00040000>;
+        erase-block-size = <2048>;
+        write-block-size = <2>;
+        status = "okay";
+    };
+
+    clk_gpioa: clock-gpioa {
+        compatible = "yi,stm32-clock";
+        clock-id = "gpioa";
+        status = "okay";
+    };
+
+    clk_gpiob: clock-gpiob {
+        compatible = "yi,stm32-clock";
+        clock-id = "gpiob";
+        status = "okay";
+    };
+
+    clk_gpioc: clock-gpioc {
+        compatible = "yi,stm32-clock";
+        clock-id = "gpioc";
+        status = "okay";
+    };
