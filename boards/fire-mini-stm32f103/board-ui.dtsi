@@ -1,0 +1,17 @@
+    led0: led0 {
+        compatible = "yi,gpio-led";
+        gpios = <&gpio_led0>;
+        active-low;
+        init-level = "application";
+        init-priority = <10>;
+        status = "disabled";
+    };
+
+    led1: led1 {
+        compatible = "yi,gpio-led";
+        gpios = <&gpio_led1>;
+        active-low;
+        init-level = "application";
+        init-priority = <10>;
+        status = "disabled";
+    };

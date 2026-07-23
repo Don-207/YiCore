@@ -17,8 +17,8 @@ class DtsGeneratorTests(unittest.TestCase):
         cls.yicore = SCRIPTS_DIR.parent
         cls.bindings = load_bindings(cls.yicore / "dts" / "bindings")
 
-    def test_current_board_generation(self):
-        dts = self.yicore / "boards" / "fire-mini-stm32f103" / "board.dts"
+    def test_current_app_generation(self):
+        dts = self.yicore / "examples" / "stm32f103-dts-demo" / "app.dts"
         nodes = validate_tree(parse_file(dts), self.bindings)
         source, header = generate_sources(nodes, dts.name)
         self.assertLess(source.index("gpio_led0_cfg"), source.index("led0_cfg"))
@@ -84,7 +84,7 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("YI_SOFT_I2C_DEFINE_LEVEL", source)
         self.assertIn('#define YI_DT_BUS_NAME "bus"', header)
 
-    def test_soft_spi_generation_and_mode(self):
+    def test_soft_spi_generation(self):
         tree = parse_text('''/ {
             clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpiob"; };
             sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <12>;
@@ -95,11 +95,11 @@ class DtsGeneratorTests(unittest.TestCase):
                 clocks = <&clk>; direction = "output"; };
             bus: bus { compatible = "yi,soft-spi"; sck-gpio = <&sck>;
                 miso-gpio = <&miso>; mosi-gpio = <&mosi>;
-                max-frequency = <100000>; mode = <3>; };
+                max-frequency = <100000>; };
         };''')
         source, header = generate_sources(validate_tree(tree, self.bindings), "soft-spi.dts")
-        self.assertIn(".half_period_us = 5U", source)
-        self.assertIn(".mode = 3U", source)
+        self.assertIn(".max_frequency = 100000U", source)
+        self.assertNotIn(".half_period_us", source)
         self.assertIn("YI_SOFT_SPI_DEFINE_LEVEL", source)
         self.assertIn('#define YI_DT_BUS_NAME "bus"', header)
 
@@ -211,7 +211,7 @@ class DtsGeneratorTests(unittest.TestCase):
             spi1: spi { compatible = "yi,stm32-spi"; reg = <0x40013000>;
                 clock-bus = "apb2"; clock-enable-mask = <0x1000>;
                 interrupts = "SPI1_IRQn"; sck-pin = <&p>; miso-pin = <&p>;
-                mosi-pin = <&p>; max-frequency = <18000000>; mode = <0>; };
+                mosi-pin = <&p>; max-frequency = <18000000>; };
             i2c1: i2c { compatible = "yi,stm32-i2c"; reg = <0x40005400>;
                 clock-bus = "apb1"; clock-enable-mask = <0x200000>;
                 event-interrupt = "I2C1_EV_IRQn"; error-interrupt = "I2C1_ER_IRQn";

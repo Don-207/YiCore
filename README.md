@@ -45,7 +45,7 @@ Generate the DeviceTree sources from the repository root:
 
 ```powershell
 python scripts\yi_dts_gen.py `
-  --dts boards\fire-mini-stm32f103\board.dts `
+  --dts examples\stm32f103-dts-demo\app.dts `
   --bindings dts\bindings `
   --output generated
 ```
@@ -75,4 +75,3 @@ stable release. See the architecture roadmap for implemented and planned work.
 
 YiCore is licensed under the Apache License 2.0. Third-party components remain
 under their respective licenses.
-
