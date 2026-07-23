@@ -1,0 +1,70 @@
+    gpio_led0: gpio-led0 {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOC";
+        pin = <2>;
+        clocks = <&clk_gpioc>;
+        init-level = "pre-kernel";
+        init-priority = <10>;
+        status = "okay";
+    };
+
+    gpio_led1: gpio-led1 {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOC";
+        pin = <3>;
+        clocks = <&clk_gpioc>;
+        init-level = "pre-kernel";
+        init-priority = <10>;
+        status = "okay";
+    };
+
+    key0: key0 {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOC";
+        pin = <13>;
+        clocks = <&clk_gpioc>;
+        direction = "input";
+        pull = "up";
+        interrupt = "falling";
+        irq-priority = <10>;
+        init-level = "pre-kernel";
+        init-priority = <10>;
+        status = "okay";
+    };
+
+    soft_i2c0_scl: soft-i2c0-scl {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <2>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        drive = "open-drain";
+        pull = "up";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    soft_i2c0_sda: soft-i2c0-sda {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <3>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        drive = "open-drain";
+        pull = "up";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };
+
+    spi1_cs: spi1-cs {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <4>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "okay";
+    };

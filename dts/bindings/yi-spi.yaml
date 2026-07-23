@@ -1,7 +1,7 @@
 compatible: "yi,stm32-spi"
 driver: "spi"
-header: "yi_spi.h"
-define: "YI_SPI_DEFINE_LEVEL"
+header: "yi_spi_stm32.h"
+define: "YI_SPI_STM32_DEFINE_LEVEL"
 
 properties:
   reg:
@@ -28,9 +28,6 @@ properties:
   max-frequency:
     type: int
     required: true
-  mode:
-    type: int
-    default: 0
   irq-priority:
     type: int
     default: 10

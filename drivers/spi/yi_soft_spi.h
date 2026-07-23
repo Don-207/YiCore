@@ -9,8 +9,6 @@ typedef struct
     yi_device_t *miso_gpio;
     yi_device_t *mosi_gpio;
     uint32_t max_frequency;
-    uint32_t half_period_us;
-    uint8_t mode;
 } yi_soft_spi_config_t;
 
 typedef struct

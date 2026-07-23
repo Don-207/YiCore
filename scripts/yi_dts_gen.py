@@ -421,6 +421,97 @@ YI_STM32_FLASH_DEFINE_LEVEL(
 );"""
 
 
+def _generate_w25q64(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["spi-frequency"]
+    mode = item.properties["spi-mode"]
+    size = item.properties["size"]
+    erase_size = item.properties["erase-block-size"]
+    write_size = item.properties["write-block-size"]
+    program_timeout = item.properties["program-timeout-ms"]
+    erase_timeout = item.properties["erase-timeout-ms"]
+
+    if frequency <= 0 or mode not in {0, 1, 2, 3}:
+        raise BindingError(f"{item.node.path}: invalid SPI frequency or mode")
+    if size != 0x00800000 or erase_size != 4096 or write_size != 1:
+        raise BindingError(f"{item.node.path}: invalid W25Q64 geometry")
+    if program_timeout <= 0 or erase_timeout <= 0:
+        raise BindingError(f"{item.node.path}: timeouts must be positive")
+
+    return f"""static yi_device_t {label};
+
+static const yi_w25q64_config_t {label}_cfg =
+{{
+    .flash = {{
+        .base_address = 0U,
+        .size = {size}U,
+        .erase_block_size = {erase_size}U,
+        .write_block_size = {write_size}U
+    }},
+    .self = &{label},
+    .spi = &{item.properties['bus'].label},
+    .spi_config = {{
+        .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label},
+        .mode = {mode}U,
+        .cs_active_high = false
+    }},
+    .program_timeout_ms = {program_timeout}U,
+    .erase_timeout_ms = {erase_timeout}U
+}};
+
+static yi_w25q64_data_t {label}_data;
+
+YI_W25Q64_DEFINE_LEVEL(
+    {label},
+    {_level(item)},
+    {item.properties['init-priority']},
+    {label}_cfg,
+    {label}_data
+);"""
+
+
+def _generate_at24c02(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    size = item.properties["size"]
+    page_size = item.properties["page-size"]
+    transfer_timeout = item.properties["transfer-timeout-ms"]
+    write_timeout = item.properties["write-timeout-ms"]
+
+    if not 0 <= address <= 0x7F:
+        raise BindingError(f"{item.node.path}: address must be a 7-bit value")
+    if size != 256 or page_size != 8:
+        raise BindingError(f"{item.node.path}: invalid AT24C02 geometry")
+    if transfer_timeout <= 0 or write_timeout <= 0:
+        raise BindingError(f"{item.node.path}: timeouts must be positive")
+
+    return f"""static yi_device_t {label};
+
+static const yi_at24c02_config_t {label}_cfg =
+{{
+    .eeprom = {{
+        .size = {size}U,
+        .page_size = {page_size}U
+    }},
+    .self = &{label},
+    .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U,
+    .transfer_timeout_ms = {transfer_timeout}U,
+    .write_timeout_ms = {write_timeout}U
+}};
+
+static yi_at24c02_data_t {label}_data;
+
+YI_AT24C02_DEFINE_LEVEL(
+    {label},
+    {_level(item)},
+    {item.properties['init-priority']},
+    {label}_cfg,
+    {label}_data
+);"""
+
+
 def _generate_timer(item: ValidatedNode) -> str:
     label = item.node.label
     reg, clock_bus, clock_enable_mask = _stm32_peripheral(item)
@@ -471,11 +562,10 @@ def _generate_spi(item: ValidatedNode) -> str:
     reg, bus, mask = _stm32_peripheral(item)
     irq = _irq(item, "interrupts")
     frequency = item.properties["max-frequency"]
-    mode = item.properties["mode"]
-    if frequency <= 0 or mode not in {0, 1, 2, 3}:
-        raise BindingError(f"{item.node.path}: invalid SPI frequency or mode")
+    if frequency <= 0:
+        raise BindingError(f"{item.node.path}: invalid SPI frequency")
     return f"""static yi_device_t {label};
-static const yi_spi_config_t {label}_cfg =
+static const yi_spi_stm32_config_t {label}_cfg =
 {{
     .self = &{label},
     .instance = (SPI_TypeDef *)0x{reg:08X}U,
@@ -484,14 +574,15 @@ static const yi_spi_config_t {label}_cfg =
     .miso_pin = &{item.properties['miso-pin'].label},
     .mosi_pin = &{item.properties['mosi-pin'].label},
     .max_frequency = {frequency}U,
-    .mode = {mode}U,
     .irqn = {irq},
     .irq_priority = {_irq_priority(item)}U
 }};
-static yi_spi_data_t {label}_data;
-YI_SPI_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
-                    {label}_cfg, {label}_data);
-void {_irq_handler(irq)}(void) {{ yi_spi_irq_handler(&{label}); }}"""
+static yi_spi_stm32_data_t {label}_data;
+YI_SPI_STM32_DEFINE_LEVEL(
+    {label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data
+);
+void {_irq_handler(irq)}(void) {{ yi_spi_stm32_irq_handler(&{label}); }}"""
 
 
 def _generate_i2c(item: ValidatedNode) -> str:
@@ -549,20 +640,14 @@ YI_SOFT_I2C_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priorit
 def _generate_soft_spi(item: ValidatedNode) -> str:
     label = item.node.label
     frequency = item.properties["max-frequency"]
-    mode = item.properties["mode"]
     if not 1000 <= frequency <= 500000:
         raise BindingError(f"{item.node.path}: max-frequency must be in range 1000..500000")
-    if mode not in {0, 1, 2, 3}:
-        raise BindingError(f"{item.node.path}: invalid Soft-SPI mode")
-    half_period_us = max(1, 500000 // frequency)
     return f"""static const yi_soft_spi_config_t {label}_cfg =
 {{
     .sck_gpio = &{item.properties['sck-gpio'].label},
     .miso_gpio = &{item.properties['miso-gpio'].label},
     .mosi_gpio = &{item.properties['mosi-gpio'].label},
-    .max_frequency = {frequency}U,
-    .half_period_us = {half_period_us}U,
-    .mode = {mode}U
+    .max_frequency = {frequency}U
 }};
 static yi_soft_spi_data_t {label}_data;
 YI_SOFT_SPI_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
@@ -611,6 +696,8 @@ _GENERATORS = {
     "console": _generate_console,
     "rtt": _generate_rtt,
     "flash": _generate_flash,
+    "w25q64": _generate_w25q64,
+    "at24c02": _generate_at24c02,
     "timer": _generate_timer,
     "spi": _generate_spi,
     "i2c": _generate_i2c,

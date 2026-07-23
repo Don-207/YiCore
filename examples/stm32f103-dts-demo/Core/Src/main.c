@@ -23,9 +23,11 @@
 #include "yi_device.h"
 #include "yi_gpio.h"
 #include "yi_i2c.h"
-#include "yi_spi.h"
+#include "yi_eeprom.h"
+#include "yi_flash.h"
 #include "yi_led.h"
 #include "yi_log.h"
+#include "yi_soft_timer.h"
 #include "yi_generated.h"
 #include "yi_system.h"
 /* USER CODE END Includes */
@@ -37,8 +39,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define AT24C02_ADDRESS       0x50U
-#define AT24C02_WRITE_TIME_MS 10U
 #define AT24C02_CAPACITY      256U
 #define AT24C02_PAGE_SIZE     8U
 #define AT24C02_READ_CHUNK    16U
@@ -60,6 +60,7 @@
 /* USER CODE BEGIN PV */
 static volatile uint8_t key0_event;
 static yi_gpio_callback_t key0_callback;
+static yi_soft_timer_t hello_timer;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,58 +81,42 @@ static void key0_pressed(yi_device_t *dev,
   key0_event = 1U;
 }
 
+static void hello_timer_expired(yi_soft_timer_t *timer, void *user_data)
+{
+  yi_device_t *led = (yi_device_t *)user_data;
+
+  (void)timer;
+  (void)yi_led_toggle(led);
+  (void)yi_log_info("Hello YiCore");
+}
+
 static uint8_t at24c02_test_pattern(uint16_t address, uint16_t round)
 {
   return (uint8_t)(((address * 37U) + (round * 53U)) ^ 0xA5U);
 }
 
-static int at24c02_write_page(yi_device_t *i2c, uint8_t memory_address,
-                              uint16_t round)
+static int at24c02_stress_test(yi_device_t *eeprom)
 {
-  uint8_t frame[AT24C02_PAGE_SIZE + 1U];
-  frame[0] = memory_address;
-  for(uint16_t index = 0U; index < AT24C02_PAGE_SIZE; index++)
-  {
-    frame[index + 1U] = at24c02_test_pattern(memory_address + index, round);
-  }
-  int result = yi_i2c_master_write(i2c, AT24C02_ADDRESS,
-                                   frame, sizeof(frame), 20U);
-  if(result == 0)
-  {
-    uint8_t probe;
-    uint32_t started = yi_system_uptime_ms();
-    do
-    {
-      if(yi_i2c_master_read(i2c, AT24C02_ADDRESS, &probe, 1U, 5U) == 0)
-      {
-        return 0;
-      }
-    } while((uint32_t)(yi_system_uptime_ms() - started) <
-            (AT24C02_WRITE_TIME_MS * 2U));
-    return -1;
-  }
-  return result;
-}
-
-static int at24c02_read(yi_device_t *i2c, uint8_t memory_address,
-                        uint8_t *data, uint16_t length)
-{
-  return yi_i2c_master_write_read(i2c, AT24C02_ADDRESS,
-                                  &memory_address, 1U,
-                                  data, length, 50U);
-}
-
-static int at24c02_stress_test(yi_device_t *i2c)
-{
+  uint8_t write_buffer[AT24C02_PAGE_SIZE];
   uint8_t readback[AT24C02_READ_CHUNK];
 
-  if(!yi_device_is_ready(i2c)) { return -1; }
+  if(!yi_device_is_ready(eeprom) ||
+     (yi_eeprom_get_size(eeprom) != AT24C02_CAPACITY) ||
+     (yi_eeprom_get_page_size(eeprom) != AT24C02_PAGE_SIZE))
+  {
+    return -1;
+  }
   for(uint16_t round = 0U; round < AT24C02_STRESS_ROUNDS; round++)
   {
     for(uint16_t address = 0U; address < AT24C02_CAPACITY;
         address += AT24C02_PAGE_SIZE)
     {
-      if(at24c02_write_page(i2c, (uint8_t)address, round) != 0)
+      for(uint16_t index = 0U; index < sizeof(write_buffer); index++)
+      {
+        write_buffer[index] = at24c02_test_pattern(address + index, round);
+      }
+      if(yi_eeprom_write(eeprom, address,
+                          write_buffer, sizeof(write_buffer)) != 0)
       {
         (void)yi_log_error("AT24C02 stress failure: page write or ACK polling");
         return -1;
@@ -140,8 +125,7 @@ static int at24c02_stress_test(yi_device_t *i2c)
     for(uint16_t address = 0U; address < AT24C02_CAPACITY;
         address += AT24C02_READ_CHUNK)
     {
-      if(at24c02_read(i2c, (uint8_t)address,
-                      readback, sizeof(readback)) != 0)
+      if(yi_eeprom_read(eeprom, address, readback, sizeof(readback)) != 0)
       {
         (void)yi_log_error("AT24C02 stress failure: sequential read");
         return -1;
@@ -163,114 +147,41 @@ static int at24c02_stress_test(yi_device_t *i2c)
   return 0;
 }
 
-static int w25q64_command(yi_device_t *spi, yi_device_t *cs,
-                          const uint8_t *tx, uint8_t *rx,
-                          uint16_t length, uint32_t timeout_ms)
-{
-  int result;
-  if(yi_gpio_set(cs, YI_GPIO_LOW) != 0) { return -1; }
-  result = yi_spi_transceive(spi, tx, rx, length, timeout_ms);
-  if(yi_gpio_set(cs, YI_GPIO_HIGH) != 0) { result = -1; }
-  return result;
-}
-
-static int w25q64_write_enable(yi_device_t *spi, yi_device_t *cs)
-{
-  const uint8_t command = 0x06U;
-  return w25q64_command(spi, cs, &command, NULL, 1U, 10U);
-}
-
-static int w25q64_wait_ready(yi_device_t *spi, yi_device_t *cs,
-                             uint32_t timeout_ms)
-{
-  const uint8_t tx[2] = { 0x05U, 0xFFU };
-  uint8_t rx[2];
-  uint32_t started = yi_system_uptime_ms();
-  do
-  {
-    if(w25q64_command(spi, cs, tx, rx, sizeof(tx), 10U) != 0) { return -1; }
-    if((rx[1] & 0x01U) == 0U) { return 0; }
-  } while((uint32_t)(yi_system_uptime_ms() - started) < timeout_ms);
-  return -1;
-}
-
 static uint8_t w25q64_pattern(uint32_t address, uint16_t round)
 {
   return (uint8_t)(((address * 37UL) + ((uint32_t)round * 53UL)) ^
                    (address >> 8) ^ 0xA5U);
 }
 
-static int w25q64_erase_test_sector(yi_device_t *spi, yi_device_t *cs)
+static int w25q64_stress_test(yi_device_t *flash)
 {
-  const uint8_t command[4] = {
-    0x20U, (uint8_t)(W25Q64_TEST_ADDRESS >> 16),
-    (uint8_t)(W25Q64_TEST_ADDRESS >> 8), (uint8_t)W25Q64_TEST_ADDRESS
-  };
-  if(w25q64_write_enable(spi, cs) != 0) { return -1; }
-  if(w25q64_command(spi, cs, command, NULL, sizeof(command), 20U) != 0)
-  {
-    return -1;
-  }
-  return w25q64_wait_ready(spi, cs, 5000U);
-}
+  uint8_t write_buffer[W25Q64_PAGE_SIZE];
+  uint8_t read_buffer[W25Q64_PAGE_SIZE];
 
-static int w25q64_program_page(yi_device_t *spi, yi_device_t *cs,
-                               uint32_t address, uint16_t round)
-{
-  uint8_t frame[W25Q64_PAGE_SIZE + 4U];
-  frame[0] = 0x02U;
-  frame[1] = (uint8_t)(address >> 16);
-  frame[2] = (uint8_t)(address >> 8);
-  frame[3] = (uint8_t)address;
-  for(uint16_t index = 0U; index < W25Q64_PAGE_SIZE; index++)
+  if(!yi_device_is_ready(flash) ||
+     (yi_flash_get_size(flash) != 0x00800000U) ||
+     (yi_flash_get_erase_block_size(flash) != W25Q64_SECTOR_SIZE))
   {
-    frame[index + 4U] = w25q64_pattern(address + index, round);
-  }
-  if(w25q64_write_enable(spi, cs) != 0) { return -1; }
-  if(w25q64_command(spi, cs, frame, NULL, sizeof(frame), 100U) != 0)
-  {
-    return -1;
-  }
-  return w25q64_wait_ready(spi, cs, 100U);
-}
-
-static int w25q64_verify_page(yi_device_t *spi, yi_device_t *cs,
-                              uint32_t address, uint16_t round)
-{
-  uint8_t tx[W25Q64_PAGE_SIZE + 4U] = { 0U };
-  uint8_t rx[W25Q64_PAGE_SIZE + 4U];
-  tx[0] = 0x03U;
-  tx[1] = (uint8_t)(address >> 16);
-  tx[2] = (uint8_t)(address >> 8);
-  tx[3] = (uint8_t)address;
-  if(w25q64_command(spi, cs, tx, rx, sizeof(tx), 100U) != 0) { return -1; }
-  for(uint16_t index = 0U; index < W25Q64_PAGE_SIZE; index++)
-  {
-    if(rx[index + 4U] != w25q64_pattern(address + index, round)) { return -1; }
-  }
-  return 0;
-}
-
-static int w25q64_stress_test(yi_device_t *spi, yi_device_t *cs)
-{
-  const uint8_t id_tx[4] = { 0x9FU, 0xFFU, 0xFFU, 0xFFU };
-  uint8_t id_rx[4];
-  if(!yi_device_is_ready(spi) || !yi_device_is_ready(cs) ||
-     (yi_gpio_set(cs, YI_GPIO_HIGH) != 0)) { return -1; }
-  if(w25q64_command(spi, cs, id_tx, id_rx, sizeof(id_tx), 20U) != 0 ||
-     id_rx[1] != 0xEFU || id_rx[2] != 0x40U || id_rx[3] != 0x17U)
-  {
-    (void)yi_log_error("W25Q64 JEDEC ID mismatch");
     return -1;
   }
   (void)yi_log_info("W25Q64 JEDEC ID EF4017 detected");
   for(uint16_t round = 0U; round < W25Q64_STRESS_ROUNDS; round++)
   {
-    if(w25q64_erase_test_sector(spi, cs) != 0) { return -1; }
+    if(yi_flash_erase(flash, W25Q64_TEST_ADDRESS,
+                      W25Q64_SECTOR_SIZE) != 0)
+    {
+      return -1;
+    }
     for(uint32_t offset = 0U; offset < W25Q64_SECTOR_SIZE;
         offset += W25Q64_PAGE_SIZE)
     {
-      if(w25q64_program_page(spi, cs, W25Q64_TEST_ADDRESS + offset, round) != 0)
+      for(uint16_t index = 0U; index < W25Q64_PAGE_SIZE; index++)
+      {
+        write_buffer[index] =
+          w25q64_pattern(W25Q64_TEST_ADDRESS + offset + index, round);
+      }
+      if(yi_flash_write(flash, W25Q64_TEST_ADDRESS + offset,
+                        write_buffer, sizeof(write_buffer)) != 0)
       {
         return -1;
       }
@@ -278,9 +189,18 @@ static int w25q64_stress_test(yi_device_t *spi, yi_device_t *cs)
     for(uint32_t offset = 0U; offset < W25Q64_SECTOR_SIZE;
         offset += W25Q64_PAGE_SIZE)
     {
-      if(w25q64_verify_page(spi, cs, W25Q64_TEST_ADDRESS + offset, round) != 0)
+      if(yi_flash_read(flash, W25Q64_TEST_ADDRESS + offset,
+                       read_buffer, sizeof(read_buffer)) != 0)
       {
         return -1;
+      }
+      for(uint16_t index = 0U; index < W25Q64_PAGE_SIZE; index++)
+      {
+        if(read_buffer[index] !=
+           w25q64_pattern(W25Q64_TEST_ADDRESS + offset + index, round))
+        {
+          return -1;
+        }
       }
     }
     if(((round + 1U) % 10U) == 0U)
@@ -328,20 +248,23 @@ int main(void)
   yi_device_t *led1 = YI_DT_GET(LED1);
 
 	yi_device_t *key = YI_DT_GET(KEY0);
-	yi_device_t *soft_i2c = YI_DT_GET(SOFT_I2C0);
-	yi_device_t *spi = YI_DT_GET(SPI1);
-	yi_device_t *spi_cs = YI_DT_GET(SPI1_CS);
+	yi_device_t *at24c02 = YI_DT_GET(AT24C02);
+	yi_device_t *w25q64 = YI_DT_GET(W25Q64);
 	uint32_t last_key_tick = 0U;
-	uint32_t last_hello_tick = yi_system_uptime_ms();
 	yi_gpio_callback_init(&key0_callback, key0_pressed, YI_GPIO_PIN(13));
 	if((key == NULL) || (yi_gpio_add_callback(key, &key0_callback) != 0))
 	{
 		Error_Handler();
 	}
+	yi_soft_timer_init(&hello_timer, hello_timer_expired, led1);
+	if(yi_soft_timer_start(&hello_timer, 500U, 500U) != 0)
+	{
+		Error_Handler();
+	}
 	(void)yi_log_info("YiCore initialized");
-	(void)soft_i2c;
+	(void)at24c02;
 	(void)yi_log_info("W25Q64 HW-SPI1 stress started: 18 MHz, sector 0x7FF000, 100 rounds");
-	if(w25q64_stress_test(spi, spi_cs) == 0)
+	if(w25q64_stress_test(w25q64) == 0)
 	{
 		(void)yi_led_on(led1);
 		(void)yi_log_info("W25Q64 HW-SPI1 stress test passed");
@@ -360,6 +283,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		yi_soft_timer_process();
 		uint32_t now = yi_system_uptime_ms();
 		if(key0_event != 0U)
 		{
@@ -371,12 +295,6 @@ int main(void)
         
 				(void)yi_log_info("PC13 key pressed");
 			}
-		}
-		if((now - last_hello_tick) >= 500U)
-		{
-			last_hello_tick = now;
-			yi_led_toggle(led1);
-			(void)yi_log_info("Hello YiCore");
 		}
 		yi_system_delay_ms(10U);
   }

@@ -16,15 +16,18 @@ class DtsBindingTests(unittest.TestCase):
         cls.yicore = SCRIPTS_DIR.parent
         cls.bindings = load_bindings(cls.yicore / "dts" / "bindings")
 
-    def test_current_board_validates(self):
-        tree = parse_file(self.yicore / "boards" / "fire-mini-stm32f103" / "board.dts")
+    def test_current_app_validates(self):
+        tree = parse_file(
+            self.yicore / "examples" / "stm32f103-dts-demo" / "app.dts"
+        )
         nodes = validate_tree(tree, self.bindings)
         self.assertEqual(
             [item.binding.driver for item in nodes],
             ["timer", "uart", "spi", "flash", "clock", "clock", "clock",
-             "gpio", "gpio", "gpio", "gpio", "gpio", "soft-i2c",
-             "pinmux", "pinmux", "pinmux", "gpio",
-             "led", "led", "pinmux", "pinmux", "rtt", "console"],
+             "gpio", "gpio", "gpio", "gpio", "gpio", "gpio",
+             "pinmux", "pinmux", "pinmux", "pinmux", "pinmux",
+             "soft-i2c", "at24c02", "w25q64", "led", "led",
+             "rtt", "console"],
         )
         self.assertEqual(nodes[0].properties["reg"], 0x40001400)
         self.assertEqual(nodes[0].properties["interrupts"], "TIM7_IRQn")
@@ -37,13 +40,15 @@ class DtsBindingTests(unittest.TestCase):
         self.assertEqual(nodes[9].properties["pin"], 13)
         self.assertEqual(nodes[9].properties["interrupt"], "falling")
         self.assertEqual(nodes[10].properties["drive"], "open-drain")
-        self.assertEqual(nodes[12].properties["clock-frequency"], 50000)
-        self.assertEqual(nodes[16].properties["pin"], 4)
-        self.assertEqual(nodes[17].properties["gpios"], DtsReference("gpio_led0"))
-        self.assertEqual(nodes[19].properties["function"], "uart-tx")
-        self.assertEqual(nodes[21].properties["mode"], "no-block-skip")
-        self.assertEqual(nodes[22].properties["backend"], DtsReference("rtt0"))
-        self.assertTrue(nodes[22].properties["default-console"])
+        self.assertEqual(nodes[12].properties["pin"], 4)
+        self.assertEqual(nodes[16].properties["function"], "uart-tx")
+        self.assertEqual(nodes[18].properties["clock-frequency"], 50000)
+        self.assertEqual(nodes[19].properties["bus"], DtsReference("soft_i2c0"))
+        self.assertEqual(nodes[20].properties["bus"], DtsReference("spi1"))
+        self.assertEqual(nodes[21].properties["gpios"], DtsReference("gpio_led0"))
+        self.assertEqual(nodes[23].properties["mode"], "no-block-skip")
+        self.assertEqual(nodes[24].properties["backend"], DtsReference("rtt0"))
+        self.assertTrue(nodes[24].properties["default-console"])
 
     def test_missing_required_property(self):
         tree = parse_text('''/ {

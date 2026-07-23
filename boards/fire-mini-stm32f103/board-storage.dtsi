@@ -1,0 +1,23 @@
+    at24c02: eeprom-at24c02 {
+        compatible = "atmel,24c02";
+        bus = <&soft_i2c0>;
+        address = <0x50>;
+        transfer-timeout-ms = <20>;
+        write-timeout-ms = <20>;
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };
+
+    w25q64: flash-w25q64 {
+        compatible = "winbond,w25q64";
+        bus = <&spi1>;
+        cs-gpio = <&spi1_cs>;
+        spi-frequency = <18000000>;
+        spi-mode = <0>;
+        program-timeout-ms = <100>;
+        erase-timeout-ms = <5000>;
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };

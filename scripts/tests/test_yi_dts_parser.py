@@ -16,9 +16,9 @@ from yi_dts_parser import (  # noqa: E402
 
 
 class DtsParserTests(unittest.TestCase):
-    def test_current_board(self):
-        board = SCRIPTS_DIR.parent / "boards" / "fire-mini-stm32f103" / "board.dts"
-        tree = parse_file(board)
+    def test_current_app(self):
+        app = SCRIPTS_DIR.parent / "examples" / "stm32f103-dts-demo" / "app.dts"
+        tree = parse_file(app)
 
         self.assertEqual(
             set(tree.labels),
@@ -26,8 +26,8 @@ class DtsParserTests(unittest.TestCase):
              "timers3", "timers4", "timers5", "timers6", "timers7", "timers8", "gpio_led0", "led0",
              "usart1", "usart2", "usart3", "uart4", "uart5", "spi1", "spi2", "spi3",
              "i2c1", "i2c2", "can1", "key0", "gpio_led1", "led1",
-             "soft_i2c0_scl", "soft_i2c0_sda", "soft_i2c0",
-             "spi1_sck", "spi1_miso", "spi1_mosi", "spi1_cs",
+             "soft_i2c0_scl", "soft_i2c0_sda", "soft_i2c0", "at24c02",
+             "spi1_sck", "spi1_miso", "spi1_mosi", "spi1_cs", "w25q64",
              "uart0_tx", "uart0_rx", "rtt0", "console0"},
         )
         self.assertEqual(tree.node_by_label("gpio_led0").properties["pin"], DtsCells((2,)))
