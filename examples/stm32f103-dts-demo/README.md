@@ -18,3 +18,8 @@ initialization is owned by YiCore and the board DeviceTree; regenerating code
 with STM32CubeMX may overwrite application integration points, so review its
 changes before committing them.
 
+The board DeviceTree defines `soft_spi0` on PA5/PA6/PA7 as SCK/MISO/MOSI and
+PA4 as the W25Q64 chip select.
+Set its SPI mode with `mode = <0>` through `mode = <3>`, then obtain it with
+`YI_DT_GET(SOFT_SPI0)` and transfer through `yi_spi_transceive()`. Chip select is
+an application-controlled GPIO so one software bus can serve multiple devices.
