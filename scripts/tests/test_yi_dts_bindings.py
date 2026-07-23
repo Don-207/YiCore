@@ -21,23 +21,24 @@ class DtsBindingTests(unittest.TestCase):
         nodes = validate_tree(tree, self.bindings)
         self.assertEqual(
             [item.binding.driver for item in nodes],
-            ["timer", "uart", "flash", "clock", "clock", "clock",
+            ["timer", "uart", "spi", "flash", "clock", "clock", "clock",
              "gpio", "gpio", "gpio", "gpio", "gpio", "soft-i2c",
-             "gpio", "gpio", "gpio", "gpio", "soft-spi",
+             "pinmux", "pinmux", "pinmux", "gpio",
              "led", "led", "pinmux", "pinmux", "rtt", "console"],
         )
         self.assertEqual(nodes[0].properties["reg"], 0x40001400)
         self.assertEqual(nodes[0].properties["interrupts"], "TIM7_IRQn")
         self.assertEqual(nodes[1].properties["current-speed"], 115200)
         self.assertEqual(nodes[1].properties["tx-pin"], DtsReference("uart0_tx"))
-        self.assertEqual(nodes[2].properties["base-address"], 0x08000000)
-        self.assertEqual(nodes[3].properties["clock-id"], "gpioa")
-        self.assertEqual(nodes[6].properties["pin"], 2)
-        self.assertEqual(nodes[8].properties["pin"], 13)
-        self.assertEqual(nodes[8].properties["interrupt"], "falling")
-        self.assertEqual(nodes[9].properties["drive"], "open-drain")
-        self.assertEqual(nodes[11].properties["clock-frequency"], 50000)
-        self.assertEqual(nodes[16].properties["mode"], 0)
+        self.assertEqual(nodes[2].properties["max-frequency"], 18000000)
+        self.assertEqual(nodes[3].properties["base-address"], 0x08000000)
+        self.assertEqual(nodes[4].properties["clock-id"], "gpioa")
+        self.assertEqual(nodes[7].properties["pin"], 2)
+        self.assertEqual(nodes[9].properties["pin"], 13)
+        self.assertEqual(nodes[9].properties["interrupt"], "falling")
+        self.assertEqual(nodes[10].properties["drive"], "open-drain")
+        self.assertEqual(nodes[12].properties["clock-frequency"], 50000)
+        self.assertEqual(nodes[16].properties["pin"], 4)
         self.assertEqual(nodes[17].properties["gpios"], DtsReference("gpio_led0"))
         self.assertEqual(nodes[19].properties["function"], "uart-tx")
         self.assertEqual(nodes[21].properties["mode"], "no-block-skip")

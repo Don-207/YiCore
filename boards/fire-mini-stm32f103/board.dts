@@ -100,59 +100,52 @@
         status = "okay";
     };
 
-    soft_spi0_sck: soft-spi0-sck {
-        compatible = "yi,stm32-gpio";
+    spi1_sck: spi1-sck {
+        compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <5>;
+        function = "spi-clock";
+        mode = "alternate-push-pull";
+        speed = "high";
         clocks = <&clk_gpioa>;
-        direction = "output";
         init-level = "pre-kernel";
         init-priority = <20>;
         status = "okay";
     };
 
-    soft_spi0_miso: soft-spi0-miso {
-        compatible = "yi,stm32-gpio";
+    spi1_miso: spi1-miso {
+        compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <6>;
-        clocks = <&clk_gpioa>;
-        direction = "input";
+        function = "spi-miso";
+        mode = "input";
         pull = "none";
+        clocks = <&clk_gpioa>;
         init-level = "pre-kernel";
         init-priority = <20>;
         status = "okay";
     };
 
-    soft_spi0_mosi: soft-spi0-mosi {
-        compatible = "yi,stm32-gpio";
+    spi1_mosi: spi1-mosi {
+        compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <7>;
+        function = "spi-mosi";
+        mode = "alternate-push-pull";
+        speed = "high";
         clocks = <&clk_gpioa>;
-        direction = "output";
         init-level = "pre-kernel";
         init-priority = <20>;
         status = "okay";
     };
 
-    soft_spi0_cs: soft-spi0-cs {
+    spi1_cs: spi1-cs {
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <4>;
         clocks = <&clk_gpioa>;
         direction = "output";
         init-level = "pre-kernel";
-        init-priority = <20>;
-        status = "okay";
-    };
-
-    soft_spi0: soft-spi0 {
-        compatible = "yi,soft-spi";
-        sck-gpio = <&soft_spi0_sck>;
-        miso-gpio = <&soft_spi0_miso>;
-        mosi-gpio = <&soft_spi0_mosi>;
-        max-frequency = <100000>;
-        mode = <0>;
-        init-level = "post-kernel";
         init-priority = <20>;
         status = "okay";
     };
@@ -220,6 +213,18 @@
     current-speed = <115200>;
     tx-pin = <&uart0_tx>;
     rx-pin = <&uart0_rx>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "okay";
+};
+
+&spi1 {
+    sck-pin = <&spi1_sck>;
+    miso-pin = <&spi1_miso>;
+    mosi-pin = <&spi1_mosi>;
+    max-frequency = <18000000>;
+    mode = <0>;
     irq-priority = <10>;
     init-level = "post-kernel";
     init-priority = <20>;

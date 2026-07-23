@@ -329,8 +329,8 @@ int main(void)
 
 	yi_device_t *key = YI_DT_GET(KEY0);
 	yi_device_t *soft_i2c = YI_DT_GET(SOFT_I2C0);
-	yi_device_t *soft_spi = YI_DT_GET(SOFT_SPI0);
-	yi_device_t *soft_spi_cs = YI_DT_GET(SOFT_SPI0_CS);
+	yi_device_t *spi = YI_DT_GET(SPI1);
+	yi_device_t *spi_cs = YI_DT_GET(SPI1_CS);
 	uint32_t last_key_tick = 0U;
 	uint32_t last_hello_tick = yi_system_uptime_ms();
 	yi_gpio_callback_init(&key0_callback, key0_pressed, YI_GPIO_PIN(13));
@@ -340,16 +340,16 @@ int main(void)
 	}
 	(void)yi_log_info("YiCore initialized");
 	(void)soft_i2c;
-	(void)yi_log_info("W25Q64 Soft-SPI stress started: sector 0x7FF000, 100 rounds");
-if(w25q64_stress_test(soft_spi, soft_spi_cs) == 0)
+	(void)yi_log_info("W25Q64 HW-SPI1 stress started: 18 MHz, sector 0x7FF000, 100 rounds");
+	if(w25q64_stress_test(spi, spi_cs) == 0)
 	{
 		(void)yi_led_on(led1);
-		(void)yi_log_info("W25Q64 Soft-SPI stress test passed");
+		(void)yi_log_info("W25Q64 HW-SPI1 stress test passed");
 	}
 	else
 	{
 		(void)yi_led_off(led1);
-		(void)yi_log_error("W25Q64 Soft-SPI stress test failed");
+		(void)yi_log_error("W25Q64 HW-SPI1 stress test failed");
 	}
   /* USER CODE END 2 */
 
