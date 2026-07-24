@@ -428,6 +428,7 @@ def _generate_w25q64(item: ValidatedNode) -> str:
     size = item.properties["size"]
     erase_size = item.properties["erase-block-size"]
     write_size = item.properties["write-block-size"]
+    transfer_timeout = item.properties["transfer-timeout-ms"]
     program_timeout = item.properties["program-timeout-ms"]
     erase_timeout = item.properties["erase-timeout-ms"]
 
@@ -435,7 +436,7 @@ def _generate_w25q64(item: ValidatedNode) -> str:
         raise BindingError(f"{item.node.path}: invalid SPI frequency or mode")
     if size != 0x00800000 or erase_size != 4096 or write_size != 1:
         raise BindingError(f"{item.node.path}: invalid W25Q64 geometry")
-    if program_timeout <= 0 or erase_timeout <= 0:
+    if transfer_timeout <= 0 or program_timeout <= 0 or erase_timeout <= 0:
         raise BindingError(f"{item.node.path}: timeouts must be positive")
 
     return f"""static yi_device_t {label};
@@ -456,6 +457,7 @@ static const yi_w25q64_config_t {label}_cfg =
         .mode = {mode}U,
         .cs_active_high = false
     }},
+    .transfer_timeout_ms = {transfer_timeout}U,
     .program_timeout_ms = {program_timeout}U,
     .erase_timeout_ms = {erase_timeout}U
 }};

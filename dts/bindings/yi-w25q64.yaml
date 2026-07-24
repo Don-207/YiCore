@@ -25,6 +25,9 @@ properties:
   write-block-size:
     type: int
     default: 1
+  transfer-timeout-ms:
+    type: int
+    default: 100
   program-timeout-ms:
     type: int
     default: 100
