@@ -1,4 +1,4 @@
-#include "yi_timer.h"
+#include "yi_timer_stm32f1.h"
 
 static int yi_timer_calculate_period(const yi_timer_config_t *cfg,
                                      uint32_t *prescaler,

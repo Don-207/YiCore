@@ -1,5 +1,5 @@
 / {
-    /include/ "../../soc/st/stm32f103xe/soc.dtsi"
+    /include/ "../../dts/arm/st/stm32f103xe/soc.dtsi"
 
     /include/ "board-clocks.dtsi"
     /include/ "board-gpios.dtsi"

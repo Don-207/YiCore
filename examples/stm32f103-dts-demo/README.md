@@ -5,6 +5,10 @@ project and Keil MDK-ARM. The application DeviceTree entry is `app.dts`; it
 includes the reference board description from
 `boards/fire-mini-stm32f103/board.dts`.
 
+The example references repository-level STM32 dependencies under `vendor/st/`
+and YiCore's STM32F1 backend under `soc/st/stm32/stm32f1/`. It intentionally
+does not keep a private copy of CMSIS or the HAL driver.
+
 ## Build
 
 1. Install Python 3.9 or newer and Keil MDK-ARM with STM32F1 device support.

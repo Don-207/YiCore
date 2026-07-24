@@ -35,7 +35,7 @@ python scripts\yi_dts_gen.py `
 当前工程按职责拆分：
 
 ```text
-soc/st/stm32f103xe/              芯片控制器、地址、IRQ和RCC能力
+dts/arm/st/stm32f103xe/          芯片控制器、地址、IRQ和RCC能力
 boards/fire-mini-stm32f103/      PCB固定连接和板载设备
 examples/stm32f103-dts-demo/     应用启用策略
 ```
@@ -157,14 +157,14 @@ Clock驱动使用引用计数，因此多个引脚可以安全共享同一个GPI
 寄存器地址、RCC位和IRQ定义在：
 
 ```text
-soc/st/stm32f103xe/timers.dtsi
+dts/arm/st/stm32f103xe/timers.dtsi
 ```
 
 SoC中的Timer节点默认均为`disabled`。板级DTS包含SoC描述：
 
 ```dts
 / {
-    /include/ "../../soc/st/stm32f103xe/soc.dtsi"
+    /include/ "../../dts/arm/st/stm32f103xe/soc.dtsi"
 
     /* board devices */
 };

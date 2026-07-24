@@ -402,7 +402,11 @@ fpga_update()
 
                   |
 
-              HAL Layer
+          STM32 SoC Backend
+
+                  |
+
+              Vendor HAL
 
 
                   |
@@ -438,8 +442,11 @@ fpga_update()
 - 应用通过平台无关的 `yi_system_init()` 完成HAL及系统时钟初始化
 - GPIO与PinMux配置完全来自DTS，不再调用 `MX_GPIO_Init()`
 - 公共GPIO/PinMux API使用YiCore枚举，不向应用暴露HAL配置宏
-- UART公共API位于 `yi_uart.h`，STM32句柄和IRQ配置隔离在 `yi_uart_stm32.h`
-- STM32 HAL仍是当前backend；替换芯片平台时新增对应port/backend，不改应用接口
+- UART公共API位于 `drivers/uart/yi_uart.h`，STM32句柄和IRQ配置隔离在
+  `soc/st/stm32/stm32f1/yi_uart_stm32.h`
+- STM32 HAL仍是当前backend；替换芯片平台时新增对应SoC backend，不改应用接口
+- CMSIS和STM32Cube原厂代码集中在 `vendor/st/`，保持上游文件不修改
+- STM32 HAL、LL和CMSIS Device调用只允许出现在 `soc/st/stm32/` 后端
 
 边界结构：
 
@@ -447,6 +454,6 @@ fpga_update()
              |
        YiCore public API
              |
-      STM32 port/backend
+       STM32 SoC backend
              |
-       STM32 HAL / CMSIS
+      vendor STM32 HAL / CMSIS
