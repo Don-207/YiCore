@@ -1,4 +1,4 @@
-    spi1_sck: spi1-sck {
+    spi1_sck_pin: spi1-sck-pin {
         compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <5>;
@@ -8,10 +8,10 @@
         clocks = <&clk_gpioa>;
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
 
-    spi1_miso: spi1-miso {
+    spi1_miso_pin: spi1-miso-pin {
         compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <6>;
@@ -21,10 +21,10 @@
         clocks = <&clk_gpioa>;
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
 
-    spi1_mosi: spi1-mosi {
+    spi1_mosi_pin: spi1-mosi-pin {
         compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <7>;
@@ -34,10 +34,38 @@
         clocks = <&clk_gpioa>;
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
 
-    uart0_tx: uart0-tx {
+    i2c1_scl_pin: i2c1-scl-pin {
+        compatible = "yi,stm32-pinmux";
+        port = "GPIOB";
+        pin = <6>;
+        function = "i2c-scl";
+        mode = "alternate-open-drain";
+        pull = "up";
+        speed = "high";
+        clocks = <&clk_gpiob>;
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    i2c1_sda_pin: i2c1-sda-pin {
+        compatible = "yi,stm32-pinmux";
+        port = "GPIOB";
+        pin = <7>;
+        function = "i2c-sda";
+        mode = "alternate-open-drain";
+        pull = "up";
+        speed = "high";
+        clocks = <&clk_gpiob>;
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    usart1_tx_pin: usart1-tx-pin {
         compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <9>;
@@ -45,10 +73,10 @@
         mode = "alternate-push-pull";
         speed = "high";
         clocks = <&clk_gpioa>;
-        status = "okay";
+        status = "available";
     };
 
-    uart0_rx: uart0-rx {
+    usart1_rx_pin: usart1-rx-pin {
         compatible = "yi,stm32-pinmux";
         port = "GPIOA";
         pin = <10>;
@@ -56,5 +84,5 @@
         mode = "input";
         pull = "none";
         clocks = <&clk_gpioa>;
-        status = "okay";
+        status = "available";
     };

@@ -4,8 +4,38 @@
     /include/ "board-clocks.dtsi"
     /include/ "board-gpios.dtsi"
     /include/ "board-pinctrl.dtsi"
-    /include/ "board-buses.dtsi"
-    /include/ "board-storage.dtsi"
-    /include/ "board-ui.dtsi"
+    /include/ "board-software-buses.dtsi"
+    /include/ "board-devices.dtsi"
     /include/ "board-console.dtsi"
+};
+
+&usart1 {
+    current-speed = <115200>;
+    tx-pin = <&usart1_tx_pin>;
+    rx-pin = <&usart1_rx_pin>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "available";
+};
+
+&spi1 {
+    sck-pin = <&spi1_sck_pin>;
+    miso-pin = <&spi1_miso_pin>;
+    mosi-pin = <&spi1_mosi_pin>;
+    max-frequency = <18000000>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "available";
+};
+
+&i2c1 {
+    scl-pin = <&i2c1_scl_pin>;
+    sda-pin = <&i2c1_sda_pin>;
+    clock-frequency = <50000>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "available";
 };

@@ -10,10 +10,6 @@
 #define W25Q64_CMD_READ_JEDEC_ID      0x9FU
 #define W25Q64_STATUS_BUSY            0x01U
 #define W25Q64_COMMAND_SIZE           4U
-#define W25Q64_TRANSFER_SIZE          (W25Q64_COMMAND_SIZE + \
-                                       YI_W25Q64_PAGE_SIZE)
-#define W25Q64_COMMAND_TIMEOUT_MS     20U
-
 static bool yi_w25q64_range_valid(const yi_w25q64_config_t *cfg,
                                   uint32_t offset,
                                   uint32_t length)
@@ -37,7 +33,7 @@ static int yi_w25q64_write_enable(const yi_w25q64_config_t *cfg)
 {
     const uint8_t command = W25Q64_CMD_WRITE_ENABLE;
     return yi_w25q64_transfer(cfg, &command, NULL, 1U,
-                              W25Q64_COMMAND_TIMEOUT_MS);
+                              cfg->transfer_timeout_ms);
 }
 
 static int yi_w25q64_wait_ready(const yi_w25q64_config_t *cfg,
@@ -50,7 +46,7 @@ static int yi_w25q64_wait_ready(const yi_w25q64_config_t *cfg,
     do
     {
         if(yi_w25q64_transfer(cfg, tx, rx, sizeof(tx),
-                              W25Q64_COMMAND_TIMEOUT_MS) != 0)
+                              cfg->transfer_timeout_ms) != 0)
         {
             return -1;
         }
@@ -72,7 +68,7 @@ static uint32_t yi_w25q64_read_jedec_id(const yi_w25q64_config_t *cfg)
     uint8_t rx[4];
 
     if(yi_w25q64_transfer(cfg, tx, rx, sizeof(tx),
-                          W25Q64_COMMAND_TIMEOUT_MS) != 0)
+                          cfg->transfer_timeout_ms) != 0)
     {
         return 0U;
     }
@@ -97,6 +93,7 @@ int yi_w25q64_init(const void *config)
        (cfg->flash.size != YI_W25Q64_SIZE) ||
        (cfg->flash.erase_block_size != YI_W25Q64_SECTOR_SIZE) ||
        (cfg->flash.write_block_size != 1U) ||
+       (cfg->transfer_timeout_ms == 0U) ||
        (cfg->program_timeout_ms == 0U) ||
        (cfg->erase_timeout_ms == 0U))
     {
@@ -113,14 +110,18 @@ static int yi_w25q64_read(yi_device_t *dev, uint32_t offset,
                            void *buffer, uint32_t length)
 {
     const yi_w25q64_config_t *cfg = dev->config;
+    yi_w25q64_data_t *data = dev->data;
     uint8_t *output = buffer;
-    uint8_t tx[W25Q64_TRANSFER_SIZE];
-    uint8_t rx[W25Q64_TRANSFER_SIZE];
+    uint8_t *tx;
+    uint8_t *rx;
 
-    if((buffer == NULL) || !yi_w25q64_range_valid(cfg, offset, length))
+    if((buffer == NULL) || (data == NULL) ||
+       !yi_w25q64_range_valid(cfg, offset, length))
     {
         return -1;
     }
+    tx = data->tx_buffer;
+    rx = data->rx_buffer;
 
     while(length > 0U)
     {
@@ -138,7 +139,7 @@ static int yi_w25q64_read(yi_device_t *dev, uint32_t offset,
             tx[index] = 0xFFU;
         }
         if(yi_w25q64_transfer(cfg, tx, rx, transfer_length,
-                              W25Q64_COMMAND_TIMEOUT_MS) != 0)
+                              cfg->transfer_timeout_ms) != 0)
         {
             return -1;
         }
@@ -157,13 +158,16 @@ static int yi_w25q64_write(yi_device_t *dev, uint32_t offset,
                             const void *buffer, uint32_t length)
 {
     const yi_w25q64_config_t *cfg = dev->config;
+    yi_w25q64_data_t *data = dev->data;
     const uint8_t *input = buffer;
-    uint8_t frame[W25Q64_TRANSFER_SIZE];
+    uint8_t *frame;
 
-    if((buffer == NULL) || !yi_w25q64_range_valid(cfg, offset, length))
+    if((buffer == NULL) || (data == NULL) ||
+       !yi_w25q64_range_valid(cfg, offset, length))
     {
         return -1;
     }
+    frame = data->tx_buffer;
 
     while(length > 0U)
     {
@@ -224,7 +228,7 @@ static int yi_w25q64_erase(yi_device_t *dev,
 
         if((yi_w25q64_write_enable(cfg) != 0) ||
            (yi_w25q64_transfer(cfg, command, NULL, sizeof(command),
-                                W25Q64_COMMAND_TIMEOUT_MS) != 0) ||
+                                cfg->transfer_timeout_ms) != 0) ||
            (yi_w25q64_wait_ready(cfg, cfg->erase_timeout_ms) != 0))
         {
             return -1;

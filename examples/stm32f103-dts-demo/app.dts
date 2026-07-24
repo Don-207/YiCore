@@ -1,26 +1,5 @@
 /include/ "../../boards/fire-mini-stm32f103/board.dts"
 
-&usart1 {
-    current-speed = <115200>;
-    tx-pin = <&uart0_tx>;
-    rx-pin = <&uart0_rx>;
-    irq-priority = <10>;
-    init-level = "post-kernel";
-    init-priority = <20>;
-    status = "okay";
-};
-
-&spi1 {
-    sck-pin = <&spi1_sck>;
-    miso-pin = <&spi1_miso>;
-    mosi-pin = <&spi1_mosi>;
-    max-frequency = <18000000>;
-    irq-priority = <10>;
-    init-level = "post-kernel";
-    init-priority = <20>;
-    status = "okay";
-};
-
 &timers7 {
     tick-frequency = <1000>;
     irq-priority = <10>;
@@ -29,7 +8,7 @@
     status = "okay";
 };
 
-&soft_i2c0 {
+&key0 {
     status = "okay";
 };
 
