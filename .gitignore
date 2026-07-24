@@ -6,6 +6,11 @@ venv/
 
 # YiCore generated DeviceTree sources
 /generated/
+**/generated/
+
+# Local hardware debug captures
+*.jlink
+*.log
 
 # Keil build output and per-user settings
 **/MDK-ARM/*/
@@ -34,4 +39,3 @@ venv/
 /.idea/
 .DS_Store
 Thumbs.db
-

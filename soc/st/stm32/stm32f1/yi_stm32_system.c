@@ -68,3 +68,18 @@ void yi_system_irq_lock(void)
 {
     __disable_irq();
 }
+
+uint32_t yi_system_irq_save(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+void yi_system_irq_restore(uint32_t key)
+{
+    if((key & 1U) == 0U)
+    {
+        __enable_irq();
+    }
+}

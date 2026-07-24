@@ -218,9 +218,12 @@ USART3_TX -> DMA1_Channel2, USART3_RX -> DMA1_Channel3
 
 启用UART后，生成器会同时生成USART IRQ和DMA IRQ入口。阻塞收发仍可使用
 `yi_uart_write()`和`yi_uart_read()`；DMA发送使用`yi_uart_write_dma()`。
-变长接收推荐使用`yi_uart_rx_start_dma()`启动循环DMA，然后在主循环中通过
-`yi_uart_rx_idle(dev, true)`判断IDLE帧间隔，并用`yi_uart_rx_dma_pos()`读取
-当前DMA写入位置。
+变长接收可直接使用`yi_uart_rx_start_dma()`启动循环DMA，然后通过
+`yi_uart_rx_dma_pos()`和`yi_uart_rx_idle(dev, true)`自行管理DMA缓冲。
+如果应用需要字节流环形缓冲，可使用可选的
+`yi_uart_dma_lwrb_start()`适配层；它在主循环中通过
+`yi_uart_dma_lwrb_poll()`同步DMA当前位置，再用
+`yi_uart_dma_lwrb_available()`和`yi_uart_dma_lwrb_read()`消费数据。
 
 GPIO模拟SPI使用`yi,soft-spi`，通过`sck-gpio`、`miso-gpio`和`mosi-gpio`
 引用三个GPIO设备，`max-frequency`支持1kHz至500kHz。模拟SPI与硬件SPI共用

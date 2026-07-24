@@ -114,6 +114,8 @@ int yi_uart_stm32_init(const void *config)
     data->rx_dma_buffer = NULL;
     data->rx_dma_size = 0U;
     data->rx_idle_seen = false;
+    data->rx_callback = NULL;
+    data->rx_callback_user_data = NULL;
 
     if(yi_uart_stm32_dma_init(cfg, data) != 0)
     {
@@ -180,6 +182,10 @@ static int yi_uart_close(yi_device_t *dev)
         return -1;
     }
     yi_uart_stm32_dma_deinit(cfg, data);
+    data->rx_dma_buffer = NULL;
+    data->rx_dma_size = 0U;
+    data->rx_callback = NULL;
+    data->rx_callback_user_data = NULL;
     return yi_stm32_periph_clock_disable(&cfg->clock);
 }
 
@@ -209,6 +215,16 @@ static int yi_uart_read_blocking(yi_device_t *dev, uint8_t *buf, uint32_t len)
                              YI_UART_TIMEOUT_MS) == HAL_OK) ? 0 : -1;
 }
 
+static void yi_uart_stm32_rx_notify(yi_device_t *dev,
+                                    yi_uart_stm32_data_t *data,
+                                    yi_uart_rx_event_t event)
+{
+    if((data != NULL) && (data->rx_callback != NULL))
+    {
+        data->rx_callback(dev, event, data->rx_callback_user_data);
+    }
+}
+
 void yi_uart_stm32_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))
@@ -218,6 +234,7 @@ void yi_uart_stm32_irq_handler(yi_device_t *dev)
         {
             __HAL_UART_CLEAR_IDLEFLAG(&data->huart);
             data->rx_idle_seen = true;
+            yi_uart_stm32_rx_notify(dev, data, YI_UART_RX_EVENT_IDLE);
         }
         HAL_UART_IRQHandler(&data->huart);
     }
@@ -237,7 +254,23 @@ void yi_uart_stm32_dma_rx_irq_handler(yi_device_t *dev)
     if((dev != NULL) && (dev->data != NULL))
     {
         yi_uart_stm32_data_t *data = (yi_uart_stm32_data_t *)dev->data;
+        bool dma_half_complete =
+            ((data->hdma_rx.DmaBaseAddress->ISR &
+              (DMA_FLAG_HT1 << data->hdma_rx.ChannelIndex)) != RESET) &&
+            ((data->hdma_rx.Instance->CCR & DMA_IT_HT) != RESET);
+        bool dma_transfer_complete =
+            ((data->hdma_rx.DmaBaseAddress->ISR &
+              (DMA_FLAG_TC1 << data->hdma_rx.ChannelIndex)) != RESET) &&
+            ((data->hdma_rx.Instance->CCR & DMA_IT_TC) != RESET);
         HAL_DMA_IRQHandler(&data->hdma_rx);
+        if(dma_half_complete)
+        {
+            yi_uart_stm32_rx_notify(dev, data, YI_UART_RX_EVENT_DMA_HALF);
+        }
+        else if(dma_transfer_complete)
+        {
+            yi_uart_stm32_rx_notify(dev, data, YI_UART_RX_EVENT_DMA_COMPLETE);
+        }
     }
 }
 
@@ -301,6 +334,31 @@ static int yi_uart_rx_start_dma_impl(yi_device_t *dev, uint8_t *buf, uint32_t le
     return 0;
 }
 
+static int yi_uart_rx_set_callback_impl(yi_device_t *dev,
+                                        yi_uart_rx_callback_t callback,
+                                        void *user_data)
+{
+    yi_uart_stm32_data_t *data;
+
+    if(!yi_device_is_ready(dev) || (dev->data == NULL))
+    {
+        return -1;
+    }
+
+    data = (yi_uart_stm32_data_t *)dev->data;
+    if(callback == NULL)
+    {
+        data->rx_callback = NULL;
+        data->rx_callback_user_data = NULL;
+    }
+    else
+    {
+        data->rx_callback_user_data = user_data;
+        data->rx_callback = callback;
+    }
+    return 0;
+}
+
 static uint32_t yi_uart_rx_dma_pos_impl(yi_device_t *dev)
 {
     yi_uart_stm32_data_t *data;
@@ -346,7 +404,8 @@ const yi_uart_api_t yi_uart_stm32_api =
     .read_dma = yi_uart_read_dma_impl,
     .rx_start_dma = yi_uart_rx_start_dma_impl,
     .rx_dma_pos = yi_uart_rx_dma_pos_impl,
-    .rx_idle = yi_uart_rx_idle_impl
+    .rx_idle = yi_uart_rx_idle_impl,
+    .rx_set_callback = yi_uart_rx_set_callback_impl
 };
 
 const yi_device_api_t yi_uart_driver_api =
@@ -411,4 +470,13 @@ bool yi_uart_rx_idle(yi_device_t *dev, bool clear)
     const yi_uart_api_t *api = yi_uart_api_get(dev);
     return ((api != NULL) && (api->rx_idle != NULL)) ?
         api->rx_idle(dev, clear) : false;
+}
+
+int yi_uart_rx_set_callback(yi_device_t *dev,
+                            yi_uart_rx_callback_t callback,
+                            void *user_data)
+{
+    const yi_uart_api_t *api = yi_uart_api_get(dev);
+    return ((api != NULL) && (api->rx_set_callback != NULL)) ?
+        api->rx_set_callback(dev, callback, user_data) : -1;
 }

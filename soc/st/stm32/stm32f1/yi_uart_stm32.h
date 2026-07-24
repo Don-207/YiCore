@@ -30,6 +30,8 @@ typedef struct
     uint8_t *rx_dma_buffer;
     uint32_t rx_dma_size;
     volatile bool rx_idle_seen;
+    yi_uart_rx_callback_t rx_callback;
+    void *rx_callback_user_data;
 } yi_uart_stm32_data_t;
 
 int yi_uart_stm32_init(const void *config);
