@@ -4,7 +4,7 @@
         mode = "no-block-skip";
         init-level = "post-kernel";
         init-priority = <10>;
-        status = "okay";
+        status = "available";
     };
 
     console0: console0 {

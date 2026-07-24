@@ -262,17 +262,17 @@ int main(void)
 		Error_Handler();
 	}
 	(void)yi_log_info("YiCore initialized");
-	(void)at24c02;
-	(void)yi_log_info("W25Q64 HW-SPI1 stress started: 18 MHz, sector 0x7FF000, 100 rounds");
-	if(w25q64_stress_test(w25q64) == 0)
+	(void)w25q64;
+	(void)yi_log_info("AT24C02 stress started: 100 rounds");
+	if(at24c02_stress_test(at24c02) == 0)
 	{
 		(void)yi_led_on(led1);
-		(void)yi_log_info("W25Q64 HW-SPI1 stress test passed");
+		(void)yi_log_info("AT24C02 stress test passed");
 	}
 	else
 	{
 		(void)yi_led_off(led1);
-		(void)yi_log_error("W25Q64 HW-SPI1 stress test failed");
+		(void)yi_log_error("AT24C02 stress test failed");
 	}
   /* USER CODE END 2 */
 

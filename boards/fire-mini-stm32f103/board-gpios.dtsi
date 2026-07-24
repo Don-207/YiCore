@@ -1,21 +1,21 @@
-    gpio_led0: gpio-led0 {
+    led0_gpio: led0-gpio {
         compatible = "yi,stm32-gpio";
         port = "GPIOC";
         pin = <2>;
         clocks = <&clk_gpioc>;
         init-level = "pre-kernel";
         init-priority = <10>;
-        status = "okay";
+        status = "available";
     };
 
-    gpio_led1: gpio-led1 {
+    led1_gpio: led1-gpio {
         compatible = "yi,stm32-gpio";
         port = "GPIOC";
         pin = <3>;
         clocks = <&clk_gpioc>;
         init-level = "pre-kernel";
         init-priority = <10>;
-        status = "okay";
+        status = "available";
     };
 
     key0: key0 {
@@ -29,10 +29,10 @@
         irq-priority = <10>;
         init-level = "pre-kernel";
         init-priority = <10>;
-        status = "okay";
+        status = "disabled";
     };
 
-    soft_i2c0_scl: soft-i2c0-scl {
+    soft_i2c0_scl_gpio: soft-i2c0-scl-gpio {
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <2>;
@@ -42,10 +42,10 @@
         pull = "up";
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
 
-    soft_i2c0_sda: soft-i2c0-sda {
+    soft_i2c0_sda_gpio: soft-i2c0-sda-gpio {
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <3>;
@@ -55,10 +55,44 @@
         pull = "up";
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
 
-    spi1_cs: spi1-cs {
+    soft_spi0_sck_gpio: soft-spi0-sck-gpio {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <5>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    soft_spi0_miso_gpio: soft-spi0-miso-gpio {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <6>;
+        clocks = <&clk_gpioa>;
+        direction = "input";
+        pull = "none";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    soft_spi0_mosi_gpio: soft-spi0-mosi-gpio {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOA";
+        pin = <7>;
+        clocks = <&clk_gpioa>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    w25q64_cs_gpio: w25q64-cs-gpio {
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <4>;
@@ -66,5 +100,5 @@
         direction = "output";
         init-level = "pre-kernel";
         init-priority = <20>;
-        status = "okay";
+        status = "available";
     };
