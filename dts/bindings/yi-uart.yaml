@@ -31,3 +31,19 @@ properties:
   irq-priority:
     type: int
     default: 10
+
+  tx-dma-channel:
+    type: identifier
+
+  tx-dma-interrupt:
+    type: identifier
+
+  rx-dma-channel:
+    type: identifier
+
+  rx-dma-interrupt:
+    type: identifier
+
+  dma-irq-priority:
+    type: int
+    default: 10

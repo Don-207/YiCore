@@ -170,6 +170,12 @@ def _irq_handler(irq: str) -> str:
     return irq.removesuffix("_IRQn") + "_IRQHandler"
 
 
+def _optional_irq(item: ValidatedNode, name: str) -> str | None:
+    if name not in item.properties:
+        return None
+    return _irq(item, name)
+
+
 def _irq_priority(item: ValidatedNode) -> int:
     priority = item.properties["irq-priority"]
     if not 0 <= priority <= 15:
@@ -262,8 +268,44 @@ def _generate_uart(item: ValidatedNode) -> str:
     interrupt = _irq(item, "interrupts")
     handler = _irq_handler(interrupt)
     priority = _irq_priority(item)
+    tx_dma_channel = item.properties.get("tx-dma-channel")
+    rx_dma_channel = item.properties.get("rx-dma-channel")
+    tx_dma_irq = _optional_irq(item, "tx-dma-interrupt")
+    rx_dma_irq = _optional_irq(item, "rx-dma-interrupt")
+    dma_priority = item.properties["dma-irq-priority"]
+
+    if (tx_dma_channel is None) != (tx_dma_irq is None):
+        raise BindingError(
+            f"{item.node.path}: tx-dma-channel and tx-dma-interrupt must be set together"
+        )
+    if (rx_dma_channel is None) != (rx_dma_irq is None):
+        raise BindingError(
+            f"{item.node.path}: rx-dma-channel and rx-dma-interrupt must be set together"
+        )
+    if not 0 <= dma_priority <= 15:
+        raise BindingError(f"{item.node.path}: dma-irq-priority must be in range 0..15")
     if speed <= 0:
         raise BindingError(f"{item.node.path}: current-speed must be positive")
+    tx_dma_channel_expr = f"{tx_dma_channel}" if tx_dma_channel else "NULL"
+    rx_dma_channel_expr = f"{rx_dma_channel}" if rx_dma_channel else "NULL"
+    tx_dma_irq_expr = tx_dma_irq if tx_dma_irq else "0"
+    rx_dma_irq_expr = rx_dma_irq if rx_dma_irq else "0"
+    dma_handlers = []
+    if tx_dma_irq is not None:
+        dma_handlers.append(
+            f"""void {_irq_handler(tx_dma_irq)}(void)
+{{
+    yi_uart_stm32_dma_tx_irq_handler(&{label});
+}}"""
+        )
+    if rx_dma_irq is not None:
+        dma_handlers.append(
+            f"""void {_irq_handler(rx_dma_irq)}(void)
+{{
+    yi_uart_stm32_dma_rx_irq_handler(&{label});
+}}"""
+        )
+    dma_handler_text = "\n\n" + "\n\n".join(dma_handlers) if dma_handlers else ""
     return f"""static yi_device_t {label};
 
 static const yi_uart_stm32_config_t {label}_cfg =
@@ -275,7 +317,12 @@ static const yi_uart_stm32_config_t {label}_cfg =
     .tx_pin = &{tx_pin},
     .rx_pin = &{rx_pin},
     .irqn = {interrupt},
-    .irq_priority = {priority}U
+    .irq_priority = {priority}U,
+    .tx_dma_channel = {tx_dma_channel_expr},
+    .rx_dma_channel = {rx_dma_channel_expr},
+    .tx_dma_irqn = {tx_dma_irq_expr},
+    .rx_dma_irqn = {rx_dma_irq_expr},
+    .dma_irq_priority = {dma_priority}U
 }};
 
 static yi_uart_stm32_data_t {label}_data;
@@ -291,7 +338,7 @@ YI_UART_STM32_DEFINE_LEVEL(
 void {handler}(void)
 {{
     yi_uart_stm32_irq_handler(&{label});
-}}"""
+}}{dma_handler_text}"""
 
 
 def _mapped_pinmux_value(item: ValidatedNode, name: str, mapping: dict[str, str]) -> str:

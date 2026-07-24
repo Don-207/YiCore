@@ -208,6 +208,20 @@ SPI控制器需要`sck-pin`、`miso-pin`、`mosi-pin`和`max-frequency`上限；
 直接IRQ Handler，不依赖CubeMX的`huartN`、`hspiN`、`hi2cN`或`hcanN`对象。
 控制器在板级通常标记为`available`，由引用它的逻辑设备自动带入。
 
+UART节点可带DMA通道。STM32F103xE的SoC描述已经为USART1/2/3填入固定DMA映射：
+
+```text
+USART1_TX -> DMA1_Channel4, USART1_RX -> DMA1_Channel5
+USART2_TX -> DMA1_Channel7, USART2_RX -> DMA1_Channel6
+USART3_TX -> DMA1_Channel2, USART3_RX -> DMA1_Channel3
+```
+
+启用UART后，生成器会同时生成USART IRQ和DMA IRQ入口。阻塞收发仍可使用
+`yi_uart_write()`和`yi_uart_read()`；DMA发送使用`yi_uart_write_dma()`。
+变长接收推荐使用`yi_uart_rx_start_dma()`启动循环DMA，然后在主循环中通过
+`yi_uart_rx_idle(dev, true)`判断IDLE帧间隔，并用`yi_uart_rx_dma_pos()`读取
+当前DMA写入位置。
+
 GPIO模拟SPI使用`yi,soft-spi`，通过`sck-gpio`、`miso-gpio`和`mosi-gpio`
 引用三个GPIO设备，`max-frequency`支持1kHz至500kHz。模拟SPI与硬件SPI共用
 `yi_spi_transceive()`；频率、模式0至3和可选片选GPIO由每次传输使用
