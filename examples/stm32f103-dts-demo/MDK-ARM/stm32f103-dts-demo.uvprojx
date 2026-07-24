@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../../../core;../../../drivers/led;../../../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../ports/stm32;../../../third_party/RTT</IncludePath>
+              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../../../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -417,32 +417,32 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Drivers/STM32F1xx_HAL_Driver</GroupName>
+          <GroupName>Vendor/ST/STM32F1xx_HAL_Driver</GroupName>
           <Files>
             <File>
               <FileName>stm32f1xx_hal_spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_spi.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_i2c.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_can.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_can.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_can.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_gpio_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -498,7 +498,7 @@
             <File>
               <FileName>stm32f1xx_hal_tim_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim_ex.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -554,57 +554,57 @@
             <File>
               <FileName>stm32f1xx_hal.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_dma.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_dma.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_cortex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_cortex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_pwr.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_pwr.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_flash_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_exti.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_exti.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_uart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</FilePath>
+              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_uart.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -660,7 +660,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Drivers/CMSIS</GroupName>
+          <GroupName>Vendor/ST/CMSIS</GroupName>
           <Files>
             <File>
               <FileName>system_stm32f1xx.c</FileName>
@@ -688,29 +688,34 @@
               <FilePath>..\..\..\drivers\led\yi_led.c</FilePath>
             </File>
             <File>
-              <FileName>yi_uart.c</FileName>
+              <FileName>yi_uart_stm32.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\uart\yi_uart.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_uart_stm32.c</FilePath>
             </File>
             <File>
-              <FileName>yi_gpio.c</FileName>
+              <FileName>yi_gpio_stm32f1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\gpio\yi_gpio.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_gpio_stm32f1.c</FilePath>
             </File>
             <File>
-              <FileName>yi_pinmux.c</FileName>
+              <FileName>yi_pinmux_stm32f1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\pinmux\yi_pinmux.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_pinmux_stm32f1.c</FilePath>
             </File>
             <File>
-              <FileName>yi_clock.c</FileName>
+              <FileName>yi_clock_stm32f1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\clock\yi_clock.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_clock_stm32f1.c</FilePath>
             </File>
             <File>
               <FileName>yi_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\drivers\flash\yi_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>yi_flash_stm32f1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_flash_stm32f1.c</FilePath>
             </File>
             <File>
               <FileName>yi_w25q64.c</FileName>
@@ -728,9 +733,9 @@
               <FilePath>..\..\..\drivers\eeprom\at24c02\yi_at24c02.c</FilePath>
             </File>
             <File>
-              <FileName>yi_timer.c</FileName>
+              <FileName>yi_timer_stm32f1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\timer\yi_timer.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_timer_stm32f1.c</FilePath>
             </File>
             <File>
               <FileName>yi_spi.c</FileName>
@@ -753,29 +758,29 @@
               <FilePath>..\..\..\drivers\i2c\yi_soft_i2c.c</FilePath>
             </File>
             <File>
-              <FileName>yi_can.c</FileName>
+              <FileName>yi_can_stm32f1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\can\yi_can.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_can_stm32f1.c</FilePath>
             </File>
             <File>
               <FileName>yi_stm32_periph.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\ports\stm32\yi_stm32_periph.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_stm32_periph.c</FilePath>
             </File>
             <File>
               <FileName>yi_stm32_system.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\ports\stm32\yi_stm32_system.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_stm32_system.c</FilePath>
             </File>
             <File>
               <FileName>yi_i2c_stm32.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\ports\stm32\yi_i2c_stm32.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_i2c_stm32.c</FilePath>
             </File>
             <File>
               <FileName>yi_spi_stm32.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\ports\stm32\yi_spi_stm32.c</FilePath>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_spi_stm32.c</FilePath>
             </File>
           </Files>
         </Group>
