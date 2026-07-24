@@ -10,17 +10,17 @@
     clk_gpioa: clock-gpioa {
         compatible = "yi,stm32-clock";
         clock-id = "gpioa";
-        status = "okay";
+        status = "available";
     };
 
     clk_gpiob: clock-gpiob {
         compatible = "yi,stm32-clock";
         clock-id = "gpiob";
-        status = "okay";
+        status = "available";
     };
 
     clk_gpioc: clock-gpioc {
         compatible = "yi,stm32-clock";
         clock-id = "gpioc";
-        status = "okay";
+        status = "available";
     };

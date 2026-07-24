@@ -217,14 +217,22 @@ def _normalize_value(node: DtsNode, name: str, value: Any, expected: str) -> Any
 
 
 def validate_tree(tree: DtsTree, bindings: dict[str, Binding]) -> list[ValidatedNode]:
-    validated: list[ValidatedNode] = []
-    for node in tree.root.walk():
-        if node is tree.root or "compatible" not in node.properties:
-            continue
+    bound_nodes = [
+        node for node in tree.root.walk()
+        if node is not tree.root and "compatible" in node.properties
+    ]
+    validated_by_label: dict[str, ValidatedNode] = {}
+    disabled_labels: set[str] = set()
+
+    for node in bound_nodes:
         status = node.properties.get("status", "okay")
-        if status not in {"okay", "disabled"}:
-            raise BindingError(f"{node.path}: status must be 'okay' or 'disabled'")
+        if status not in {"okay", "available", "disabled"}:
+            raise BindingError(
+                f"{node.path}: status must be 'okay', 'available', or 'disabled'"
+            )
         if status == "disabled":
+            if node.label is not None:
+                disabled_labels.add(node.label)
             continue
 
         compatible_value = node.properties["compatible"]
@@ -271,15 +279,42 @@ def validate_tree(tree: DtsTree, bindings: dict[str, Binding]) -> list[Validated
         properties["init-priority"] = priority
         properties["status"] = status
 
-        for value in properties.values():
+        if node.label is None:
+            if status == "okay":
+                raise BindingError(f"{node.path}: enabled device requires a label")
+            continue
+        validated_by_label[node.label] = ValidatedNode(
+            node=node, binding=binding, properties=properties
+        )
+
+    selected: set[str] = set()
+
+    def select(label: str, owner: DtsNode | None = None) -> None:
+        if label in selected:
+            return
+        try:
+            item = validated_by_label[label]
+        except KeyError as exc:
+            prefix = owner.path if owner is not None else tree.root.path
+            if label in disabled_labels:
+                raise BindingError(f"{prefix}: references disabled node {label!r}") from exc
+            raise BindingError(
+                f"{prefix}: references node {label!r} that does not generate a device"
+            ) from exc
+        selected.add(label)
+        for value in item.properties.values():
             if isinstance(value, DtsReference):
-                target = tree.node_by_label(value.label)
-                if target.properties.get("status", "okay") == "disabled":
-                    raise BindingError(
-                        f"{node.path}: references disabled node {target.path}"
-                    )
-        validated.append(ValidatedNode(node=node, binding=binding, properties=properties))
-    return validated
+                select(value.label, item.node)
+
+    for item in validated_by_label.values():
+        if item.properties["status"] == "okay":
+            select(item.node.label)
+
+    return [
+        validated_by_label[node.label]
+        for node in bound_nodes
+        if node.label in selected
+    ]
 
 
 def main() -> int:

@@ -23,32 +23,27 @@ class DtsBindingTests(unittest.TestCase):
         nodes = validate_tree(tree, self.bindings)
         self.assertEqual(
             [item.binding.driver for item in nodes],
-            ["timer", "uart", "spi", "flash", "clock", "clock", "clock",
-             "gpio", "gpio", "gpio", "gpio", "gpio", "gpio",
-             "pinmux", "pinmux", "pinmux", "pinmux", "pinmux",
-             "soft-i2c", "at24c02", "w25q64", "led", "led",
+            ["timer", "flash", "clock", "clock",
+             "gpio", "gpio", "gpio", "gpio", "gpio", "gpio", "gpio", "gpio", "gpio",
+             "soft-i2c", "soft-spi",
+             "at24c02", "w25q64", "led", "led",
              "rtt", "console"],
         )
         self.assertEqual(nodes[0].properties["reg"], 0x40001400)
         self.assertEqual(nodes[0].properties["interrupts"], "TIM7_IRQn")
-        self.assertEqual(nodes[1].properties["current-speed"], 115200)
-        self.assertEqual(nodes[1].properties["tx-pin"], DtsReference("uart0_tx"))
-        self.assertEqual(nodes[2].properties["max-frequency"], 18000000)
-        self.assertEqual(nodes[3].properties["base-address"], 0x08000000)
-        self.assertEqual(nodes[4].properties["clock-id"], "gpioa")
-        self.assertEqual(nodes[7].properties["pin"], 2)
-        self.assertEqual(nodes[9].properties["pin"], 13)
-        self.assertEqual(nodes[9].properties["interrupt"], "falling")
-        self.assertEqual(nodes[10].properties["drive"], "open-drain")
+        self.assertEqual(nodes[1].properties["base-address"], 0x08000000)
+        self.assertEqual(nodes[2].properties["clock-id"], "gpioa")
+        self.assertEqual(nodes[6].properties["pin"], 13)
+        self.assertEqual(nodes[6].properties["interrupt"], "falling")
         self.assertEqual(nodes[12].properties["pin"], 4)
-        self.assertEqual(nodes[16].properties["function"], "uart-tx")
-        self.assertEqual(nodes[18].properties["clock-frequency"], 50000)
-        self.assertEqual(nodes[19].properties["bus"], DtsReference("soft_i2c0"))
-        self.assertEqual(nodes[20].properties["bus"], DtsReference("spi1"))
-        self.assertEqual(nodes[21].properties["gpios"], DtsReference("gpio_led0"))
-        self.assertEqual(nodes[23].properties["mode"], "no-block-skip")
-        self.assertEqual(nodes[24].properties["backend"], DtsReference("rtt0"))
-        self.assertTrue(nodes[24].properties["default-console"])
+        self.assertEqual(nodes[13].properties["clock-frequency"], 50000)
+        self.assertEqual(nodes[14].properties["max-frequency"], 100000)
+        self.assertEqual(nodes[15].properties["bus"], DtsReference("soft_i2c0"))
+        self.assertEqual(nodes[16].properties["bus"], DtsReference("soft_spi0"))
+        self.assertEqual(nodes[17].properties["gpios"], DtsReference("led0_gpio"))
+        self.assertEqual(nodes[19].properties["mode"], "no-block-skip")
+        self.assertEqual(nodes[20].properties["backend"], DtsReference("rtt0"))
+        self.assertTrue(nodes[20].properties["default-console"])
 
     def test_missing_required_property(self):
         tree = parse_text('''/ {
@@ -78,6 +73,27 @@ class DtsBindingTests(unittest.TestCase):
     def test_disabled_node_is_skipped(self):
         tree = parse_text('''/ { n: node { compatible = "yi,stm32-uart"; status = "disabled"; }; };''')
         self.assertEqual(validate_tree(tree, self.bindings), [])
+
+    def test_available_dependency_is_selected(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa";
+                status = "available"; };
+            gpio: gpio { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>;
+                clocks = <&clk>; status = "okay"; };
+        };''')
+        self.assertEqual(
+            [item.node.label for item in validate_tree(tree, self.bindings)],
+            ["clk", "gpio"],
+        )
+
+    def test_disabled_dependency_is_rejected(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; status = "disabled"; };
+            gpio: gpio { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>;
+                clocks = <&clk>; status = "okay"; };
+        };''')
+        with self.assertRaisesRegex(BindingError, "references disabled node 'clk'"):
+            validate_tree(tree, self.bindings)
 
     def test_unknown_property(self):
         tree = parse_text('''/ { n: node { compatible = "yi,stm32-uart"; handle = "huart1";

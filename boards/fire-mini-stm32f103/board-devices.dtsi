@@ -11,13 +11,32 @@
 
     w25q64: flash-w25q64 {
         compatible = "winbond,w25q64";
-        bus = <&spi1>;
-        cs-gpio = <&spi1_cs>;
-        spi-frequency = <18000000>;
+        bus = <&soft_spi0>;
+        cs-gpio = <&w25q64_cs_gpio>;
+        spi-frequency = <100000>;
         spi-mode = <0>;
+        transfer-timeout-ms = <100>;
         program-timeout-ms = <100>;
         erase-timeout-ms = <5000>;
         init-level = "post-kernel";
         init-priority = <30>;
+        status = "disabled";
+    };
+
+    led0: led0 {
+        compatible = "yi,gpio-led";
+        gpios = <&led0_gpio>;
+        active-low;
+        init-level = "application";
+        init-priority = <10>;
+        status = "disabled";
+    };
+
+    led1: led1 {
+        compatible = "yi,gpio-led";
+        gpios = <&led1_gpio>;
+        active-low;
+        init-level = "application";
+        init-priority = <10>;
         status = "disabled";
     };

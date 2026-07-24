@@ -1,0 +1,22 @@
+    soft_i2c0: soft-i2c0 {
+        compatible = "yi,soft-i2c";
+        scl-gpio = <&soft_i2c0_scl_gpio>;
+        sda-gpio = <&soft_i2c0_sda_gpio>;
+        clock-frequency = <50000>;
+        stretch-timeout-us = <1000>;
+        recovery-clocks = <9>;
+        init-level = "post-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    soft_spi0: soft-spi0 {
+        compatible = "yi,soft-spi";
+        sck-gpio = <&soft_spi0_sck_gpio>;
+        miso-gpio = <&soft_spi0_miso_gpio>;
+        mosi-gpio = <&soft_spi0_mosi_gpio>;
+        max-frequency = <100000>;
+        init-level = "post-kernel";
+        init-priority = <20>;
+        status = "available";
+    };

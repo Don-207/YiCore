@@ -16,6 +16,7 @@ typedef struct
     yi_device_t *self;
     yi_device_t *spi;
     yi_spi_transfer_config_t spi_config;
+    uint32_t transfer_timeout_ms;
     uint32_t program_timeout_ms;
     uint32_t erase_timeout_ms;
 } yi_w25q64_config_t;
@@ -24,6 +25,8 @@ typedef struct
 {
     uint32_t jedec_id;
     uint32_t error_count;
+    uint8_t tx_buffer[YI_W25Q64_PAGE_SIZE + 4U];
+    uint8_t rx_buffer[YI_W25Q64_PAGE_SIZE + 4U];
 } yi_w25q64_data_t;
 
 int yi_w25q64_init(const void *config);

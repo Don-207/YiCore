@@ -23,17 +23,19 @@ class DtsParserTests(unittest.TestCase):
         self.assertEqual(
             set(tree.labels),
             {"flash0", "clk_gpioa", "clk_gpiob", "clk_gpioc", "timers1", "timers2",
-             "timers3", "timers4", "timers5", "timers6", "timers7", "timers8", "gpio_led0", "led0",
+             "timers3", "timers4", "timers5", "timers6", "timers7", "timers8", "led0_gpio", "led0",
              "usart1", "usart2", "usart3", "uart4", "uart5", "spi1", "spi2", "spi3",
-             "i2c1", "i2c2", "can1", "key0", "gpio_led1", "led1",
-             "soft_i2c0_scl", "soft_i2c0_sda", "soft_i2c0", "at24c02",
-             "spi1_sck", "spi1_miso", "spi1_mosi", "spi1_cs", "w25q64",
-             "uart0_tx", "uart0_rx", "rtt0", "console0"},
+             "i2c1", "i2c2", "can1", "key0", "led1_gpio", "led1",
+             "soft_i2c0_scl_gpio", "soft_i2c0_sda_gpio", "soft_i2c0", "at24c02",
+             "spi1_sck_pin", "spi1_miso_pin", "spi1_mosi_pin", "w25q64_cs_gpio", "w25q64",
+             "soft_spi0_sck_gpio", "soft_spi0_miso_gpio", "soft_spi0_mosi_gpio", "soft_spi0",
+             "i2c1_scl_pin", "i2c1_sda_pin",
+             "usart1_tx_pin", "usart1_rx_pin", "rtt0", "console0"},
         )
-        self.assertEqual(tree.node_by_label("gpio_led0").properties["pin"], DtsCells((2,)))
+        self.assertEqual(tree.node_by_label("led0_gpio").properties["pin"], DtsCells((2,)))
         self.assertEqual(
             tree.node_by_label("led0").properties["gpios"],
-            DtsCells((DtsReference("gpio_led0"),)),
+            DtsCells((DtsReference("led0_gpio"),)),
         )
         self.assertTrue(tree.node_by_label("led0").properties["active-low"])
         self.assertEqual(
