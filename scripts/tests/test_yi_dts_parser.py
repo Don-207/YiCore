@@ -40,7 +40,7 @@ class DtsParserTests(unittest.TestCase):
         self.assertTrue(tree.node_by_label("led0").properties["active-low"])
         self.assertEqual(
             tree.node_by_label("usart1").properties["current-speed"],
-            DtsCells((115200,)),
+            DtsCells((921600,)),
         )
 
     def test_comments_directive_and_value_lists(self):

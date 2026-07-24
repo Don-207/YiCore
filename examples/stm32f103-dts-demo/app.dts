@@ -9,15 +9,15 @@
 };
 
 &key0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &at24c02 {
-    status = "okay";
+    status = "disabled";
 };
 
 &w25q64 {
-    status = "okay";
+    status = "disabled";
 };
 
 &led0 {
@@ -29,5 +29,10 @@
 };
 
 &console0 {
+    status = "okay";
+};
+
+&usart1 {
+    current-speed = <921600>;
     status = "okay";
 };

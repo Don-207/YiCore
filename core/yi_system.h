@@ -9,5 +9,7 @@ uint32_t yi_system_uptime_us(void);
 void yi_system_delay_ms(uint32_t delay_ms);
 void yi_system_delay_us(uint32_t delay_us);
 void yi_system_irq_lock(void);
+uint32_t yi_system_irq_save(void);
+void yi_system_irq_restore(uint32_t key);
 
 #endif

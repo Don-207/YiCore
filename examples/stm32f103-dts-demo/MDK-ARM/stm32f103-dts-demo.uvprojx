@@ -72,7 +72,7 @@
           <BeforeMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>python ..\..\..\scripts\yi_dts_gen.py --dts ..\app.dts --bindings ..\..\..\dts\bindings --output ..\..\..\generated</UserProg1Name>
+            <UserProg1Name>python ..\..\..\scripts\yi_dts_gen.py --dts ..\app.dts --bindings ..\..\..\dts\bindings --output ..\generated</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../../../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT</IncludePath>
+              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/src/include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -693,6 +693,11 @@
               <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_uart_stm32.c</FilePath>
             </File>
             <File>
+              <FileName>yi_uart_dma_lwrb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\drivers\uart\yi_uart_dma_lwrb.c</FilePath>
+            </File>
+            <File>
               <FileName>yi_gpio_stm32f1.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_gpio_stm32f1.c</FilePath>
@@ -790,7 +795,7 @@
             <File>
               <FileName>yi_generated.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\generated\yi_generated.c</FilePath>
+              <FilePath>..\generated\yi_generated.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -831,6 +836,11 @@
               <FileName>SEGGER_RTT.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\third_party\RTT\SEGGER_RTT.c</FilePath>
+            </File>
+            <File>
+              <FileName>lwrb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\third_party\lwrb\src\lwrb\lwrb.c</FilePath>
             </File>
           </Files>
         </Group>
