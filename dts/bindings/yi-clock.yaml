@@ -1,6 +1,6 @@
 compatible: "yi,stm32-clock"
 driver: "clock"
-header: "yi_clock.h"
+header: "yi_clock_stm32f1.h"
 define: "YI_CLOCK_DEFINE_LEVEL"
 
 properties:

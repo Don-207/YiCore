@@ -2,7 +2,6 @@
 #define YI_LED_H
 
 
-#include "stm32f1xx_hal.h"
 #include "yi_device.h"
 
 

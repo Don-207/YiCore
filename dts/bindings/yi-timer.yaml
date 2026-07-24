@@ -1,6 +1,6 @@
 compatible: "yi,stm32-timer"
 driver: "timer"
-header: "yi_timer.h"
+header: "yi_timer_stm32f1.h"
 define: "YI_TIMER_DEFINE_LEVEL"
 
 properties:

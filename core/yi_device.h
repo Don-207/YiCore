@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define YI_INIT_PRIORITY_HIGHEST  0
 #define YI_INIT_PRIORITY_DEFAULT  50

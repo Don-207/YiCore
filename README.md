@@ -20,18 +20,29 @@ STM32CubeMX and Keil MDK-ARM.
 
 ```text
 boards/       Board-level DeviceTree descriptions
-core/         YiCore device model and system API
-drivers/      Platform-independent driver APIs
-dts/          DeviceTree bindings
-ports/        Platform and debug-backend implementations
-soc/          SoC-level DeviceTree descriptions
-subsys/       Console, logging, and other subsystems
+core/         Platform-independent device model and system API
+drivers/      Platform-independent driver APIs and external-device drivers
+dts/          Bindings and SoC-level DeviceTree descriptions
+soc/          Vendor/family MCU backends implemented by YiCore
+subsys/       Console, logging, timer, and other subsystems
+ports/        Architecture-independent debug and transport backends
+vendor/       Unmodified vendor CMSIS and STM32Cube dependencies
+third_party/  Other vendored components such as SEGGER RTT
 scripts/      DeviceTree generator and unit tests
-third_party/  Vendored third-party components
 linker/       GCC and Arm linker fragments
 docs/         Architecture and DeviceTree documentation
 examples/     Buildable board/toolchain examples
 ```
+
+The dependency direction is:
+
+```text
+application -> core/subsys/drivers -> soc backend -> vendor library -> hardware
+```
+
+Files below `vendor/` retain their upstream licenses and should not be edited
+locally. Platform-specific HAL types and calls belong below `soc/`, while
+public driver APIs remain below `drivers/`.
 
 ## Quick start
 
@@ -59,6 +70,44 @@ python -m unittest discover -s scripts\tests -v
 Open
 `examples/stm32f103-dts-demo/MDK-ARM/stm32f103-dts-demo.uvprojx` in Keil.
 The project regenerates the DeviceTree sources before each build.
+
+Create another MCU application interactively:
+
+```powershell
+.\create-project
+```
+
+The creator asks for the project name, then lists supported vendors, then lists
+the selected vendor's supported chip series/models. Supported targets are
+recorded in `scripts/yi_supported_targets.json`.
+
+You can also pass the project name directly:
+
+```powershell
+.\create-project product-bootloader
+```
+
+The default destination is `applications/<project-name>/`. Select a target and
+destination non-interactively with:
+
+```powershell
+.\create-project controller-app `
+  --vendor st `
+  --series stm32f1 `
+  --model stm32f103xe `
+  --output-root applications
+```
+
+Use `--board` only when you need to override the board selected by the target
+registry.
+
+`create-project.cmd` is a thin launcher for `scripts/yi_create_project.py`. If
+the repository root is on `PATH`, it can also be called as
+`create-project product-bootloader`.
+
+The creator refuses to overwrite an existing project directory. It gives each
+application a private `generated/` directory while sharing YiCore, SoC, CMSIS,
+and HAL sources from the repository root.
 
 ## Documentation
 
