@@ -226,6 +226,30 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("void USB_HP_CAN1_TX_IRQHandler(void)", source)
         self.assertIn(".bitrate = 500000U", source)
 
+    def test_uart_dma_generation(self):
+        tree = parse_text('''/ {
+            p: pins { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            usart1: serial { compatible = "yi,stm32-uart";
+                reg = <0x40013800>; clock-bus = "apb2";
+                clock-enable-mask = <0x4000>; interrupts = "USART1_IRQn";
+                current-speed = <115200>; tx-pin = <&p>; rx-pin = <&p>;
+                tx-dma-channel = "DMA1_Channel4";
+                tx-dma-interrupt = "DMA1_Channel4_IRQn";
+                rx-dma-channel = "DMA1_Channel5";
+                rx-dma-interrupt = "DMA1_Channel5_IRQn";
+                dma-irq-priority = <9>; };
+        };''')
+        source, _ = generate_sources(validate_tree(tree, self.bindings), "uart-dma.dts")
+        self.assertIn(".tx_dma_channel = DMA1_Channel4", source)
+        self.assertIn(".rx_dma_channel = DMA1_Channel5", source)
+        self.assertIn(".tx_dma_irqn = DMA1_Channel4_IRQn", source)
+        self.assertIn(".rx_dma_irqn = DMA1_Channel5_IRQn", source)
+        self.assertIn(".dma_irq_priority = 9U", source)
+        self.assertIn("void DMA1_Channel4_IRQHandler(void)", source)
+        self.assertIn("yi_uart_stm32_dma_tx_irq_handler(&usart1);", source)
+        self.assertIn("void DMA1_Channel5_IRQHandler(void)", source)
+        self.assertIn("yi_uart_stm32_dma_rx_irq_handler(&usart1);", source)
+
     def test_multiple_default_consoles_are_rejected(self):
         tree = parse_text('''/ {
             backend: backend { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
