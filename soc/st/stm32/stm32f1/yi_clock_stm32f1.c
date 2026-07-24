@@ -1,4 +1,4 @@
-#include "yi_clock.h"
+#include "yi_clock_stm32f1.h"
 #include "stm32f1xx_hal.h"
 
 static int yi_clock_set(yi_stm32_clock_id_t id, bool enabled)

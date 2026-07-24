@@ -1,6 +1,6 @@
 compatible: "yi,stm32-can"
 driver: "can"
-header: "yi_can.h"
+header: "yi_can_stm32f1.h"
 define: "YI_CAN_DEFINE_LEVEL"
 
 properties:

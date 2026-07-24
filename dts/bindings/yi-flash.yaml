@@ -1,6 +1,6 @@
 compatible: "yi,stm32-internal-flash"
 driver: "flash"
-header: "yi_flash.h"
+header: "yi_flash_stm32f1.h"
 define: "YI_STM32_FLASH_DEFINE_LEVEL"
 
 properties:

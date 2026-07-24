@@ -1,4 +1,4 @@
-#include "yi_can.h"
+#include "yi_can_stm32f1.h"
 #include "yi_pinmux.h"
 
 static int yi_can_timing(const yi_can_config_t *cfg, CAN_InitTypeDef *init)

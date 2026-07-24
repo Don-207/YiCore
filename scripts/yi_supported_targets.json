@@ -1,0 +1,11 @@
+[
+  {
+    "vendor": "st",
+    "vendor_name": "STMicroelectronics",
+    "series": "stm32f1",
+    "model": "stm32f103xe",
+    "board": "fire-mini-stm32f103",
+    "template": "stm32f103-dts-demo",
+    "description": "STM32F103xE reference target for the Fire Mini STM32F103 board"
+  }
+]
