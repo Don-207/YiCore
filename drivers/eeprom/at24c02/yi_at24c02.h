@@ -1,3 +1,11 @@
+/**
+ * @file yi_at24c02.h
+ * @brief YiCore at24c02 interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_AT24C02_H
 #define YI_AT24C02_H
 
@@ -10,21 +18,23 @@
 typedef struct
 {
     /* Must remain first for the common EEPROM geometry accessors. */
-    yi_eeprom_config_t eeprom;
-    yi_device_t *self;
-    yi_device_t *i2c;
-    uint8_t address;
-    uint32_t transfer_timeout_ms;
-    uint32_t write_timeout_ms;
-} yi_at24c02_config_t;
+    yi_eeprom_config_t eeprom; /**< Eeprom value. */
+    yi_device_t *self; /**< Self value. */
+    yi_device_t *i2c; /**< I2c value. */
+    uint8_t address; /**< Address value. */
+    uint32_t transfer_timeout_ms; /**< Transfer timeout ms value. */
+    uint32_t write_timeout_ms; /**< Write timeout ms value. */} yi_at24c02_config_t;
 
 typedef struct
 {
-    uint32_t read_count;
-    uint32_t write_count;
-    uint32_t error_count;
-} yi_at24c02_data_t;
+    uint32_t read_count; /**< Read count value. */
+    uint32_t write_count; /**< Write count value. */
+    uint32_t error_count; /**< Error count value. */} yi_at24c02_data_t;
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_at24c02_init(const void *config);
 extern const yi_eeprom_api_t yi_at24c02_api;
 

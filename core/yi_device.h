@@ -1,3 +1,11 @@
+/**
+ * @file yi_device.h
+ * @brief YiCore device interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_DEVICE_H
 #define YI_DEVICE_H
 
@@ -26,6 +34,10 @@ typedef enum
     YI_DEVICE_STATE_FAILED
 } yi_device_state_t;
 
+/**
+ * @brief Perform the int operation.
+ * @param config Device configuration.
+ */
 typedef int (*yi_device_init_t)(const void *config);
 
 struct yi_device;
@@ -49,24 +61,38 @@ typedef struct
 
 typedef struct yi_device
 {
-    const char *name;
-    yi_device_init_t init;
-    const void *config;
-    void *data;
-    const yi_device_api_t *api;
-    yi_init_level_t init_level;
-    uint8_t init_priority;
-    yi_device_state_t state;
-}yi_device_t;
+    const char *name; /**< Name value. */
+    yi_device_init_t init; /**< Init value. */
+    const void *config; /**< Config value. */
+    void *data; /**< Data value. */
+    const yi_device_api_t *api; /**< Api value. */
+    yi_init_level_t init_level; /**< Init level value. */
+    uint8_t init_priority; /**< Init priority value. */
+    yi_device_state_t state; /**< State value. */}yi_device_t;
 
 #define YI_DEVICE_MAX_NUM 32
 
+/**
+ * @brief Initialize all.
+ */
 int yi_device_init_all(void);
 
+/**
+ * @brief Initialize level.
+ * @param level Initialization level.
+ */
 int yi_device_init_level(yi_init_level_t level);
 
+/**
+ * @brief Check whether ready.
+ * @param dev Device instance.
+ */
 bool yi_device_is_ready(const yi_device_t *dev);
 
+/**
+ * @brief Get the module.
+ * @param name Registered device name.
+ */
 yi_device_t *yi_device_get(const char *name);
 
 /*

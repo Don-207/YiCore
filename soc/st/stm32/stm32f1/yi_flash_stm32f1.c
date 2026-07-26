@@ -1,7 +1,21 @@
+/**
+ * @file yi_flash_stm32f1.c
+ * @brief YiCore flash stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_flash_stm32f1.h"
 #include "stm32f1xx_hal.h"
 #include <string.h>
 
+/**
+ * @brief Perform the yi stm32 flash range valid operation.
+ * @param cfg Device configuration.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 static int yi_stm32_flash_range_valid(const yi_flash_config_t *cfg,
                                       uint32_t offset, uint32_t length)
 {
@@ -9,6 +23,10 @@ static int yi_stm32_flash_range_valid(const yi_flash_config_t *cfg,
            (offset < cfg->size) && (length <= (cfg->size - offset));
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_stm32_flash_init(const void *config)
 {
     const yi_flash_config_t *cfg = config;
@@ -24,6 +42,13 @@ int yi_stm32_flash_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 static int yi_stm32_flash_read(yi_device_t *dev, uint32_t offset,
                                void *data, uint32_t length)
 {
@@ -38,6 +63,13 @@ static int yi_stm32_flash_read(yi_device_t *dev, uint32_t offset,
     return 0;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 static int yi_stm32_flash_write(yi_device_t *dev, uint32_t offset,
                                 const void *data, uint32_t length)
 {
@@ -73,6 +105,12 @@ static int yi_stm32_flash_write(yi_device_t *dev, uint32_t offset,
     return result;
 }
 
+/**
+ * @brief Perform the yi stm32 flash erase operation.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 static int yi_stm32_flash_erase(yi_device_t *dev, uint32_t offset,
                                 uint32_t length)
 {

@@ -1,30 +1,60 @@
+/**
+ * @file yi_soft_spi.c
+ * @brief YiCore soft spi implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include <stddef.h>
 #include "yi_soft_spi.h"
 #include "yi_gpio.h"
 #include "yi_system.h"
 
+/**
+ * @brief Perform the yi soft spi delay operation.
+ * @param half_period_us Half period us value.
+ */
 static void yi_soft_spi_delay(uint32_t half_period_us)
 {
     yi_system_delay_us(half_period_us);
 }
 
+/**
+ * @brief Perform the yi soft spi clock operation.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ */
 static void yi_soft_spi_clock(const yi_soft_spi_config_t *cfg,
                               yi_gpio_value_t value)
 {
     (void)yi_gpio_set(cfg->sck_gpio, value);
 }
 
+/**
+ * @brief Perform the yi soft spi mosi operation.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ */
 static void yi_soft_spi_mosi(const yi_soft_spi_config_t *cfg, uint8_t value)
 {
     (void)yi_gpio_set(cfg->mosi_gpio,
                       value != 0U ? YI_GPIO_HIGH : YI_GPIO_LOW);
 }
 
+/**
+ * @brief Perform the yi soft spi miso operation.
+ * @param cfg Device configuration.
+ */
 static uint8_t yi_soft_spi_miso(const yi_soft_spi_config_t *cfg)
 {
     return yi_gpio_get(cfg->miso_gpio) == YI_GPIO_HIGH ? 1U : 0U;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_soft_spi_init(const void *config)
 {
     const yi_soft_spi_config_t *cfg = config;
@@ -40,6 +70,13 @@ int yi_soft_spi_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi soft spi byte operation.
+ * @param cfg Device configuration.
+ * @param mode Mode value.
+ * @param half_period_us Half period us value.
+ * @param output Output value.
+ */
 static uint8_t yi_soft_spi_byte(const yi_soft_spi_config_t *cfg,
                                 uint8_t mode,
                                 uint32_t half_period_us,
@@ -69,6 +106,15 @@ static uint8_t yi_soft_spi_byte(const yi_soft_spi_config_t *cfg,
     return input;
 }
 
+/**
+ * @brief Perform the yi soft spi transceive operation.
+ * @param dev Device instance.
+ * @param config Device configuration.
+ * @param tx Tx value.
+ * @param rx Rx value.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_soft_spi_transceive(yi_device_t *dev,
                                   const yi_spi_transfer_config_t *config,
                                   const uint8_t *tx,

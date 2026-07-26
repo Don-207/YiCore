@@ -1,6 +1,18 @@
+/**
+ * @file yi_adc_stm32f1.c
+ * @brief YiCore adc stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_adc_stm32f1.h"
 #include "yi_pinmux.h"
 
+/**
+ * @brief Perform the yi adc clock bits operation.
+ * @param divider Divider value.
+ */
 static uint32_t yi_adc_clock_bits(uint8_t divider)
 {
     switch(divider)
@@ -13,6 +25,10 @@ static uint32_t yi_adc_clock_bits(uint8_t divider)
     }
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_adc_stm32f1_init(const void *config)
 {
     const yi_adc_stm32f1_config_t *cfg = config;
@@ -76,6 +92,12 @@ fail:
     return -1;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param value Value to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_adc_stm32f1_read(yi_device_t *dev, uint16_t *value,
                                uint32_t timeout_ms)
 {

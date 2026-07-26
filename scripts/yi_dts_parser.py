@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Small, dependency-free parser for the YiCore Devicetree subset."""
+"""Small, dependency-free parser for the YiCore Devicetree subset.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
 
 from __future__ import annotations
 

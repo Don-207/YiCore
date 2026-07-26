@@ -1,3 +1,11 @@
+/**
+ * @file mcuboot_config.h
+ * @brief YiCore mcuboot config interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_MCUBOOT_CONFIG_H
 #define YI_MCUBOOT_CONFIG_H
 

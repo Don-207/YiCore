@@ -1,5 +1,18 @@
+/**
+ * @file yi_ads7830.c
+ * @brief YiCore ads7830 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_ads7830.h"
 
+/**
+ * @brief Perform the yi ads7830 command operation.
+ * @param cfg Device configuration.
+ * @param channel Channel value.
+ */
 static uint8_t yi_ads7830_command(const yi_ads7830_config_t *cfg,
                                   uint8_t channel)
 {
@@ -8,6 +21,13 @@ static uint8_t yi_ads7830_command(const yi_ads7830_config_t *cfg,
     return (uint8_t)(0x80U | (selection << 4U) | power);
 }
 
+/**
+ * @brief Read channel.
+ * @param dev Device instance.
+ * @param channel Channel value.
+ * @param value Value to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_ads7830_read_channel(yi_device_t *dev, uint8_t channel,
                                    uint16_t *value, uint32_t timeout_ms)
 {
@@ -38,14 +58,31 @@ static int yi_ads7830_read_channel(yi_device_t *dev, uint8_t channel,
     return 0;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param value Value to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_ads7830_read(yi_device_t *dev, uint16_t *value,
                            uint32_t timeout_ms)
 {
     const yi_ads7830_config_t *cfg = (const yi_ads7830_config_t *)dev->config;
+    /**
+     * @brief Read channel.
+     * @param dev Device instance.
+     * @param default_channel Default channel value.
+     * @param value Value to process.
+     * @param timeout_ms Operation timeout in milliseconds.
+     */
     return yi_ads7830_read_channel(dev, cfg->default_channel,
                                    value, timeout_ms);
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_ads7830_init(const void *config)
 {
     const yi_ads7830_config_t *cfg = config;

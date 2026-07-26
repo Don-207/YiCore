@@ -1,3 +1,11 @@
+/**
+ * @file yi_max31856.h
+ * @brief YiCore max31856 interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_MAX31856_H
 #define YI_MAX31856_H
 
@@ -8,19 +16,28 @@ typedef enum { YI_MAX31856_TC_B = 0, YI_MAX31856_TC_E, YI_MAX31856_TC_J,
     YI_MAX31856_TC_S, YI_MAX31856_TC_T } yi_max31856_thermocouple_t;
 
 typedef struct {
-    yi_device_t *self;
-    yi_device_t *spi;
-    yi_spi_transfer_config_t spi_config;
-    yi_max31856_thermocouple_t thermocouple_type;
-    uint32_t transfer_timeout_ms;
-    uint8_t average_samples;
-    uint8_t filter_hz;
-    uint8_t open_circuit_ms;
-} yi_max31856_config_t;
+    yi_device_t *self; /**< Self value. */
+    yi_device_t *spi; /**< Spi value. */
+    yi_spi_transfer_config_t spi_config; /**< Spi config value. */
+    yi_max31856_thermocouple_t thermocouple_type; /**< Thermocouple type value. */
+    uint32_t transfer_timeout_ms; /**< Transfer timeout ms value. */
+    uint8_t average_samples; /**< Average samples value. */
+    uint8_t filter_hz; /**< Filter hz value. */
+    uint8_t open_circuit_ms; /**< Open circuit ms value. */} yi_max31856_config_t;
 
 typedef struct { uint8_t initialized; } yi_max31856_data_t;
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_max31856_init(const void *config);
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param temperature_mc Temperature mc value.
+ * @param fault_status Fault status value.
+ */
 int yi_max31856_read(yi_device_t *dev, int32_t *temperature_mc,
                      uint8_t *fault_status);
 

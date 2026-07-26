@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Create a buildable YiCore application from a supported MCU target."""
+"""Create a buildable YiCore application from a supported MCU target.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
 
 from __future__ import annotations
 

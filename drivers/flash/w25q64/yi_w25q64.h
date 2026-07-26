@@ -1,3 +1,11 @@
+/**
+ * @file yi_w25q64.h
+ * @brief YiCore w25q64 interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_W25Q64_H
 #define YI_W25Q64_H
 
@@ -12,23 +20,25 @@
 typedef struct
 {
     /* Must remain first for the common yi_flash geometry accessors. */
-    yi_flash_config_t flash;
-    yi_device_t *self;
-    yi_device_t *spi;
-    yi_spi_transfer_config_t spi_config;
-    uint32_t transfer_timeout_ms;
-    uint32_t program_timeout_ms;
-    uint32_t erase_timeout_ms;
-} yi_w25q64_config_t;
+    yi_flash_config_t flash; /**< Flash value. */
+    yi_device_t *self; /**< Self value. */
+    yi_device_t *spi; /**< Spi value. */
+    yi_spi_transfer_config_t spi_config; /**< Spi config value. */
+    uint32_t transfer_timeout_ms; /**< Transfer timeout ms value. */
+    uint32_t program_timeout_ms; /**< Program timeout ms value. */
+    uint32_t erase_timeout_ms; /**< Erase timeout ms value. */} yi_w25q64_config_t;
 
 typedef struct
 {
-    uint32_t jedec_id;
-    uint32_t error_count;
-    uint8_t tx_buffer[YI_W25Q64_PAGE_SIZE + 4U];
-    uint8_t rx_buffer[YI_W25Q64_PAGE_SIZE + 4U];
-} yi_w25q64_data_t;
+    uint32_t jedec_id; /**< Jedec id value. */
+    uint32_t error_count; /**< Error count value. */
+    uint8_t tx_buffer[YI_W25Q64_PAGE_SIZE + 4U]; /**< Tx buffer value. */
+    uint8_t rx_buffer[YI_W25Q64_PAGE_SIZE + 4U]; /**< Rx buffer value. */} yi_w25q64_data_t;
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_w25q64_init(const void *config);
 extern const yi_flash_api_t yi_w25q64_api;
 

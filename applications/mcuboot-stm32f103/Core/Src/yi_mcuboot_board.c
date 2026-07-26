@@ -1,3 +1,11 @@
+/**
+ * @file yi_mcuboot_board.c
+ * @brief YiCore mcuboot board implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_mcuboot_board.h"
 
 #include <stdint.h>
@@ -13,6 +21,14 @@ static yi_partition_t primary_partition;
 static yi_partition_t secondary_partition;
 static struct flash_area flash_areas[3];
 
+/**
+ * @brief Set the module.
+ * @param partition Partition value.
+ * @param name Registered device name.
+ * @param flash Flash value.
+ * @param offset Byte offset from the start of the device.
+ * @param size Size value.
+ */
 static void yi_mcuboot_partition_set(yi_partition_t *partition,
                                      const char *name,
                                      yi_device_t *flash,
@@ -25,6 +41,12 @@ static void yi_mcuboot_partition_set(yi_partition_t *partition,
     partition->size = size;
 }
 
+/**
+ * @brief Set the module.
+ * @param area Area value.
+ * @param id Id value.
+ * @param partition Partition value.
+ */
 static void yi_mcuboot_area_set(struct flash_area *area,
                                 uint8_t id,
                                 const yi_partition_t *partition)
@@ -37,6 +59,9 @@ static void yi_mcuboot_area_set(struct flash_area *area,
     area->partition = partition;
 }
 
+/**
+ * @brief Initialize the module.
+ */
 int yi_mcuboot_board_flash_map_init(void)
 {
     yi_device_t *internal_flash = YI_DT_GET(FLASH0);
@@ -63,11 +88,19 @@ int yi_mcuboot_board_flash_map_init(void)
     yi_mcuboot_area_set(&flash_areas[2], FLASH_AREA_IMAGE_SECONDARY(0),
                         &secondary_partition);
 
+    /**
+     * @brief Set the module.
+     * @param flash_areas Flash areas value.
+     */
     return yi_mcuboot_flash_map_set(flash_areas,
                                     sizeof(flash_areas) /
                                     sizeof(flash_areas[0]));
 }
 
+/**
+ * @brief Perform the yi mcuboot jump operation.
+ * @param response Response value.
+ */
 void yi_mcuboot_jump(const struct boot_rsp *response)
 {
     uint32_t vector_address;

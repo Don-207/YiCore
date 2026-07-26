@@ -1,9 +1,21 @@
+/**
+ * @file yi_gpio_stm32f1.c
+ * @brief YiCore gpio stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_gpio.h"
 #include "yi_clock.h"
 #include "stm32f1xx_hal.h"
 
 static yi_device_t *yi_gpio_exti_devices[16];
 
+/**
+ * @brief Perform the yi gpio hal pull operation.
+ * @param pull Pull value.
+ */
 static uint32_t yi_gpio_hal_pull(yi_gpio_pull_t pull)
 {
     switch(pull)
@@ -15,6 +27,10 @@ static uint32_t yi_gpio_hal_pull(yi_gpio_pull_t pull)
     }
 }
 
+/**
+ * @brief Perform the yi gpio pin index operation.
+ * @param pin Pin value.
+ */
 static int yi_gpio_pin_index(uint16_t pin)
 {
     for(int index = 0; index < 16; index++)
@@ -27,6 +43,10 @@ static int yi_gpio_pin_index(uint16_t pin)
     return -1;
 }
 
+/**
+ * @brief Perform the yi gpio exti irqn operation.
+ * @param index Index value.
+ */
 static IRQn_Type yi_gpio_exti_irqn(int index)
 {
     if(index <= 4)
@@ -36,6 +56,10 @@ static IRQn_Type yi_gpio_exti_irqn(int index)
     return (index <= 9) ? EXTI9_5_IRQn : EXTI15_10_IRQn;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_gpio_init(const void *config)
 {
     const yi_gpio_config_t *cfg = config;
@@ -95,6 +119,11 @@ int yi_gpio_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Set the module.
+ * @param dev Device instance.
+ * @param value Value to process.
+ */
 int yi_gpio_set(yi_device_t *dev, yi_gpio_value_t value)
 {
     const yi_gpio_config_t *cfg = dev->config;
@@ -104,13 +133,26 @@ int yi_gpio_set(yi_device_t *dev, yi_gpio_value_t value)
     return 0;
 }
 
+/**
+ * @brief Get the module.
+ * @param dev Device instance.
+ */
 int yi_gpio_get(yi_device_t *dev)
 {
     const yi_gpio_config_t *cfg = dev->config;
 
+    /**
+     * @brief Perform the HAL GPIO ReadPin operation.
+     * @param port Port value.
+     * @param pin Pin value.
+     */
     return HAL_GPIO_ReadPin(cfg->port, cfg->pin);
 }
 
+/**
+ * @brief Perform the yi gpio toggle operation.
+ * @param dev Device instance.
+ */
 int yi_gpio_toggle(yi_device_t *dev)
 {
     const yi_gpio_config_t *cfg = dev->config;
@@ -120,6 +162,12 @@ int yi_gpio_toggle(yi_device_t *dev)
     return 0;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param callback Callback registration object.
+ * @param handler Callback function to invoke.
+ * @param pin_mask GPIO pin mask.
+ */
 void yi_gpio_callback_init(yi_gpio_callback_t *callback,
                            yi_gpio_callback_handler_t handler,
                            uint16_t pin_mask)
@@ -132,6 +180,11 @@ void yi_gpio_callback_init(yi_gpio_callback_t *callback,
     }
 }
 
+/**
+ * @brief Perform the yi gpio add callback operation.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ */
 int yi_gpio_add_callback(yi_device_t *dev, yi_gpio_callback_t *callback)
 {
     yi_gpio_data_t *data;
@@ -159,6 +212,11 @@ int yi_gpio_add_callback(yi_device_t *dev, yi_gpio_callback_t *callback)
     return 0;
 }
 
+/**
+ * @brief Perform the yi gpio remove callback operation.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ */
 int yi_gpio_remove_callback(yi_device_t *dev, yi_gpio_callback_t *callback)
 {
     yi_gpio_data_t *data;
@@ -186,6 +244,10 @@ int yi_gpio_remove_callback(yi_device_t *dev, yi_gpio_callback_t *callback)
     return -1;
 }
 
+/**
+ * @brief Perform the yi gpio irq handler operation.
+ * @param pins GPIO pin mask.
+ */
 void yi_gpio_irq_handler(uint16_t pins)
 {
     uint16_t pending = (uint16_t)(EXTI->PR & EXTI->IMR & pins);
@@ -210,10 +272,31 @@ void yi_gpio_irq_handler(uint16_t pins)
     }
 }
 
+/**
+ * @brief Perform the EXTI0 IRQHandler operation.
+ */
 void EXTI0_IRQHandler(void) { yi_gpio_irq_handler(GPIO_PIN_0); }
+/**
+ * @brief Perform the EXTI1 IRQHandler operation.
+ */
 void EXTI1_IRQHandler(void) { yi_gpio_irq_handler(GPIO_PIN_1); }
+/**
+ * @brief Perform the EXTI2 IRQHandler operation.
+ */
 void EXTI2_IRQHandler(void) { yi_gpio_irq_handler(GPIO_PIN_2); }
+/**
+ * @brief Perform the EXTI3 IRQHandler operation.
+ */
 void EXTI3_IRQHandler(void) { yi_gpio_irq_handler(GPIO_PIN_3); }
+/**
+ * @brief Perform the EXTI4 IRQHandler operation.
+ */
 void EXTI4_IRQHandler(void) { yi_gpio_irq_handler(GPIO_PIN_4); }
+/**
+ * @brief Perform the EXTI9 5 IRQHandler operation.
+ */
 void EXTI9_5_IRQHandler(void) { yi_gpio_irq_handler(0x03E0U); }
+/**
+ * @brief Perform the EXTI15 10 IRQHandler operation.
+ */
 void EXTI15_10_IRQHandler(void) { yi_gpio_irq_handler(0xFC00U); }

@@ -1,5 +1,19 @@
+/**
+ * @file yi_timer_stm32f1.c
+ * @brief YiCore timer stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_timer_stm32f1.h"
 
+/**
+ * @brief Perform the yi timer calculate period operation.
+ * @param cfg Device configuration.
+ * @param prescaler Prescaler value.
+ * @param period Period value.
+ */
 static int yi_timer_calculate_period(const yi_timer_config_t *cfg,
                                      uint32_t *prescaler,
                                      uint32_t *period)
@@ -30,6 +44,10 @@ static int yi_timer_calculate_period(const yi_timer_config_t *cfg,
     return -1;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_timer_init(const void *config)
 {
     const yi_timer_config_t *cfg = (const yi_timer_config_t *)config;
@@ -83,6 +101,10 @@ int yi_timer_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Start the module.
+ * @param dev Device instance.
+ */
 int yi_timer_start(yi_device_t *dev)
 {
     yi_timer_data_t *data;
@@ -100,6 +122,10 @@ int yi_timer_start(yi_device_t *dev)
     return 0;
 }
 
+/**
+ * @brief Stop the module.
+ * @param dev Device instance.
+ */
 int yi_timer_stop(yi_device_t *dev)
 {
     yi_timer_data_t *data;
@@ -117,6 +143,10 @@ int yi_timer_stop(yi_device_t *dev)
     return 0;
 }
 
+/**
+ * @brief Get period count.
+ * @param dev Device instance.
+ */
 uint32_t yi_timer_get_period_count(const yi_device_t *dev)
 {
     const yi_timer_data_t *data;
@@ -129,6 +159,10 @@ uint32_t yi_timer_get_period_count(const yi_device_t *dev)
     return data->period_count;
 }
 
+/**
+ * @brief Perform the yi timer irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_timer_irq_handler(yi_device_t *dev)
 {
     yi_timer_data_t *data;

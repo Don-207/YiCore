@@ -1,23 +1,49 @@
+/**
+ * @file yi_soft_i2c.c
+ * @brief YiCore soft i2c implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include <stddef.h>
 #include "yi_soft_i2c.h"
 #include "yi_gpio.h"
 #include "yi_system.h"
 
+/**
+ * @brief Perform the yi soft i2c delay operation.
+ * @param cfg Device configuration.
+ */
 static void yi_soft_i2c_delay(const yi_soft_i2c_config_t *cfg)
 {
     yi_system_delay_us(cfg->half_period_us);
 }
 
+/**
+ * @brief Perform the yi soft i2c scl operation.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ */
 static void yi_soft_i2c_scl(const yi_soft_i2c_config_t *cfg, yi_gpio_value_t value)
 {
     (void)yi_gpio_set(cfg->scl_gpio, value);
 }
 
+/**
+ * @brief Perform the yi soft i2c sda operation.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ */
 static void yi_soft_i2c_sda(const yi_soft_i2c_config_t *cfg, yi_gpio_value_t value)
 {
     (void)yi_gpio_set(cfg->sda_gpio, value);
 }
 
+/**
+ * @brief Perform the yi soft i2c wait scl high operation.
+ * @param cfg Device configuration.
+ */
 static int yi_soft_i2c_wait_scl_high(const yi_soft_i2c_config_t *cfg)
 {
     uint32_t start = yi_system_uptime_us();
@@ -32,6 +58,10 @@ static int yi_soft_i2c_wait_scl_high(const yi_soft_i2c_config_t *cfg)
     return 0;
 }
 
+/**
+ * @brief Start the module.
+ * @param cfg Device configuration.
+ */
 static int yi_soft_i2c_start(const yi_soft_i2c_config_t *cfg)
 {
     yi_soft_i2c_sda(cfg, YI_GPIO_HIGH);
@@ -44,6 +74,10 @@ static int yi_soft_i2c_start(const yi_soft_i2c_config_t *cfg)
     return 0;
 }
 
+/**
+ * @brief Stop the module.
+ * @param cfg Device configuration.
+ */
 static int yi_soft_i2c_stop(const yi_soft_i2c_config_t *cfg)
 {
     yi_soft_i2c_sda(cfg, YI_GPIO_LOW);
@@ -55,6 +89,11 @@ static int yi_soft_i2c_stop(const yi_soft_i2c_config_t *cfg)
     return 0;
 }
 
+/**
+ * @brief Write byte.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ */
 static int yi_soft_i2c_write_byte(const yi_soft_i2c_config_t *cfg, uint8_t value)
 {
     for(uint8_t bit = 0U; bit < 8U; bit++)
@@ -78,6 +117,12 @@ static int yi_soft_i2c_write_byte(const yi_soft_i2c_config_t *cfg, uint8_t value
     return (ack == YI_GPIO_LOW) ? 0 : -1;
 }
 
+/**
+ * @brief Read byte.
+ * @param cfg Device configuration.
+ * @param value Value to process.
+ * @param send_ack Send ack value.
+ */
 static int yi_soft_i2c_read_byte(const yi_soft_i2c_config_t *cfg,
                                  uint8_t *value, int send_ack)
 {
@@ -104,6 +149,10 @@ static int yi_soft_i2c_read_byte(const yi_soft_i2c_config_t *cfg,
     return 0;
 }
 
+/**
+ * @brief Perform the yi soft i2c recover operation.
+ * @param cfg Device configuration.
+ */
 static int yi_soft_i2c_recover(const yi_soft_i2c_config_t *cfg)
 {
     yi_soft_i2c_sda(cfg, YI_GPIO_HIGH);
@@ -119,9 +168,17 @@ static int yi_soft_i2c_recover(const yi_soft_i2c_config_t *cfg)
         yi_soft_i2c_delay(cfg);
         if(yi_gpio_get(cfg->sda_gpio) == YI_GPIO_HIGH) { break; }
     }
+    /**
+     * @brief Stop the module.
+     * @param cfg Device configuration.
+     */
     return yi_soft_i2c_stop(cfg);
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_soft_i2c_init(const void *config)
 {
     const yi_soft_i2c_config_t *cfg = config;
@@ -135,9 +192,21 @@ int yi_soft_i2c_init(const void *config)
     }
     yi_soft_i2c_scl(cfg, YI_GPIO_HIGH);
     yi_soft_i2c_sda(cfg, YI_GPIO_HIGH);
+    /**
+     * @brief Perform the yi soft i2c recover operation.
+     * @param cfg Device configuration.
+     */
     return yi_soft_i2c_recover(cfg);
 }
 
+/**
+ * @brief Transfer the module.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param messages Messages value.
+ * @param count Count value.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_soft_i2c_transfer(yi_device_t *dev, uint8_t address,
                                 yi_i2c_msg_t *messages, uint8_t count,
                                 uint32_t timeout_ms)

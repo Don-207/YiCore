@@ -1,6 +1,20 @@
+/**
+ * @file yi_uart_dma_lwrb.c
+ * @brief YiCore uart dma lwrb implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_uart_dma_lwrb.h"
 #include "yi_system.h"
 
+/**
+ * @brief Write the module.
+ * @param ctx Ctx value.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static uint32_t yi_uart_dma_lwrb_write(yi_uart_dma_lwrb_t *ctx,
                                        const uint8_t *buf,
                                        uint32_t len)
@@ -20,6 +34,11 @@ static uint32_t yi_uart_dma_lwrb_write(yi_uart_dma_lwrb_t *ctx,
     return written;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb sync to operation.
+ * @param ctx Ctx value.
+ * @param raw_pos Raw pos value.
+ */
 static uint32_t yi_uart_dma_lwrb_sync_to(yi_uart_dma_lwrb_t *ctx,
                                          uint32_t raw_pos)
 {
@@ -70,6 +89,11 @@ static uint32_t yi_uart_dma_lwrb_sync_to(yi_uart_dma_lwrb_t *ctx,
     return written;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb sync operation.
+ * @param ctx Ctx value.
+ * @param event Event value.
+ */
 static uint32_t yi_uart_dma_lwrb_sync(yi_uart_dma_lwrb_t *ctx,
                                       yi_uart_rx_event_t event)
 {
@@ -82,9 +106,20 @@ static uint32_t yi_uart_dma_lwrb_sync(yi_uart_dma_lwrb_t *ctx,
 
     raw_pos = (event == YI_UART_RX_EVENT_DMA_COMPLETE) ?
         ctx->dma_size : yi_uart_rx_dma_pos(ctx->uart);
+    /**
+     * @brief Perform the yi uart dma lwrb sync to operation.
+     * @param ctx Ctx value.
+     * @param raw_pos Raw pos value.
+     */
     return yi_uart_dma_lwrb_sync_to(ctx, raw_pos);
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb callback operation.
+ * @param dev Device instance.
+ * @param event Event value.
+ * @param user_data User data value.
+ */
 static void yi_uart_dma_lwrb_callback(yi_device_t *dev,
                                       yi_uart_rx_event_t event,
                                       void *user_data)
@@ -95,6 +130,10 @@ static void yi_uart_dma_lwrb_callback(yi_device_t *dev,
     (void)yi_uart_dma_lwrb_sync(ctx, event);
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb sync locked operation.
+ * @param ctx Ctx value.
+ */
 static uint32_t yi_uart_dma_lwrb_sync_locked(yi_uart_dma_lwrb_t *ctx)
 {
     uint32_t key;
@@ -106,6 +145,12 @@ static uint32_t yi_uart_dma_lwrb_sync_locked(yi_uart_dma_lwrb_t *ctx)
     return written;
 }
 
+/**
+ * @brief Read locked.
+ * @param ctx Ctx value.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static uint32_t yi_uart_dma_lwrb_read_locked(yi_uart_dma_lwrb_t *ctx,
                                              uint8_t *buf,
                                              uint32_t len)
@@ -119,6 +164,10 @@ static uint32_t yi_uart_dma_lwrb_read_locked(yi_uart_dma_lwrb_t *ctx,
     return read;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb full locked operation.
+ * @param ctx Ctx value.
+ */
 static uint32_t yi_uart_dma_lwrb_full_locked(yi_uart_dma_lwrb_t *ctx)
 {
     uint32_t key;
@@ -130,6 +179,11 @@ static uint32_t yi_uart_dma_lwrb_full_locked(yi_uart_dma_lwrb_t *ctx)
     return full;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb overrun locked operation.
+ * @param ctx Ctx value.
+ * @param clear Clear value.
+ */
 static uint32_t yi_uart_dma_lwrb_overrun_locked(yi_uart_dma_lwrb_t *ctx,
                                                 bool clear)
 {
@@ -146,6 +200,15 @@ static uint32_t yi_uart_dma_lwrb_overrun_locked(yi_uart_dma_lwrb_t *ctx,
     return overrun;
 }
 
+/**
+ * @brief Start the module.
+ * @param ctx Ctx value.
+ * @param uart Uart value.
+ * @param dma_buf Dma buf value.
+ * @param dma_len Dma len value.
+ * @param ring_buf Ring buf value.
+ * @param ring_len Ring len value.
+ */
 int yi_uart_dma_lwrb_start(yi_uart_dma_lwrb_t *ctx,
                            yi_device_t *uart,
                            uint8_t *dma_buf, uint32_t dma_len,
@@ -185,6 +248,10 @@ int yi_uart_dma_lwrb_start(yi_uart_dma_lwrb_t *ctx,
     return 0;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb detach operation.
+ * @param ctx Ctx value.
+ */
 void yi_uart_dma_lwrb_detach(yi_uart_dma_lwrb_t *ctx)
 {
     if(ctx == NULL)
@@ -203,6 +270,10 @@ void yi_uart_dma_lwrb_detach(yi_uart_dma_lwrb_t *ctx)
     ctx->overrun = 0U;
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb poll operation.
+ * @param ctx Ctx value.
+ */
 uint32_t yi_uart_dma_lwrb_poll(yi_uart_dma_lwrb_t *ctx)
 {
     if((ctx == NULL) || (ctx->uart == NULL))
@@ -210,9 +281,17 @@ uint32_t yi_uart_dma_lwrb_poll(yi_uart_dma_lwrb_t *ctx)
         return 0U;
     }
 
+    /**
+     * @brief Perform the yi uart dma lwrb sync locked operation.
+     * @param ctx Ctx value.
+     */
     return yi_uart_dma_lwrb_sync_locked(ctx);
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb available operation.
+ * @param ctx Ctx value.
+ */
 uint32_t yi_uart_dma_lwrb_available(yi_uart_dma_lwrb_t *ctx)
 {
     if(ctx == NULL)
@@ -220,9 +299,19 @@ uint32_t yi_uart_dma_lwrb_available(yi_uart_dma_lwrb_t *ctx)
         return 0U;
     }
     (void)yi_uart_dma_lwrb_poll(ctx);
+    /**
+     * @brief Perform the yi uart dma lwrb full locked operation.
+     * @param ctx Ctx value.
+     */
     return yi_uart_dma_lwrb_full_locked(ctx);
 }
 
+/**
+ * @brief Read the module.
+ * @param ctx Ctx value.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 uint32_t yi_uart_dma_lwrb_read(yi_uart_dma_lwrb_t *ctx,
                                uint8_t *buf, uint32_t len)
 {
@@ -231,23 +320,49 @@ uint32_t yi_uart_dma_lwrb_read(yi_uart_dma_lwrb_t *ctx,
         return 0U;
     }
     (void)yi_uart_dma_lwrb_poll(ctx);
+    /**
+     * @brief Read locked.
+     * @param ctx Ctx value.
+     * @param buf Buf value.
+     * @param len Len value.
+     */
     return yi_uart_dma_lwrb_read_locked(ctx, buf, len);
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb overrun operation.
+ * @param ctx Ctx value.
+ * @param clear Clear value.
+ */
 uint32_t yi_uart_dma_lwrb_overrun(yi_uart_dma_lwrb_t *ctx, bool clear)
 {
     if(ctx == NULL)
     {
         return 0U;
     }
+    /**
+     * @brief Perform the yi uart dma lwrb overrun locked operation.
+     * @param ctx Ctx value.
+     * @param clear Clear value.
+     */
     return yi_uart_dma_lwrb_overrun_locked(ctx, clear);
 }
 
+/**
+ * @brief Perform the yi uart dma lwrb idle operation.
+ * @param ctx Ctx value.
+ * @param clear Clear value.
+ */
 bool yi_uart_dma_lwrb_idle(yi_uart_dma_lwrb_t *ctx, bool clear)
 {
     if((ctx == NULL) || (ctx->uart == NULL))
     {
         return false;
     }
+    /**
+     * @brief Perform the yi uart rx idle operation.
+     * @param uart Uart value.
+     * @param clear Clear value.
+     */
     return yi_uart_rx_idle(ctx->uart, clear);
 }

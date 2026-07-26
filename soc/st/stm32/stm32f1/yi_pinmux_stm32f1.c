@@ -1,7 +1,19 @@
+/**
+ * @file yi_pinmux_stm32f1.c
+ * @brief YiCore pinmux stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_pinmux.h"
 #include "yi_clock.h"
 #include "stm32f1xx_hal.h"
 
+/**
+ * @brief Perform the yi pinmux hal mode operation.
+ * @param mode Mode value.
+ */
 static uint32_t yi_pinmux_hal_mode(yi_pinmux_mode_t mode)
 {
     static const uint32_t values[] = {
@@ -12,6 +24,10 @@ static uint32_t yi_pinmux_hal_mode(yi_pinmux_mode_t mode)
            ? values[mode] : GPIO_MODE_INPUT;
 }
 
+/**
+ * @brief Perform the yi pinmux hal pull operation.
+ * @param pull Pull value.
+ */
 static uint32_t yi_pinmux_hal_pull(yi_pinmux_pull_t pull)
 {
     static const uint32_t values[] = {GPIO_NOPULL, GPIO_PULLUP, GPIO_PULLDOWN};
@@ -19,6 +35,10 @@ static uint32_t yi_pinmux_hal_pull(yi_pinmux_pull_t pull)
            ? values[pull] : GPIO_NOPULL;
 }
 
+/**
+ * @brief Perform the yi pinmux hal speed operation.
+ * @param speed Speed value.
+ */
 static uint32_t yi_pinmux_hal_speed(yi_pinmux_speed_t speed)
 {
     static const uint32_t values[] = {
@@ -28,6 +48,10 @@ static uint32_t yi_pinmux_hal_speed(yi_pinmux_speed_t speed)
            ? values[speed] : GPIO_SPEED_FREQ_LOW;
 }
 
+/**
+ * @brief Perform the yi pinmux apply config operation.
+ * @param cfg Device configuration.
+ */
 static int yi_pinmux_apply_config(const yi_pinmux_config_t *cfg)
 {
     GPIO_InitTypeDef gpio = {0};
@@ -45,6 +69,10 @@ static int yi_pinmux_apply_config(const yi_pinmux_config_t *cfg)
     return 0;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_pinmux_init(const void *config)
 {
     const yi_pinmux_config_t *cfg = (const yi_pinmux_config_t *)config;
@@ -61,15 +89,27 @@ int yi_pinmux_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi pinmux apply operation.
+ * @param dev Device instance.
+ */
 int yi_pinmux_apply(yi_device_t *dev)
 {
     if(dev == NULL)
     {
         return -1;
     }
+    /**
+     * @brief Perform the yi pinmux apply config operation.
+     * @param config Device configuration.
+     */
     return yi_pinmux_apply_config((const yi_pinmux_config_t *)dev->config);
 }
 
+/**
+ * @brief Perform the yi pinmux release operation.
+ * @param dev Device instance.
+ */
 int yi_pinmux_release(yi_device_t *dev)
 {
     const yi_pinmux_config_t *cfg;
@@ -80,5 +120,9 @@ int yi_pinmux_release(yi_device_t *dev)
     }
     cfg = (const yi_pinmux_config_t *)dev->config;
     HAL_GPIO_DeInit((GPIO_TypeDef *)cfg->port, cfg->pin);
+    /**
+     * @brief Disable the module.
+     * @param clock Clock value.
+     */
     return yi_clock_disable(cfg->clock);
 }

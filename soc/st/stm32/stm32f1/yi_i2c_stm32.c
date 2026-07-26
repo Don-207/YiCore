@@ -1,6 +1,18 @@
+/**
+ * @file yi_i2c_stm32.c
+ * @brief YiCore i2c stm32 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_i2c_stm32.h"
 #include "yi_pinmux.h"
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_i2c_stm32_init(const void *config)
 {
     const yi_i2c_stm32_config_t *cfg = config;
@@ -30,6 +42,14 @@ int yi_i2c_stm32_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Transfer the module.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param messages Messages value.
+ * @param count Count value.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_i2c_stm32_transfer(yi_device_t *dev, uint8_t address,
                                  yi_i2c_msg_t *messages, uint8_t count,
                                  uint32_t timeout_ms)
@@ -55,8 +75,16 @@ static int yi_i2c_stm32_transfer(yi_device_t *dev, uint8_t address,
     return 0;
 }
 
+/**
+ * @brief Perform the yi i2c stm32 event irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_i2c_stm32_event_irq_handler(yi_device_t *dev)
 { if((dev != NULL) && (dev->data != NULL)) HAL_I2C_EV_IRQHandler(&((yi_i2c_stm32_data_t *)dev->data)->hi2c); }
+/**
+ * @brief Perform the yi i2c stm32 error irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_i2c_stm32_error_irq_handler(yi_device_t *dev)
 { if((dev != NULL) && (dev->data != NULL)) HAL_I2C_ER_IRQHandler(&((yi_i2c_stm32_data_t *)dev->data)->hi2c); }
 

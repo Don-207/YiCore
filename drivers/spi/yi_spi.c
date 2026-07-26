@@ -1,7 +1,24 @@
+/**
+ * @file yi_spi.c
+ * @brief YiCore spi implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_spi.h"
 #include "yi_gpio.h"
 #include <stddef.h>
 
+/**
+ * @brief Perform the yi spi transceive operation.
+ * @param dev Device instance.
+ * @param config Device configuration.
+ * @param tx Tx value.
+ * @param rx Rx value.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 int yi_spi_transceive(yi_device_t *dev,
                       const yi_spi_transfer_config_t *config,
                       const uint8_t *tx, uint8_t *rx,

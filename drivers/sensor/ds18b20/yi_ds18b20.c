@@ -1,3 +1,11 @@
+/**
+ * @file yi_ds18b20.c
+ * @brief YiCore ds18b20 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_ds18b20.h"
 
 #include <string.h>
@@ -6,12 +14,23 @@
 #define DS18B20_CMD_READ_SCRATCHPAD 0xBEU
 #define DS18B20_SCRATCHPAD_SIZE     9U
 
+/**
+ * @brief Perform the yi ds18b20 address operation.
+ * @param sensor Sensor value.
+ */
 static int yi_ds18b20_address(yi_ds18b20_t *sensor)
 {
     int result = yi_onewire_reset(sensor->bus);
     return (result == YI_ONEWIRE_OK) ? yi_onewire_select(sensor->bus, sensor->rom) : result;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param sensor Sensor value.
+ * @param bus Bus value.
+ * @param rom Rom value.
+ * @param parasite_power Parasite power value.
+ */
 int yi_ds18b20_init(yi_ds18b20_t *sensor, yi_onewire_bus_t *bus,
                     const uint8_t rom[YI_ONEWIRE_ROM_SIZE], bool parasite_power)
 {
@@ -27,6 +46,10 @@ int yi_ds18b20_init(yi_ds18b20_t *sensor, yi_onewire_bus_t *bus,
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Start conversion.
+ * @param sensor Sensor value.
+ */
 int yi_ds18b20_start_conversion(yi_ds18b20_t *sensor)
 {
     const uint8_t command = DS18B20_CMD_CONVERT_T;
@@ -42,6 +65,11 @@ int yi_ds18b20_start_conversion(yi_ds18b20_t *sensor)
     return result;
 }
 
+/**
+ * @brief Perform the yi ds18b20 conversion ready operation.
+ * @param sensor Sensor value.
+ * @param ready Ready value.
+ */
 int yi_ds18b20_conversion_ready(yi_ds18b20_t *sensor, bool *ready)
 {
     if((sensor == NULL) || (sensor->bus == NULL) || (ready == NULL))
@@ -49,9 +77,18 @@ int yi_ds18b20_conversion_ready(yi_ds18b20_t *sensor, bool *ready)
         return YI_ONEWIRE_ERROR_ARGUMENT;
     }
     if(sensor->parasite_power) { return YI_ONEWIRE_ERROR_UNSUPPORTED; }
+    /**
+     * @brief Read bit.
+     * @param bus Bus value.
+     * @param ready Ready value.
+     */
     return yi_onewire_read_bit(sensor->bus, ready);
 }
 
+/**
+ * @brief Perform the yi ds18b20 end strong pullup operation.
+ * @param sensor Sensor value.
+ */
 int yi_ds18b20_end_strong_pullup(yi_ds18b20_t *sensor)
 {
     if((sensor == NULL) || (sensor->bus == NULL)) { return YI_ONEWIRE_ERROR_ARGUMENT; }
@@ -60,6 +97,11 @@ int yi_ds18b20_end_strong_pullup(yi_ds18b20_t *sensor)
            YI_ONEWIRE_OK : YI_ONEWIRE_ERROR_IO;
 }
 
+/**
+ * @brief Read temperature.
+ * @param sensor Sensor value.
+ * @param temperature_millidegrees_c Temperature millidegrees c value.
+ */
 int yi_ds18b20_read_temperature(yi_ds18b20_t *sensor,
                                 int32_t *temperature_millidegrees_c)
 {

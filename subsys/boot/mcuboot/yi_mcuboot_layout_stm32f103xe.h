@@ -1,3 +1,11 @@
+/**
+ * @file yi_mcuboot_layout_stm32f103xe.h
+ * @brief YiCore mcuboot layout stm32f103xe interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_MCUBOOT_LAYOUT_STM32F103XE_H
 #define YI_MCUBOOT_LAYOUT_STM32F103XE_H
 

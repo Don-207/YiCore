@@ -1,3 +1,11 @@
+/**
+ * @file yi_tsys01.c
+ * @brief YiCore tsys01 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_tsys01.h"
 #include "yi_system.h"
 
@@ -12,12 +20,31 @@
 #define TSYS01_PROM_K1_INDEX     4U
 #define TSYS01_PROM_K0_INDEX     5U
 
+/**
+ * @brief Perform the yi tsys01 command operation.
+ * @param cfg Device configuration.
+ * @param command Command value.
+ */
 static int yi_tsys01_command(const yi_tsys01_config_t *cfg, uint8_t command)
 {
+    /**
+     * @brief Write the module.
+     * @param i2c I2c value.
+     * @param address Address value.
+     * @param command Command value.
+     * @param U U value.
+     * @param transfer_timeout_ms Transfer timeout ms value.
+     */
     return yi_i2c_master_write(cfg->i2c, cfg->address, &command, 1U,
                                cfg->transfer_timeout_ms);
 }
 
+/**
+ * @brief Read prom word.
+ * @param cfg Device configuration.
+ * @param index Index value.
+ * @param word Word value.
+ */
 static int yi_tsys01_read_prom_word(const yi_tsys01_config_t *cfg,
                                     uint8_t index, uint16_t *word)
 {
@@ -35,6 +62,10 @@ static int yi_tsys01_read_prom_word(const yi_tsys01_config_t *cfg,
     return 0;
 }
 
+/**
+ * @brief Perform the yi tsys01 prom checksum valid operation.
+ * @param prom Prom value.
+ */
 static bool yi_tsys01_prom_checksum_valid(const uint16_t prom[])
 {
     uint8_t sum = 0U;
@@ -48,6 +79,10 @@ static bool yi_tsys01_prom_checksum_valid(const uint16_t prom[])
     return sum == 0U;
 }
 
+/**
+ * @brief Perform the yi tsys01 coefficients present operation.
+ * @param prom Prom value.
+ */
 static bool yi_tsys01_coefficients_present(const uint16_t prom[])
 {
     return (prom[TSYS01_PROM_K4_INDEX] != 0U) ||
@@ -57,6 +92,11 @@ static bool yi_tsys01_coefficients_present(const uint16_t prom[])
            (prom[TSYS01_PROM_K0_INDEX] != 0U);
 }
 
+/**
+ * @brief Perform the yi tsys01 temperature mc operation.
+ * @param adc_raw Adc raw value.
+ * @param prom Prom value.
+ */
 static int32_t yi_tsys01_temperature_mc(uint32_t adc_raw,
                                         const uint16_t prom[])
 {
@@ -75,6 +115,10 @@ static int32_t yi_tsys01_temperature_mc(uint32_t adc_raw,
     return (int32_t)((temperature_c * 1000.0) - 0.5);
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_tsys01_init(const void *config)
 {
     const yi_tsys01_config_t *cfg = config;
@@ -122,6 +166,11 @@ int yi_tsys01_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Read raw.
+ * @param dev Device instance.
+ * @param adc_raw Adc raw value.
+ */
 int yi_tsys01_read_raw(yi_device_t *dev, uint32_t *adc_raw)
 {
     const yi_tsys01_config_t *cfg;
@@ -161,6 +210,11 @@ int yi_tsys01_read_raw(yi_device_t *dev, uint32_t *adc_raw)
     return 0;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param temperature_mc Temperature mc value.
+ */
 int yi_tsys01_read(yi_device_t *dev, int32_t *temperature_mc)
 {
     const yi_tsys01_data_t *data;

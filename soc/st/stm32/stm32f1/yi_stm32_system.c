@@ -1,7 +1,18 @@
+/**
+ * @file yi_stm32_system.c
+ * @brief YiCore stm32 system implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_stm32_system.h"
 #include "yi_system.h"
 #include "stm32f1xx_hal.h"
 
+/**
+ * @brief Initialize the module.
+ */
 int yi_system_init(void)
 {
     RCC_OscInitTypeDef oscillator = {0};
@@ -40,22 +51,39 @@ int yi_system_init(void)
     return 0;
 }
 
+/**
+ * @brief Perform the yi system uptime ms operation.
+ */
 uint32_t yi_system_uptime_ms(void)
 {
+    /**
+     * @brief Perform the HAL GetTick operation.
+     */
     return HAL_GetTick();
 }
 
+/**
+ * @brief Perform the yi system uptime us operation.
+ */
 uint32_t yi_system_uptime_us(void)
 {
     uint32_t cycles_per_us = SystemCoreClock / 1000000U;
     return (cycles_per_us != 0U) ? (DWT->CYCCNT / cycles_per_us) : 0U;
 }
 
+/**
+ * @brief Perform the yi system delay ms operation.
+ * @param delay_ms Delay ms value.
+ */
 void yi_system_delay_ms(uint32_t delay_ms)
 {
     HAL_Delay(delay_ms);
 }
 
+/**
+ * @brief Perform the yi system delay us operation.
+ * @param delay_us Delay us value.
+ */
 void yi_system_delay_us(uint32_t delay_us)
 {
     uint32_t cycles_per_us = SystemCoreClock / 1000000U;
@@ -64,11 +92,17 @@ void yi_system_delay_us(uint32_t delay_us)
     while((uint32_t)(DWT->CYCCNT - start) < wait_cycles) { }
 }
 
+/**
+ * @brief Perform the yi system irq lock operation.
+ */
 void yi_system_irq_lock(void)
 {
     __disable_irq();
 }
 
+/**
+ * @brief Perform the yi system irq save operation.
+ */
 uint32_t yi_system_irq_save(void)
 {
     uint32_t primask = __get_PRIMASK();
@@ -76,6 +110,10 @@ uint32_t yi_system_irq_save(void)
     return primask;
 }
 
+/**
+ * @brief Perform the yi system irq restore operation.
+ * @param key Key value.
+ */
 void yi_system_irq_restore(uint32_t key)
 {
     if((key & 1U) == 0U)

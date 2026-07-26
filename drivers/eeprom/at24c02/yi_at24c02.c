@@ -1,7 +1,21 @@
+/**
+ * @file yi_at24c02.c
+ * @brief YiCore at24c02 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_at24c02.h"
 #include "yi_system.h"
 #include <stddef.h>
 
+/**
+ * @brief Perform the yi at24c02 range valid operation.
+ * @param cfg Device configuration.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 static bool yi_at24c02_range_valid(const yi_at24c02_config_t *cfg,
                                    uint32_t offset,
                                    uint32_t length)
@@ -11,6 +25,11 @@ static bool yi_at24c02_range_valid(const yi_at24c02_config_t *cfg,
            (length <= (cfg->eeprom.size - offset));
 }
 
+/**
+ * @brief Perform the yi at24c02 wait ready operation.
+ * @param cfg Device configuration.
+ * @param memory_address Memory address value.
+ */
 static int yi_at24c02_wait_ready(const yi_at24c02_config_t *cfg,
                                  uint8_t memory_address)
 {
@@ -30,6 +49,10 @@ static int yi_at24c02_wait_ready(const yi_at24c02_config_t *cfg,
     return -1;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_at24c02_init(const void *config)
 {
     const yi_at24c02_config_t *cfg = config;
@@ -51,10 +74,25 @@ int yi_at24c02_init(const void *config)
     data->read_count = 0U;
     data->write_count = 0U;
     data->error_count = 0U;
+    /**
+     * @brief Read the module.
+     * @param i2c I2c value.
+     * @param address Address value.
+     * @param probe Probe value.
+     * @param U U value.
+     * @param transfer_timeout_ms Transfer timeout ms value.
+     */
     return yi_i2c_master_read(cfg->i2c, cfg->address, &probe, 1U,
                               cfg->transfer_timeout_ms);
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param buffer Data buffer.
+ * @param length Number of bytes to process.
+ */
 static int yi_at24c02_read(yi_device_t *dev, uint32_t offset,
                            void *buffer, uint32_t length)
 {
@@ -86,6 +124,13 @@ static int yi_at24c02_read(yi_device_t *dev, uint32_t offset,
     return result;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param buffer Data buffer.
+ * @param length Number of bytes to process.
+ */
 static int yi_at24c02_write(yi_device_t *dev, uint32_t offset,
                             const void *buffer, uint32_t length)
 {
