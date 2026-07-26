@@ -1,0 +1,32 @@
+compatible: "adi,ad9851"
+driver: "ad9851"
+header: "yi_ad9851.h"
+define: "YI_AD9851_DEFINE_LEVEL"
+properties:
+  w-clk-gpio:
+    type: phandle
+    required: true
+  fq-ud-gpio:
+    type: phandle
+    required: true
+  data-gpio:
+    type: phandle
+    required: true
+  reset-gpio:
+    type: phandle
+    required: true
+  reference-clock-frequency:
+    type: int
+    required: true
+  clock-multiplier:
+    type: boolean
+    required: false
+  pulse-delay-us:
+    type: int
+    default: 1
+  init-level:
+    type: string
+    default: application
+  init-priority:
+    type: int
+    default: 20

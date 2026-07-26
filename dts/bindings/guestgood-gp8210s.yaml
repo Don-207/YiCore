@@ -1,0 +1,32 @@
+compatible: "guestgood,gp8210s"
+driver: "gp8210s"
+header: "yi_gp8210s.h"
+define: "YI_GP8210S_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 88
+  default-channel:
+    type: int
+    default: 0
+  output-range-mv:
+    type: int
+    default: 5000
+  channel0-value:
+    type: int
+    default: 0
+  channel1-value:
+    type: int
+    default: 0
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30
