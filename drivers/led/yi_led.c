@@ -1,3 +1,11 @@
+/**
+ * @file yi_led.c
+ * @brief YiCore led implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_led.h"
 #include "yi_gpio.h"
 /*
@@ -125,6 +133,12 @@ static int yi_led_read(yi_device_t *dev, uint8_t *buf, uint32_t len)
     return 0;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_led_write(yi_device_t *dev, const uint8_t *buf, uint32_t len)
 {
     if((buf == NULL) || (len < 1U))

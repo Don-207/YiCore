@@ -1,7 +1,19 @@
+/**
+ * @file yi_onewire.c
+ * @brief YiCore onewire implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_onewire.h"
 
 #include <string.h>
 
+/**
+ * @brief Perform the yi onewire bus valid operation.
+ * @param bus Bus value.
+ */
 static bool yi_onewire_bus_valid(const yi_onewire_bus_t *bus)
 {
     return (bus != NULL) && (bus->hal.drive_low != NULL) &&
@@ -9,21 +21,39 @@ static bool yi_onewire_bus_valid(const yi_onewire_bus_t *bus)
            (bus->hal.delay_us != NULL);
 }
 
+/**
+ * @brief Perform the yi onewire enter operation.
+ * @param bus Bus value.
+ */
 static void yi_onewire_enter(yi_onewire_bus_t *bus)
 {
     if(bus->hal.critical_enter != NULL) { bus->hal.critical_enter(bus->hal.context); }
 }
 
+/**
+ * @brief Perform the yi onewire exit operation.
+ * @param bus Bus value.
+ */
 static void yi_onewire_exit(yi_onewire_bus_t *bus)
 {
     if(bus->hal.critical_exit != NULL) { bus->hal.critical_exit(bus->hal.context); }
 }
 
+/**
+ * @brief Perform the yi onewire delay operation.
+ * @param bus Bus value.
+ * @param delay_us Delay us value.
+ */
 static void yi_onewire_delay(yi_onewire_bus_t *bus, uint32_t delay_us)
 {
     bus->hal.delay_us(bus->hal.context, delay_us);
 }
 
+/**
+ * @brief Initialize the module.
+ * @param bus Bus value.
+ * @param hal Hal value.
+ */
 int yi_onewire_init(yi_onewire_bus_t *bus, const yi_onewire_hal_t *hal)
 {
     if((bus == NULL) || (hal == NULL) || (hal->drive_low == NULL) ||
@@ -39,6 +69,10 @@ int yi_onewire_init(yi_onewire_bus_t *bus, const yi_onewire_hal_t *hal)
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Perform the yi onewire reset operation.
+ * @param bus Bus value.
+ */
 int yi_onewire_reset(yi_onewire_bus_t *bus)
 {
     int level;
@@ -71,6 +105,11 @@ int yi_onewire_reset(yi_onewire_bus_t *bus)
     return (level == 0) ? YI_ONEWIRE_OK : YI_ONEWIRE_ERROR_NO_DEVICE;
 }
 
+/**
+ * @brief Write bit.
+ * @param bus Bus value.
+ * @param value Value to process.
+ */
 int yi_onewire_write_bit(yi_onewire_bus_t *bus, bool value)
 {
     int result = YI_ONEWIRE_OK;
@@ -88,6 +127,11 @@ int yi_onewire_write_bit(yi_onewire_bus_t *bus, bool value)
     return result;
 }
 
+/**
+ * @brief Read bit.
+ * @param bus Bus value.
+ * @param value Value to process.
+ */
 int yi_onewire_read_bit(yi_onewire_bus_t *bus, bool *value)
 {
     int level;
@@ -117,6 +161,12 @@ int yi_onewire_read_bit(yi_onewire_bus_t *bus, bool *value)
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Write the module.
+ * @param bus Bus value.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 int yi_onewire_write(yi_onewire_bus_t *bus, const uint8_t *data, size_t length)
 {
     if(!yi_onewire_bus_valid(bus) || ((data == NULL) && (length != 0U)))
@@ -134,6 +184,12 @@ int yi_onewire_write(yi_onewire_bus_t *bus, const uint8_t *data, size_t length)
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Read the module.
+ * @param bus Bus value.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 int yi_onewire_read(yi_onewire_bus_t *bus, uint8_t *data, size_t length)
 {
     if(!yi_onewire_bus_valid(bus) || ((data == NULL) && (length != 0U)))
@@ -155,6 +211,11 @@ int yi_onewire_read(yi_onewire_bus_t *bus, uint8_t *data, size_t length)
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Perform the yi onewire select operation.
+ * @param bus Bus value.
+ * @param rom Rom value.
+ */
 int yi_onewire_select(yi_onewire_bus_t *bus, const uint8_t rom[YI_ONEWIRE_ROM_SIZE])
 {
     const uint8_t command = YI_ONEWIRE_CMD_MATCH_ROM;
@@ -165,17 +226,37 @@ int yi_onewire_select(yi_onewire_bus_t *bus, const uint8_t rom[YI_ONEWIRE_ROM_SI
     return (result == YI_ONEWIRE_OK) ? yi_onewire_write(bus, rom, YI_ONEWIRE_ROM_SIZE) : result;
 }
 
+/**
+ * @brief Perform the yi onewire skip operation.
+ * @param bus Bus value.
+ */
 int yi_onewire_skip(yi_onewire_bus_t *bus)
 {
     const uint8_t command = YI_ONEWIRE_CMD_SKIP_ROM;
+    /**
+     * @brief Write the module.
+     * @param bus Bus value.
+     * @param command Command value.
+     * @param U U value.
+     */
     return yi_onewire_write(bus, &command, 1U);
 }
 
+/**
+ * @brief Perform the yi onewire search reset operation.
+ * @param search Search value.
+ */
 void yi_onewire_search_reset(yi_onewire_search_t *search)
 {
     if(search != NULL) { memset(search, 0, sizeof(*search)); }
 }
 
+/**
+ * @brief Perform the yi onewire search next operation.
+ * @param bus Bus value.
+ * @param search Search value.
+ * @param rom Rom value.
+ */
 int yi_onewire_search_next(yi_onewire_bus_t *bus, yi_onewire_search_t *search,
                            uint8_t rom[YI_ONEWIRE_ROM_SIZE])
 {
@@ -230,6 +311,11 @@ int yi_onewire_search_next(yi_onewire_bus_t *bus, yi_onewire_search_t *search,
     return YI_ONEWIRE_OK;
 }
 
+/**
+ * @brief Perform the yi onewire crc8 operation.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 uint8_t yi_onewire_crc8(const uint8_t *data, size_t length)
 {
     uint8_t crc = 0U;
@@ -248,6 +334,10 @@ uint8_t yi_onewire_crc8(const uint8_t *data, size_t length)
     return crc;
 }
 
+/**
+ * @brief Perform the yi onewire rom valid operation.
+ * @param rom Rom value.
+ */
 bool yi_onewire_rom_valid(const uint8_t rom[YI_ONEWIRE_ROM_SIZE])
 {
     return (rom != NULL) && (yi_onewire_crc8(rom, YI_ONEWIRE_ROM_SIZE - 1U) == rom[7]);

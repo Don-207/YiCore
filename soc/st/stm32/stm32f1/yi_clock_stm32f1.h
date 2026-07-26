@@ -1,3 +1,11 @@
+/**
+ * @file yi_clock_stm32f1.h
+ * @brief YiCore clock stm32f1 interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_CLOCK_STM32F1_H
 #define YI_CLOCK_STM32F1_H
 
@@ -20,14 +28,16 @@ typedef enum
 
 typedef struct
 {
-    yi_stm32_clock_id_t id;
-} yi_clock_config_t;
+    yi_stm32_clock_id_t id; /**< Id value. */} yi_clock_config_t;
 
 typedef struct
 {
-    uint16_t reference_count;
-} yi_clock_data_t;
+    uint16_t reference_count; /**< Reference count value. */} yi_clock_data_t;
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_clock_init(const void *config);
 
 #define YI_CLOCK_DEFINE_LEVEL(_name, _level, _priority, _config, _data) \

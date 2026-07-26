@@ -1,3 +1,10 @@
+"""YiCore test yi build info gen utility.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
+
 import datetime as dt
 import sys
 import tempfile

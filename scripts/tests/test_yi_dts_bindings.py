@@ -1,3 +1,10 @@
+"""YiCore test yi dts bindings utility.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
+
 import sys
 import unittest
 from pathlib import Path

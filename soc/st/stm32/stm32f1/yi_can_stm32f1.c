@@ -1,6 +1,19 @@
+/**
+ * @file yi_can_stm32f1.c
+ * @brief YiCore can stm32f1 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_can_stm32f1.h"
 #include "yi_pinmux.h"
 
+/**
+ * @brief Perform the yi can timing operation.
+ * @param cfg Device configuration.
+ * @param init Init value.
+ */
 static int yi_can_timing(const yi_can_config_t *cfg, CAN_InitTypeDef *init)
 {
     uint32_t clock = yi_stm32_periph_clock_rate(&cfg->clock);
@@ -37,6 +50,10 @@ static int yi_can_timing(const yi_can_config_t *cfg, CAN_InitTypeDef *init)
     return 0;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_can_init(const void *config)
 {
     const yi_can_config_t *cfg = (const yi_can_config_t *)config;
@@ -87,6 +104,12 @@ int yi_can_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi can send operation.
+ * @param dev Device instance.
+ * @param frame Frame value.
+ * @param mailbox Mailbox value.
+ */
 int yi_can_send(yi_device_t *dev, const yi_can_frame_t *frame, uint32_t *mailbox)
 {
     CAN_TxHeaderTypeDef header = {0};
@@ -100,6 +123,12 @@ int yi_can_send(yi_device_t *dev, const yi_can_frame_t *frame, uint32_t *mailbox
             (uint8_t *)frame->data, mailbox) == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Perform the yi can receive operation.
+ * @param dev Device instance.
+ * @param fifo Fifo value.
+ * @param frame Frame value.
+ */
 int yi_can_receive(yi_device_t *dev, uint32_t fifo, yi_can_frame_t *frame)
 {
     CAN_RxHeaderTypeDef header;
@@ -114,6 +143,10 @@ int yi_can_receive(yi_device_t *dev, uint32_t fifo, yi_can_frame_t *frame)
     return 0;
 }
 
+/**
+ * @brief Perform the yi can irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_can_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))

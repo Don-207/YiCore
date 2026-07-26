@@ -1,3 +1,11 @@
+/**
+ * @file yi_stm32_periph.c
+ * @brief YiCore stm32 periph implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_stm32_periph.h"
 
 static volatile uint32_t *yi_stm32_enable_register(yi_stm32_bus_t bus)
@@ -15,6 +23,10 @@ static volatile uint32_t *yi_stm32_enable_register(yi_stm32_bus_t bus)
     }
 }
 
+/**
+ * @brief Enable the module.
+ * @param clock Clock value.
+ */
 int yi_stm32_periph_clock_enable(const yi_stm32_periph_clock_t *clock)
 {
     volatile uint32_t *reg;
@@ -33,6 +45,10 @@ int yi_stm32_periph_clock_enable(const yi_stm32_periph_clock_t *clock)
     return 0;
 }
 
+/**
+ * @brief Disable the module.
+ * @param clock Clock value.
+ */
 int yi_stm32_periph_clock_disable(const yi_stm32_periph_clock_t *clock)
 {
     volatile uint32_t *reg;
@@ -50,6 +66,10 @@ int yi_stm32_periph_clock_disable(const yi_stm32_periph_clock_t *clock)
     return 0;
 }
 
+/**
+ * @brief Perform the yi stm32 periph clock rate operation.
+ * @param clock Clock value.
+ */
 uint32_t yi_stm32_periph_clock_rate(const yi_stm32_periph_clock_t *clock)
 {
     uint32_t pclk;

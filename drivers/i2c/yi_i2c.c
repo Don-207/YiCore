@@ -1,6 +1,22 @@
+/**
+ * @file yi_i2c.c
+ * @brief YiCore i2c implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include <stddef.h>
 #include "yi_i2c.h"
 
+/**
+ * @brief Transfer the module.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param messages Messages value.
+ * @param message_count Message count value.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 int yi_i2c_transfer(yi_device_t *dev, uint8_t address,
                     yi_i2c_msg_t *messages, uint8_t message_count,
                     uint32_t timeout_ms)
@@ -26,6 +42,14 @@ int yi_i2c_transfer(yi_device_t *dev, uint8_t address,
            : -1;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 int yi_i2c_master_write(yi_device_t *dev, uint8_t address,
                         const uint8_t *data, uint16_t length,
                         uint32_t timeout_ms)
@@ -35,9 +59,25 @@ int yi_i2c_master_write(yi_device_t *dev, uint8_t address,
         .length = length,
         .flags = YI_I2C_MSG_STOP
     };
+    /**
+     * @brief Transfer the module.
+     * @param dev Device instance.
+     * @param address Address value.
+     * @param message Message value.
+     * @param U U value.
+     * @param timeout_ms Operation timeout in milliseconds.
+     */
     return yi_i2c_transfer(dev, address, &message, 1U, timeout_ms);
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 int yi_i2c_master_read(yi_device_t *dev, uint8_t address, uint8_t *data,
                        uint16_t length, uint32_t timeout_ms)
 {
@@ -46,9 +86,27 @@ int yi_i2c_master_read(yi_device_t *dev, uint8_t address, uint8_t *data,
         .length = length,
         .flags = YI_I2C_MSG_READ | YI_I2C_MSG_STOP
     };
+    /**
+     * @brief Transfer the module.
+     * @param dev Device instance.
+     * @param address Address value.
+     * @param message Message value.
+     * @param U U value.
+     * @param timeout_ms Operation timeout in milliseconds.
+     */
     return yi_i2c_transfer(dev, address, &message, 1U, timeout_ms);
 }
 
+/**
+ * @brief Write read.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param tx_data Tx data value.
+ * @param tx_length Tx length value.
+ * @param rx_data Rx data value.
+ * @param rx_length Rx length value.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 int yi_i2c_master_write_read(yi_device_t *dev, uint8_t address,
                              const uint8_t *tx_data, uint16_t tx_length,
                              uint8_t *rx_data, uint16_t rx_length,
@@ -59,5 +117,13 @@ int yi_i2c_master_write_read(yi_device_t *dev, uint8_t address,
         { .buffer = rx_data, .length = rx_length,
           .flags = YI_I2C_MSG_READ | YI_I2C_MSG_RESTART | YI_I2C_MSG_STOP }
     };
+    /**
+     * @brief Transfer the module.
+     * @param dev Device instance.
+     * @param address Address value.
+     * @param messages Messages value.
+     * @param U U value.
+     * @param timeout_ms Operation timeout in milliseconds.
+     */
     return yi_i2c_transfer(dev, address, messages, 2U, timeout_ms);
 }

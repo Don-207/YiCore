@@ -1,3 +1,11 @@
+/**
+ * @file yi_gpio.h
+ * @brief YiCore gpio interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_GPIO_H
 #define YI_GPIO_H
 
@@ -39,34 +47,37 @@ typedef enum
 } yi_gpio_drive_t;
 
 struct yi_gpio_callback;
+/**
+ * @brief Perform the void operation.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ * @param pins GPIO pin mask.
+ */
 typedef void (*yi_gpio_callback_handler_t)(yi_device_t *dev,
                                            struct yi_gpio_callback *callback,
                                            uint16_t pins);
 
 typedef struct yi_gpio_callback
 {
-    struct yi_gpio_callback *next;
-    yi_gpio_callback_handler_t handler;
-    uint16_t pin_mask;
-} yi_gpio_callback_t;
+    struct yi_gpio_callback *next; /**< Next value. */
+    yi_gpio_callback_handler_t handler; /**< Handler value. */
+    uint16_t pin_mask; /**< Pin mask value. */} yi_gpio_callback_t;
 
 typedef struct
 {
-    yi_device_t *self;
-    void *port;
-    uint16_t pin;
-    yi_device_t *clock;
-    yi_gpio_direction_t direction;
-    yi_gpio_drive_t drive;
-    yi_gpio_pull_t pull;
-    yi_gpio_interrupt_t interrupt;
-    uint8_t irq_priority;
-}yi_gpio_config_t;
+    yi_device_t *self; /**< Self value. */
+    void *port; /**< Port value. */
+    uint16_t pin; /**< Pin value. */
+    yi_device_t *clock; /**< Clock value. */
+    yi_gpio_direction_t direction; /**< Direction value. */
+    yi_gpio_drive_t drive; /**< Drive value. */
+    yi_gpio_pull_t pull; /**< Pull value. */
+    yi_gpio_interrupt_t interrupt; /**< Interrupt value. */
+    uint8_t irq_priority; /**< Irq priority value. */}yi_gpio_config_t;
 
 typedef struct
 {
-    yi_gpio_callback_t *callbacks;
-} yi_gpio_data_t;
+    yi_gpio_callback_t *callbacks; /**< Callbacks value. */} yi_gpio_data_t;
 
 /*
  * GPIO设备API
@@ -88,15 +99,43 @@ int yi_gpio_init(const void *config);
  */
 int yi_gpio_set(yi_device_t *dev, yi_gpio_value_t value);
 
+/**
+ * @brief Get the module.
+ * @param dev Device instance.
+ */
 int yi_gpio_get(yi_device_t *dev);
 
+/**
+ * @brief Perform the yi gpio toggle operation.
+ * @param dev Device instance.
+ */
 int yi_gpio_toggle(yi_device_t *dev);
 
+/**
+ * @brief Initialize the module.
+ * @param callback Callback registration object.
+ * @param handler Callback function to invoke.
+ * @param pin_mask GPIO pin mask.
+ */
 void yi_gpio_callback_init(yi_gpio_callback_t *callback,
                            yi_gpio_callback_handler_t handler,
                            uint16_t pin_mask);
+/**
+ * @brief Perform the yi gpio add callback operation.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ */
 int yi_gpio_add_callback(yi_device_t *dev, yi_gpio_callback_t *callback);
+/**
+ * @brief Perform the yi gpio remove callback operation.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ */
 int yi_gpio_remove_callback(yi_device_t *dev, yi_gpio_callback_t *callback);
+/**
+ * @brief Perform the yi gpio irq handler operation.
+ * @param pins GPIO pin mask.
+ */
 void yi_gpio_irq_handler(uint16_t pins);
 
 #define YI_GPIO_DEFINE_LEVEL(_name, _level, _priority, _config, _data) \

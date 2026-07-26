@@ -1,6 +1,19 @@
+/**
+ * @file yi_spi_stm32.c
+ * @brief YiCore spi stm32 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_spi_stm32.h"
 #include "yi_pinmux.h"
 
+/**
+ * @brief Perform the yi spi stm32 prescaler operation.
+ * @param source Source value.
+ * @param maximum Maximum value.
+ */
 static uint32_t yi_spi_stm32_prescaler(uint32_t source, uint32_t maximum)
 {
     static const uint16_t divisors[] =
@@ -29,6 +42,10 @@ static uint32_t yi_spi_stm32_prescaler(uint32_t source, uint32_t maximum)
     return UINT32_MAX;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_spi_stm32_init(const void *config)
 {
     const yi_spi_stm32_config_t *cfg =
@@ -93,6 +110,15 @@ int yi_spi_stm32_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi spi stm32 transceive operation.
+ * @param dev Device instance.
+ * @param config Device configuration.
+ * @param tx Tx value.
+ * @param rx Rx value.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_spi_stm32_transceive(yi_device_t *dev,
                                    const yi_spi_transfer_config_t *config,
                                    const uint8_t *tx,
@@ -160,6 +186,10 @@ static int yi_spi_stm32_transceive(yi_device_t *dev,
     return (status == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Perform the yi spi stm32 irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_spi_stm32_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))

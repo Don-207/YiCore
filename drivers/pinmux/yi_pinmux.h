@@ -1,3 +1,11 @@
+/**
+ * @file yi_pinmux.h
+ * @brief YiCore pinmux interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_PINMUX_H
 #define YI_PINMUX_H
 
@@ -45,17 +53,28 @@ typedef enum
 
 typedef struct
 {
-    void *port;
-    uint16_t pin;
-    yi_pinmux_mode_t mode;
-    yi_pinmux_pull_t pull;
-    yi_pinmux_speed_t speed;
-    yi_pinmux_function_t function;
-    yi_device_t *clock;
-} yi_pinmux_config_t;
+    void *port; /**< Port value. */
+    uint16_t pin; /**< Pin value. */
+    yi_pinmux_mode_t mode; /**< Mode value. */
+    yi_pinmux_pull_t pull; /**< Pull value. */
+    yi_pinmux_speed_t speed; /**< Speed value. */
+    yi_pinmux_function_t function; /**< Function value. */
+    yi_device_t *clock; /**< Clock value. */} yi_pinmux_config_t;
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_pinmux_init(const void *config);
+/**
+ * @brief Perform the yi pinmux apply operation.
+ * @param dev Device instance.
+ */
 int yi_pinmux_apply(yi_device_t *dev);
+/**
+ * @brief Perform the yi pinmux release operation.
+ * @param dev Device instance.
+ */
 int yi_pinmux_release(yi_device_t *dev);
 
 #define YI_PINMUX_DEFINE_LEVEL(_name, _level, _priority, _config) \

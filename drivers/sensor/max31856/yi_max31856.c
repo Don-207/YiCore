@@ -1,9 +1,22 @@
+/**
+ * @file yi_max31856.c
+ * @brief YiCore max31856 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_max31856.h"
 
 #define MAX31856_REG_CR0_WRITE   0x80U
 #define MAX31856_REG_LTCBH       0x0CU
 #define MAX31856_CR0_AUTOCONVERT (1U << 7)
 
+/**
+ * @brief Perform the max31856 average bits operation.
+ * @param samples Samples value.
+ * @param bits Bits value.
+ */
 static int max31856_average_bits(uint8_t samples, uint8_t *bits)
 {
     switch(samples) {
@@ -14,6 +27,11 @@ static int max31856_average_bits(uint8_t samples, uint8_t *bits)
     return 0;
 }
 
+/**
+ * @brief Perform the max31856 open bits operation.
+ * @param milliseconds Milliseconds value.
+ * @param bits Bits value.
+ */
 static int max31856_open_bits(uint8_t milliseconds, uint8_t *bits)
 {
     switch(milliseconds) {
@@ -24,6 +42,10 @@ static int max31856_open_bits(uint8_t milliseconds, uint8_t *bits)
     return 0;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_max31856_init(const void *config)
 {
     const yi_max31856_config_t *cfg = config;
@@ -52,6 +74,12 @@ int yi_max31856_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param temperature_mc Temperature mc value.
+ * @param fault_status Fault status value.
+ */
 int yi_max31856_read(yi_device_t *dev, int32_t *temperature_mc,
                      uint8_t *fault_status)
 {

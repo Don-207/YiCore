@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""YiCore build info gen utility.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
+
 import argparse
 import datetime as dt
 import os

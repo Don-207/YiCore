@@ -1,3 +1,11 @@
+/**
+ * @file yi_ads1298.c
+ * @brief YiCore ads1298 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_ads1298.h"
 
 #include <stddef.h>
@@ -14,11 +22,20 @@
 #define ADS1298_CONFIG3_VREF_4V  (1U << 5)
 #define ADS1298_CHANNEL_PD       (1U << 7)
 
+/**
+ * @brief Perform the ads1298 valid device operation.
+ * @param dev Device instance.
+ */
 static bool ads1298_valid_device(yi_device_t *dev)
 {
     return (dev != NULL) && (dev->config != NULL) && (dev->data != NULL);
 }
 
+/**
+ * @brief Perform the ads1298 clock delay operation.
+ * @param cfg Device configuration.
+ * @param clock_cycles Clock cycles value.
+ */
 static void ads1298_clock_delay(const yi_ads1298_config_t *cfg,
                                 uint32_t clock_cycles)
 {
@@ -28,13 +45,34 @@ static void ads1298_clock_delay(const yi_ads1298_config_t *cfg,
     yi_system_delay_us(delay_us);
 }
 
+/**
+ * @brief Transfer the module.
+ * @param cfg Device configuration.
+ * @param tx Tx value.
+ * @param rx Rx value.
+ * @param length Number of bytes to process.
+ */
 static int ads1298_transfer(const yi_ads1298_config_t *cfg,
                             const uint8_t *tx, uint8_t *rx, uint16_t length)
 {
+    /**
+     * @brief Perform the yi spi transceive operation.
+     * @param spi Spi value.
+     * @param spi_config Spi config value.
+     * @param tx Tx value.
+     * @param rx Rx value.
+     * @param length Number of bytes to process.
+     * @param transfer_timeout_ms Transfer timeout ms value.
+     */
     return yi_spi_transceive(cfg->spi, &cfg->spi_config, tx, rx, length,
                              cfg->transfer_timeout_ms);
 }
 
+/**
+ * @brief Perform the ads1298 command raw operation.
+ * @param cfg Device configuration.
+ * @param command Command value.
+ */
 static int ads1298_command_raw(const yi_ads1298_config_t *cfg, uint8_t command)
 {
     int result = ads1298_transfer(cfg, &command, NULL, 1U);
@@ -45,6 +83,11 @@ static int ads1298_command_raw(const yi_ads1298_config_t *cfg, uint8_t command)
     return result;
 }
 
+/**
+ * @brief Perform the yi ads1298 command operation.
+ * @param dev Device instance.
+ * @param command Command value.
+ */
 int yi_ads1298_command(yi_device_t *dev, yi_ads1298_command_t command)
 {
     const yi_ads1298_config_t *cfg;
@@ -66,6 +109,13 @@ int yi_ads1298_command(yi_device_t *dev, yi_ads1298_command_t command)
     return 0;
 }
 
+/**
+ * @brief Read registers.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param values Values value.
+ * @param count Count value.
+ */
 int yi_ads1298_read_registers(yi_device_t *dev, uint8_t address,
                               uint8_t *values, uint8_t count)
 {
@@ -94,6 +144,13 @@ int yi_ads1298_read_registers(yi_device_t *dev, uint8_t address,
     return 0;
 }
 
+/**
+ * @brief Write registers.
+ * @param dev Device instance.
+ * @param address Address value.
+ * @param values Values value.
+ * @param count Count value.
+ */
 int yi_ads1298_write_registers(yi_device_t *dev, uint8_t address,
                                const uint8_t *values, uint8_t count)
 {
@@ -122,6 +179,10 @@ int yi_ads1298_write_registers(yi_device_t *dev, uint8_t address,
     return 0;
 }
 
+/**
+ * @brief Start the module.
+ * @param dev Device instance.
+ */
 int yi_ads1298_start(yi_device_t *dev)
 {
     const yi_ads1298_config_t *cfg;
@@ -139,9 +200,18 @@ int yi_ads1298_start(yi_device_t *dev)
         data->running = true;
         return 0;
     }
+    /**
+     * @brief Perform the yi ads1298 command operation.
+     * @param dev Device instance.
+     * @param YI_ADS1298_CMD_START Yi ads1298 cmd start value.
+     */
     return yi_ads1298_command(dev, YI_ADS1298_CMD_START);
 }
 
+/**
+ * @brief Stop the module.
+ * @param dev Device instance.
+ */
 int yi_ads1298_stop(yi_device_t *dev)
 {
     const yi_ads1298_config_t *cfg;
@@ -159,15 +229,35 @@ int yi_ads1298_stop(yi_device_t *dev)
         data->running = false;
         return 0;
     }
+    /**
+     * @brief Perform the yi ads1298 command operation.
+     * @param dev Device instance.
+     * @param YI_ADS1298_CMD_STOP Yi ads1298 cmd stop value.
+     */
     return yi_ads1298_command(dev, YI_ADS1298_CMD_STOP);
 }
 
+/**
+ * @brief Set continuous.
+ * @param dev Device instance.
+ * @param enable Enable value.
+ */
 int yi_ads1298_set_continuous(yi_device_t *dev, bool enable)
 {
+    /**
+     * @brief Perform the yi ads1298 command operation.
+     * @param dev Device instance.
+     * @param YI_ADS1298_CMD_SDATAC Yi ads1298 cmd sdatac value.
+     */
     return yi_ads1298_command(dev, enable ? YI_ADS1298_CMD_RDATAC :
                                             YI_ADS1298_CMD_SDATAC);
 }
 
+/**
+ * @brief Perform the yi ads1298 data ready operation.
+ * @param dev Device instance.
+ * @param ready Ready value.
+ */
 int yi_ads1298_data_ready(yi_device_t *dev, bool *ready)
 {
     const yi_ads1298_config_t *cfg;
@@ -181,6 +271,10 @@ int yi_ads1298_data_ready(yi_device_t *dev, bool *ready)
     return 0;
 }
 
+/**
+ * @brief Perform the ads1298 signed24 operation.
+ * @param bytes Bytes value.
+ */
 static int32_t ads1298_signed24(const uint8_t *bytes)
 {
     int32_t value = ((int32_t)bytes[0] << 16U) |
@@ -189,6 +283,11 @@ static int32_t ads1298_signed24(const uint8_t *bytes)
     return value;
 }
 
+/**
+ * @brief Read frame.
+ * @param dev Device instance.
+ * @param frame Frame value.
+ */
 int yi_ads1298_read_frame(yi_device_t *dev, yi_ads1298_frame_t *frame)
 {
     const yi_ads1298_config_t *cfg;
@@ -227,6 +326,10 @@ int yi_ads1298_read_frame(yi_device_t *dev, yi_ads1298_frame_t *frame)
     return 0;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_ads1298_init(const void *config)
 {
     const yi_ads1298_config_t *cfg = (const yi_ads1298_config_t *)config;

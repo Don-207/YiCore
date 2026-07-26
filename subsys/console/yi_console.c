@@ -1,8 +1,20 @@
+/**
+ * @file yi_console.c
+ * @brief YiCore console implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_console.h"
 #include <stddef.h>
 
 static yi_device_t *default_console;
 
+/**
+ * @brief Set default.
+ * @param console Console value.
+ */
 int yi_console_set_default(yi_device_t *console)
 {
     if((console == NULL) ||
@@ -14,11 +26,18 @@ int yi_console_set_default(yi_device_t *console)
     return 0;
 }
 
+/**
+ * @brief Get default.
+ */
 yi_device_t *yi_console_get_default(void)
 {
     return default_console;
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_console_init(const void *config)
 {
     const yi_console_config_t *cfg = (const yi_console_config_t *)config;
@@ -36,6 +55,10 @@ int yi_console_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi console open operation.
+ * @param dev Device instance.
+ */
 static int yi_console_open(yi_device_t *dev)
 {
     const yi_console_config_t *cfg;
@@ -52,6 +75,10 @@ static int yi_console_open(yi_device_t *dev)
     return cfg->backend->api->open(cfg->backend);
 }
 
+/**
+ * @brief Perform the yi console close operation.
+ * @param dev Device instance.
+ */
 static int yi_console_close(yi_device_t *dev)
 {
     const yi_console_config_t *cfg;
@@ -68,6 +95,12 @@ static int yi_console_close(yi_device_t *dev)
     return cfg->backend->api->close(cfg->backend);
 }
 
+/**
+ * @brief Write the module.
+ * @param console Console value.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_console_write(yi_device_t *console, const uint8_t *buf, uint32_t len)
 {
     const yi_console_config_t *cfg;
@@ -86,6 +119,12 @@ int yi_console_write(yi_device_t *console, const uint8_t *buf, uint32_t len)
     return cfg->backend->api->write(cfg->backend, buf, len);
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_console_read(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     const yi_console_config_t *cfg;

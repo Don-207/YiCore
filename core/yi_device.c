@@ -1,3 +1,11 @@
+/**
+ * @file yi_device.c
+ * @brief YiCore device implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_device.h"
 #include <string.h>
 
@@ -19,6 +27,9 @@ static uint32_t device_count;
 static yi_device_t *device_table[YI_DEVICE_MAX_NUM];
 static uint8_t device_table_ready;
 
+/**
+ * @brief Collect the module.
+ */
 static int yi_device_collect(void)
 {
     yi_device_t * const *dev;
@@ -62,6 +73,9 @@ static int yi_device_collect(void)
     return 0;
 }
 
+/**
+ * @brief Sort the module.
+ */
 static void yi_device_sort(void)
 {
     for(uint32_t i = 1U; i < device_count; i++)
@@ -90,6 +104,10 @@ static void yi_device_sort(void)
     }
 }
 
+/**
+ * @brief Initialize level.
+ * @param level Initialization level.
+ */
 int yi_device_init_level(yi_init_level_t level)
 {
     int result = 0;
@@ -143,6 +161,9 @@ int yi_device_init_level(yi_init_level_t level)
     return result;
 }
 
+/**
+ * @brief Initialize all.
+ */
 int yi_device_init_all(void)
 {
     int result = 0;
@@ -160,11 +181,19 @@ int yi_device_init_all(void)
     return result;
 }
 
+/**
+ * @brief Check whether ready.
+ * @param dev Device instance.
+ */
 bool yi_device_is_ready(const yi_device_t *dev)
 {
     return (dev != NULL) && (dev->state == YI_DEVICE_STATE_READY);
 }
 
+/**
+ * @brief Get the module.
+ * @param name Registered device name.
+ */
 yi_device_t *yi_device_get(const char *name)
 {
     if((name == NULL) || (yi_device_collect() != 0))

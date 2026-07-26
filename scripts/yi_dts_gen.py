@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Generate YiCore device registration sources from DTS and bindings."""
+"""Generate YiCore device registration sources from DTS and bindings.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
 
 from __future__ import annotations
 

@@ -1,3 +1,11 @@
+/**
+ * @file yi_mcuboot_flash_map.c
+ * @brief YiCore mcuboot flash map implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "flash_map_backend/flash_map_backend.h"
 
 #include <stddef.h>
@@ -5,6 +13,10 @@
 static const struct flash_area *yi_flash_areas;
 static uint32_t yi_flash_area_count;
 
+/**
+ * @brief Perform the yi mcuboot area valid operation.
+ * @param area Area value.
+ */
 static int yi_mcuboot_area_valid(const struct flash_area *area)
 {
     return (area != NULL) && (area->partition != NULL) &&
@@ -13,6 +25,11 @@ static int yi_mcuboot_area_valid(const struct flash_area *area)
            (yi_partition_validate(area->partition) == 0);
 }
 
+/**
+ * @brief Set the module.
+ * @param areas Areas value.
+ * @param count Count value.
+ */
 int yi_mcuboot_flash_map_set(const struct flash_area *areas, uint32_t count)
 {
     uint32_t i;
@@ -56,6 +73,11 @@ int yi_mcuboot_flash_map_set(const struct flash_area *areas, uint32_t count)
     return 0;
 }
 
+/**
+ * @brief Perform the flash area open operation.
+ * @param id Id value.
+ * @param area Area value.
+ */
 int flash_area_open(uint8_t id, const struct flash_area **area)
 {
     uint32_t i;
@@ -78,11 +100,22 @@ int flash_area_open(uint8_t id, const struct flash_area **area)
     return -1;
 }
 
+/**
+ * @brief Perform the flash area close operation.
+ * @param area Area value.
+ */
 void flash_area_close(const struct flash_area *area)
 {
     (void)area;
 }
 
+/**
+ * @brief Read the module.
+ * @param area Area value.
+ * @param offset Byte offset from the start of the device.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 int flash_area_read(const struct flash_area *area, uint32_t offset,
                     void *data, uint32_t length)
 {
@@ -90,6 +123,13 @@ int flash_area_read(const struct flash_area *area, uint32_t offset,
            yi_partition_read(area->partition, offset, data, length) : -1;
 }
 
+/**
+ * @brief Write the module.
+ * @param area Area value.
+ * @param offset Byte offset from the start of the device.
+ * @param data Driver runtime data.
+ * @param length Number of bytes to process.
+ */
 int flash_area_write(const struct flash_area *area, uint32_t offset,
                      const void *data, uint32_t length)
 {
@@ -97,6 +137,12 @@ int flash_area_write(const struct flash_area *area, uint32_t offset,
            yi_partition_write(area->partition, offset, data, length) : -1;
 }
 
+/**
+ * @brief Perform the flash area erase operation.
+ * @param area Area value.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 int flash_area_erase(const struct flash_area *area, uint32_t offset,
                      uint32_t length)
 {
@@ -104,18 +150,32 @@ int flash_area_erase(const struct flash_area *area, uint32_t offset,
            yi_partition_erase(area->partition, offset, length) : -1;
 }
 
+/**
+ * @brief Perform the flash area align operation.
+ * @param area Area value.
+ */
 uint32_t flash_area_align(const struct flash_area *area)
 {
     return yi_mcuboot_area_valid(area) ?
            yi_flash_get_write_block_size(area->partition->flash) : 0U;
 }
 
+/**
+ * @brief Perform the flash area erased val operation.
+ * @param area Area value.
+ */
 uint8_t flash_area_erased_val(const struct flash_area *area)
 {
     (void)area;
     return 0xFFU;
 }
 
+/**
+ * @brief Get sectors.
+ * @param area_id Area id value.
+ * @param count Count value.
+ * @param sectors Sectors value.
+ */
 int flash_area_get_sectors(int area_id, uint32_t *count,
                            struct flash_sector *sectors)
 {
@@ -155,6 +215,12 @@ int flash_area_get_sectors(int area_id, uint32_t *count,
     return 0;
 }
 
+/**
+ * @brief Get sector.
+ * @param area Area value.
+ * @param offset Byte offset from the start of the device.
+ * @param sector Sector value.
+ */
 int flash_area_get_sector(const struct flash_area *area, uint32_t offset,
                           struct flash_sector *sector)
 {
@@ -177,11 +243,24 @@ int flash_area_get_sector(const struct flash_area *area, uint32_t offset,
     return 0;
 }
 
+/**
+ * @brief Perform the flash area id from image slot operation.
+ * @param slot Slot value.
+ */
 int flash_area_id_from_image_slot(int slot)
 {
+    /**
+     * @brief Perform the flash area id from multi image slot operation.
+     * @param slot Slot value.
+     */
     return flash_area_id_from_multi_image_slot(0, slot);
 }
 
+/**
+ * @brief Perform the flash area id from multi image slot operation.
+ * @param image_index Image index value.
+ * @param slot Slot value.
+ */
 int flash_area_id_from_multi_image_slot(int image_index, int slot)
 {
     if((image_index != 0) || ((slot != 0) && (slot != 1)))
@@ -193,6 +272,11 @@ int flash_area_id_from_multi_image_slot(int image_index, int slot)
                          FLASH_AREA_IMAGE_SECONDARY(0);
 }
 
+/**
+ * @brief Perform the flash area id to multi image slot operation.
+ * @param image_index Image index value.
+ * @param area_id Area id value.
+ */
 int flash_area_id_to_multi_image_slot(int image_index, int area_id)
 {
     if(image_index != 0)

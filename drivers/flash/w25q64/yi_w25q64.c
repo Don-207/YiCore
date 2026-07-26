@@ -1,3 +1,11 @@
+/**
+ * @file yi_w25q64.c
+ * @brief YiCore w25q64 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_w25q64.h"
 #include "yi_system.h"
 #include <stddef.h>
@@ -10,6 +18,12 @@
 #define W25Q64_CMD_READ_JEDEC_ID      0x9FU
 #define W25Q64_STATUS_BUSY            0x01U
 #define W25Q64_COMMAND_SIZE           4U
+/**
+ * @brief Perform the yi w25q64 range valid operation.
+ * @param cfg Device configuration.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 static bool yi_w25q64_range_valid(const yi_w25q64_config_t *cfg,
                                   uint32_t offset,
                                   uint32_t length)
@@ -19,23 +33,57 @@ static bool yi_w25q64_range_valid(const yi_w25q64_config_t *cfg,
            (length <= (cfg->flash.size - offset));
 }
 
+/**
+ * @brief Transfer the module.
+ * @param cfg Device configuration.
+ * @param tx Tx value.
+ * @param rx Rx value.
+ * @param length Number of bytes to process.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_w25q64_transfer(const yi_w25q64_config_t *cfg,
                               const uint8_t *tx,
                               uint8_t *rx,
                               uint16_t length,
                               uint32_t timeout_ms)
 {
+    /**
+     * @brief Perform the yi spi transceive operation.
+     * @param spi Spi value.
+     * @param spi_config Spi config value.
+     * @param tx Tx value.
+     * @param rx Rx value.
+     * @param length Number of bytes to process.
+     * @param timeout_ms Operation timeout in milliseconds.
+     */
     return yi_spi_transceive(cfg->spi, &cfg->spi_config,
                              tx, rx, length, timeout_ms);
 }
 
+/**
+ * @brief Write enable.
+ * @param cfg Device configuration.
+ */
 static int yi_w25q64_write_enable(const yi_w25q64_config_t *cfg)
 {
     const uint8_t command = W25Q64_CMD_WRITE_ENABLE;
+    /**
+     * @brief Transfer the module.
+     * @param cfg Device configuration.
+     * @param command Command value.
+     * @param NULL Null value.
+     * @param U U value.
+     * @param transfer_timeout_ms Transfer timeout ms value.
+     */
     return yi_w25q64_transfer(cfg, &command, NULL, 1U,
                               cfg->transfer_timeout_ms);
 }
 
+/**
+ * @brief Perform the yi w25q64 wait ready operation.
+ * @param cfg Device configuration.
+ * @param timeout_ms Operation timeout in milliseconds.
+ */
 static int yi_w25q64_wait_ready(const yi_w25q64_config_t *cfg,
                                 uint32_t timeout_ms)
 {
@@ -59,6 +107,10 @@ static int yi_w25q64_wait_ready(const yi_w25q64_config_t *cfg,
     return -1;
 }
 
+/**
+ * @brief Read jedec id.
+ * @param cfg Device configuration.
+ */
 static uint32_t yi_w25q64_read_jedec_id(const yi_w25q64_config_t *cfg)
 {
     const uint8_t tx[4] =
@@ -77,6 +129,10 @@ static uint32_t yi_w25q64_read_jedec_id(const yi_w25q64_config_t *cfg)
            (uint32_t)rx[3];
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_w25q64_init(const void *config)
 {
     const yi_w25q64_config_t *cfg = config;
@@ -106,6 +162,13 @@ int yi_w25q64_init(const void *config)
     return (data->jedec_id == YI_W25Q64_JEDEC_ID) ? 0 : -1;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param buffer Data buffer.
+ * @param length Number of bytes to process.
+ */
 static int yi_w25q64_read(yi_device_t *dev, uint32_t offset,
                            void *buffer, uint32_t length)
 {
@@ -154,6 +217,13 @@ static int yi_w25q64_read(yi_device_t *dev, uint32_t offset,
     return 0;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param buffer Data buffer.
+ * @param length Number of bytes to process.
+ */
 static int yi_w25q64_write(yi_device_t *dev, uint32_t offset,
                             const void *buffer, uint32_t length)
 {
@@ -203,6 +273,12 @@ static int yi_w25q64_write(yi_device_t *dev, uint32_t offset,
     return 0;
 }
 
+/**
+ * @brief Perform the yi w25q64 erase operation.
+ * @param dev Device instance.
+ * @param offset Byte offset from the start of the device.
+ * @param length Number of bytes to process.
+ */
 static int yi_w25q64_erase(yi_device_t *dev,
                             uint32_t offset,
                             uint32_t length)

@@ -1,9 +1,20 @@
+/**
+ * @file main.c
+ * @brief YiCore main implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "bootutil/bootutil.h"
 #include "bootutil/fault_injection_hardening.h"
 #include "yi_device.h"
 #include "yi_mcuboot_board.h"
 #include "yi_system.h"
 
+/**
+ * @brief Perform the boot failure operation.
+ */
 static void boot_failure(void)
 {
     yi_system_irq_lock();
@@ -12,6 +23,9 @@ static void boot_failure(void)
     }
 }
 
+/**
+ * @brief Perform the main operation.
+ */
 int main(void)
 {
     struct boot_rsp response;

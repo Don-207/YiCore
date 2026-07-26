@@ -1,3 +1,11 @@
+/**
+ * @file yi_led.h
+ * @brief YiCore led interface.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #ifndef YI_LED_H
 #define YI_LED_H
 
@@ -16,9 +24,8 @@ extern "C" {
  */
 typedef struct
 {
-    yi_device_t *gpio;
-    uint8_t active_low;
-}yi_led_config_t;
+    yi_device_t *gpio; /**< Gpio value. */
+    uint8_t active_low; /**< Active low value. */}yi_led_config_t;
 
 /*
  * LED运行数据
@@ -28,25 +35,32 @@ typedef struct
     /*
      * 当前状态
      */
-    uint8_t state;
-}yi_led_data_t;
+    uint8_t state; /**< State value. */}yi_led_data_t;
 
 /*
  * LED专用API。device必须是首成员，以兼容yi_device_t::api。
  */
 typedef struct
 {
-    yi_device_api_t device;
+    yi_device_api_t device; /**< Device value. */
     int (*on)(yi_device_t *dev);
     int (*off)(yi_device_t *dev);
     int (*toggle)(yi_device_t *dev);
 }yi_led_api_t;
 
+/**
+ * @brief Get api.
+ * @param dev Device instance.
+ */
 static inline const yi_led_api_t *yi_led_get_api(const yi_device_t *dev)
 {
     return (dev != NULL) ? (const yi_led_api_t *)dev->api : NULL;
 }
 
+/**
+ * @brief Perform the yi led on operation.
+ * @param dev Device instance.
+ */
 static inline int yi_led_on(yi_device_t *dev)
 {
     const yi_led_api_t *api = yi_led_get_api(dev);
@@ -54,6 +68,10 @@ static inline int yi_led_on(yi_device_t *dev)
            ? api->on(dev) : -1;
 }
 
+/**
+ * @brief Perform the yi led off operation.
+ * @param dev Device instance.
+ */
 static inline int yi_led_off(yi_device_t *dev)
 {
     const yi_led_api_t *api = yi_led_get_api(dev);
@@ -61,6 +79,10 @@ static inline int yi_led_off(yi_device_t *dev)
            ? api->off(dev) : -1;
 }
 
+/**
+ * @brief Perform the yi led toggle operation.
+ * @param dev Device instance.
+ */
 static inline int yi_led_toggle(yi_device_t *dev)
 {
     const yi_led_api_t *api = yi_led_get_api(dev);

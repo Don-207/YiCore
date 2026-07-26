@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Load YiCore bindings and validate a parsed YiCore Devicetree."""
+"""Load YiCore bindings and validate a parsed YiCore Devicetree.
+
+Author: Don
+Date: 2026-07-26
+Version: 1.0.0
+"""
 
 from __future__ import annotations
 

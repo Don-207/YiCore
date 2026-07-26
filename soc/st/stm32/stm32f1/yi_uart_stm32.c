@@ -1,14 +1,31 @@
+/**
+ * @file yi_uart_stm32.c
+ * @brief YiCore uart stm32 implementation.
+ * @author Don
+ * @date 2026-07-26
+ * @version 1.0.0
+ */
+
 #include "yi_uart.h"
 #include "yi_uart_stm32.h"
 #include "yi_pinmux.h"
 
 #define YI_UART_TIMEOUT_MS 1000U
 
+/**
+ * @brief Check whether dma.
+ * @param cfg Device configuration.
+ */
 static bool yi_uart_has_dma(const yi_uart_stm32_config_t *cfg)
 {
     return (cfg->tx_dma_channel != NULL) || (cfg->rx_dma_channel != NULL);
 }
 
+/**
+ * @brief Initialize the module.
+ * @param cfg Device configuration.
+ * @param data Driver runtime data.
+ */
 static int yi_uart_stm32_dma_init(const yi_uart_stm32_config_t *cfg,
                                   yi_uart_stm32_data_t *data)
 {
@@ -68,6 +85,11 @@ static int yi_uart_stm32_dma_init(const yi_uart_stm32_config_t *cfg,
     return 0;
 }
 
+/**
+ * @brief Perform the yi uart stm32 dma deinit operation.
+ * @param cfg Device configuration.
+ * @param data Driver runtime data.
+ */
 static void yi_uart_stm32_dma_deinit(const yi_uart_stm32_config_t *cfg,
                                      yi_uart_stm32_data_t *data)
 {
@@ -83,6 +105,10 @@ static void yi_uart_stm32_dma_deinit(const yi_uart_stm32_config_t *cfg,
     }
 }
 
+/**
+ * @brief Initialize the module.
+ * @param config Device configuration.
+ */
 int yi_uart_stm32_init(const void *config)
 {
     const yi_uart_stm32_config_t *cfg = (const yi_uart_stm32_config_t *)config;
@@ -133,6 +159,10 @@ int yi_uart_stm32_init(const void *config)
     return 0;
 }
 
+/**
+ * @brief Perform the yi uart open operation.
+ * @param dev Device instance.
+ */
 static int yi_uart_open(yi_device_t *dev)
 {
     const yi_uart_stm32_config_t *cfg;
@@ -165,6 +195,10 @@ static int yi_uart_open(yi_device_t *dev)
     return 0;
 }
 
+/**
+ * @brief Perform the yi uart close operation.
+ * @param dev Device instance.
+ */
 static int yi_uart_close(yi_device_t *dev)
 {
     const yi_uart_stm32_config_t *cfg;
@@ -186,9 +220,19 @@ static int yi_uart_close(yi_device_t *dev)
     data->rx_dma_size = 0U;
     data->rx_callback = NULL;
     data->rx_callback_user_data = NULL;
+    /**
+     * @brief Disable the module.
+     * @param clock Clock value.
+     */
     return yi_stm32_periph_clock_disable(&cfg->clock);
 }
 
+/**
+ * @brief Write blocking.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_uart_write_blocking(yi_device_t *dev, const uint8_t *buf, uint32_t len)
 {
     yi_uart_stm32_data_t *data;
@@ -202,6 +246,12 @@ static int yi_uart_write_blocking(yi_device_t *dev, const uint8_t *buf, uint32_t
                               YI_UART_TIMEOUT_MS) == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Read blocking.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_uart_read_blocking(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     yi_uart_stm32_data_t *data;
@@ -215,6 +265,12 @@ static int yi_uart_read_blocking(yi_device_t *dev, uint8_t *buf, uint32_t len)
                              YI_UART_TIMEOUT_MS) == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Perform the yi uart stm32 rx notify operation.
+ * @param dev Device instance.
+ * @param data Driver runtime data.
+ * @param event Event value.
+ */
 static void yi_uart_stm32_rx_notify(yi_device_t *dev,
                                     yi_uart_stm32_data_t *data,
                                     yi_uart_rx_event_t event)
@@ -225,6 +281,10 @@ static void yi_uart_stm32_rx_notify(yi_device_t *dev,
     }
 }
 
+/**
+ * @brief Perform the yi uart stm32 irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_uart_stm32_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))
@@ -240,6 +300,10 @@ void yi_uart_stm32_irq_handler(yi_device_t *dev)
     }
 }
 
+/**
+ * @brief Perform the yi uart stm32 dma tx irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_uart_stm32_dma_tx_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))
@@ -249,6 +313,10 @@ void yi_uart_stm32_dma_tx_irq_handler(yi_device_t *dev)
     }
 }
 
+/**
+ * @brief Perform the yi uart stm32 dma rx irq handler operation.
+ * @param dev Device instance.
+ */
 void yi_uart_stm32_dma_rx_irq_handler(yi_device_t *dev)
 {
     if((dev != NULL) && (dev->data != NULL))
@@ -274,6 +342,12 @@ void yi_uart_stm32_dma_rx_irq_handler(yi_device_t *dev)
     }
 }
 
+/**
+ * @brief Write dma impl.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_uart_write_dma_impl(yi_device_t *dev, const uint8_t *buf, uint32_t len)
 {
     yi_uart_stm32_data_t *data;
@@ -291,6 +365,12 @@ static int yi_uart_write_dma_impl(yi_device_t *dev, const uint8_t *buf, uint32_t
                                   (uint16_t)len) == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Read dma impl.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_uart_read_dma_impl(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     yi_uart_stm32_data_t *data;
@@ -308,6 +388,12 @@ static int yi_uart_read_dma_impl(yi_device_t *dev, uint8_t *buf, uint32_t len)
                                  (uint16_t)len) == HAL_OK) ? 0 : -1;
 }
 
+/**
+ * @brief Start dma impl.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 static int yi_uart_rx_start_dma_impl(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     yi_uart_stm32_data_t *data;
@@ -334,6 +420,12 @@ static int yi_uart_rx_start_dma_impl(yi_device_t *dev, uint8_t *buf, uint32_t le
     return 0;
 }
 
+/**
+ * @brief Set callback impl.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ * @param user_data User data value.
+ */
 static int yi_uart_rx_set_callback_impl(yi_device_t *dev,
                                         yi_uart_rx_callback_t callback,
                                         void *user_data)
@@ -359,6 +451,10 @@ static int yi_uart_rx_set_callback_impl(yi_device_t *dev,
     return 0;
 }
 
+/**
+ * @brief Perform the yi uart rx dma pos impl operation.
+ * @param dev Device instance.
+ */
 static uint32_t yi_uart_rx_dma_pos_impl(yi_device_t *dev)
 {
     yi_uart_stm32_data_t *data;
@@ -374,6 +470,11 @@ static uint32_t yi_uart_rx_dma_pos_impl(yi_device_t *dev)
     return data->rx_dma_size - __HAL_DMA_GET_COUNTER(data->huart.hdmarx);
 }
 
+/**
+ * @brief Perform the yi uart rx idle impl operation.
+ * @param dev Device instance.
+ * @param clear Clear value.
+ */
 static bool yi_uart_rx_idle_impl(yi_device_t *dev, bool clear)
 {
     yi_uart_stm32_data_t *data;
@@ -416,6 +517,10 @@ const yi_device_api_t yi_uart_driver_api =
     .read = yi_uart_read_blocking
 };
 
+/**
+ * @brief Get the module.
+ * @param dev Device instance.
+ */
 static const yi_uart_api_t *yi_uart_api_get(yi_device_t *dev)
 {
     if((dev == NULL) || (dev->api != &yi_uart_stm32_api.base))
@@ -425,18 +530,36 @@ static const yi_uart_api_t *yi_uart_api_get(yi_device_t *dev)
     return (const yi_uart_api_t *)dev->api;
 }
 
+/**
+ * @brief Write the module.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_uart_write(yi_device_t *dev, const uint8_t *buf, uint32_t len)
 {
     return ((dev != NULL) && (dev->api != NULL) && (dev->api->write != NULL)) ?
         dev->api->write(dev, buf, len) : -1;
 }
 
+/**
+ * @brief Read the module.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_uart_read(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     return ((dev != NULL) && (dev->api != NULL) && (dev->api->read != NULL)) ?
         dev->api->read(dev, buf, len) : -1;
 }
 
+/**
+ * @brief Write dma.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_uart_write_dma(yi_device_t *dev, const uint8_t *buf, uint32_t len)
 {
     const yi_uart_api_t *api = yi_uart_api_get(dev);
@@ -444,6 +567,12 @@ int yi_uart_write_dma(yi_device_t *dev, const uint8_t *buf, uint32_t len)
         api->write_dma(dev, buf, len) : -1;
 }
 
+/**
+ * @brief Read dma.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_uart_read_dma(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     const yi_uart_api_t *api = yi_uart_api_get(dev);
@@ -451,6 +580,12 @@ int yi_uart_read_dma(yi_device_t *dev, uint8_t *buf, uint32_t len)
         api->read_dma(dev, buf, len) : -1;
 }
 
+/**
+ * @brief Start dma.
+ * @param dev Device instance.
+ * @param buf Buf value.
+ * @param len Len value.
+ */
 int yi_uart_rx_start_dma(yi_device_t *dev, uint8_t *buf, uint32_t len)
 {
     const yi_uart_api_t *api = yi_uart_api_get(dev);
@@ -458,6 +593,10 @@ int yi_uart_rx_start_dma(yi_device_t *dev, uint8_t *buf, uint32_t len)
         api->rx_start_dma(dev, buf, len) : -1;
 }
 
+/**
+ * @brief Perform the yi uart rx dma pos operation.
+ * @param dev Device instance.
+ */
 uint32_t yi_uart_rx_dma_pos(yi_device_t *dev)
 {
     const yi_uart_api_t *api = yi_uart_api_get(dev);
@@ -465,6 +604,11 @@ uint32_t yi_uart_rx_dma_pos(yi_device_t *dev)
         api->rx_dma_pos(dev) : 0U;
 }
 
+/**
+ * @brief Perform the yi uart rx idle operation.
+ * @param dev Device instance.
+ * @param clear Clear value.
+ */
 bool yi_uart_rx_idle(yi_device_t *dev, bool clear)
 {
     const yi_uart_api_t *api = yi_uart_api_get(dev);
@@ -472,6 +616,12 @@ bool yi_uart_rx_idle(yi_device_t *dev, bool clear)
         api->rx_idle(dev, clear) : false;
 }
 
+/**
+ * @brief Set callback.
+ * @param dev Device instance.
+ * @param callback Callback registration object.
+ * @param user_data User data value.
+ */
 int yi_uart_rx_set_callback(yi_device_t *dev,
                             yi_uart_rx_callback_t callback,
                             void *user_data)
