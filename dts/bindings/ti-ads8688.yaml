@@ -1,0 +1,56 @@
+compatible: "ti,ads8688"
+driver: "ads8688"
+header: "yi_ads8688.h"
+define: "YI_ADS8688_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  cs-gpio:
+    type: phandle
+    required: true
+  spi-frequency:
+    type: int
+    default: 1000000
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  default-channel:
+    type: int
+    default: 0
+  auto-sequence-mask:
+    type: int
+    default: 255
+  power-down-mask:
+    type: int
+    default: 0
+  channel0-range:
+    type: int
+    default: 0
+  channel1-range:
+    type: int
+    default: 0
+  channel2-range:
+    type: int
+    default: 0
+  channel3-range:
+    type: int
+    default: 0
+  channel4-range:
+    type: int
+    default: 0
+  channel5-range:
+    type: int
+    default: 0
+  channel6-range:
+    type: int
+    default: 0
+  channel7-range:
+    type: int
+    default: 0
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

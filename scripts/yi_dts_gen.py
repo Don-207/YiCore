@@ -602,6 +602,58 @@ YI_MAX31856_DEFINE_LEVEL({label}, {_level(item)},
     {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
 
 
+def _generate_ad9834(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["spi-frequency"]
+    mclk = item.properties["mclk-frequency"]
+    timeout = item.properties["transfer-timeout-ms"]
+    if not 0 < frequency <= 40000000:
+        raise BindingError(f"{item.node.path}: spi-frequency must be in range 1..40000000")
+    if mclk <= 0 or timeout <= 0:
+        raise BindingError(f"{item.node.path}: mclk-frequency and timeout must be positive")
+    return f"""static yi_device_t {label};
+static const yi_ad9834_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .spi = &{item.properties['bus'].label},
+    .spi_config = {{ .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label},
+        .mode = 2U, .cs_active_high = false }},
+    .mclk_frequency = {mclk}U,
+    .transfer_timeout_ms = {timeout}U
+}};
+static yi_ad9834_data_t {label}_data;
+YI_AD9834_DEFINE_LEVEL({label}, {_level(item)},
+    {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
+
+
+def _generate_ad9851(item: ValidatedNode) -> str:
+    label = item.node.label
+    reference = item.properties["reference-clock-frequency"]
+    multiplier = item.properties["clock-multiplier"]
+    delay = item.properties["pulse-delay-us"]
+    system_clock = reference * (6 if multiplier else 1)
+    if reference <= 0 or system_clock > 180000000 or (multiplier and reference > 30000000):
+        raise BindingError(f"{item.node.path}: resulting system clock must be in range 1..180000000")
+    if delay < 0:
+        raise BindingError(f"{item.node.path}: pulse-delay-us must not be negative")
+    return f"""static yi_device_t {label};
+static const yi_ad9851_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .w_clk_gpio = &{item.properties['w-clk-gpio'].label},
+    .fq_ud_gpio = &{item.properties['fq-ud-gpio'].label},
+    .data_gpio = &{item.properties['data-gpio'].label},
+    .reset_gpio = &{item.properties['reset-gpio'].label},
+    .reference_clock_frequency = {reference}U,
+    .pulse_delay_us = {delay}U,
+    .clock_multiplier = {str(multiplier).lower()}
+}};
+static yi_ad9851_data_t {label}_data;
+YI_AD9851_DEFINE_LEVEL({label}, {_level(item)},
+    {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
+
+
 def _generate_timer(item: ValidatedNode) -> str:
     label = item.node.label
     reg, clock_bus, clock_enable_mask = _stm32_peripheral(item)
@@ -739,6 +791,178 @@ YI_ADS7830_DEFINE_LEVEL(
     {label}, {_level(item)}, {item.properties['init-priority']},
     {label}_cfg, {label}_data
 );"""
+
+
+def _generate_adc081c02(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    reference = item.properties["reference-mv"]
+    configuration = item.properties["configuration"]
+    low = item.properties["low-limit"]
+    high = item.properties["high-limit"]
+    hysteresis = item.properties["hysteresis"]
+    timeout = item.properties["transfer-timeout-ms"]
+    if not 0 <= address <= 0x7f:
+        raise BindingError(f"{item.node.path}: address must be a 7-bit value")
+    if not 0 < reference <= 65535 or timeout <= 0:
+        raise BindingError(f"{item.node.path}: invalid reference or timeout")
+    if not all(0 <= value <= 255 for value in (configuration, low, high, hysteresis)):
+        raise BindingError(f"{item.node.path}: register values must be in range 0..255")
+    if low > high:
+        raise BindingError(f"{item.node.path}: low-limit must not exceed high-limit")
+    return f"""static yi_device_t {label};
+static const yi_adc081c02_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U,
+    .reference_mv = {reference}U,
+    .transfer_timeout_ms = {timeout}U,
+    .configuration = 0x{configuration:02X}U,
+    .low_limit = {low}U,
+    .high_limit = {high}U,
+    .hysteresis = {hysteresis}U
+}};
+static yi_adc081c02_data_t {label}_data;
+YI_ADC081C02_DEFINE_LEVEL({label}, {_level(item)},
+    {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
+
+
+def _generate_ads1258(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["spi-frequency"]
+    timeout = item.properties["transfer-timeout-ms"]
+    byte_fields = ["config0", "config1", "muxsch", "muxdif", "system-readings"]
+    if not 0 < frequency <= 2000000 or timeout <= 0:
+        raise BindingError(f"{item.node.path}: invalid SPI frequency or timeout")
+    if any(not 0 <= item.properties[name] <= 255 for name in byte_fields):
+        raise BindingError(f"{item.node.path}: register values must be in range 0..255")
+    mask = item.properties["single-ended-mask"]
+    if not 0 <= mask <= 0xffff:
+        raise BindingError(f"{item.node.path}: single-ended-mask must be in range 0..65535")
+    optional = lambda name: (f"&{item.properties[name].label}" if item.properties.get(name) else "NULL")
+    return f"""static yi_device_t {label};
+static const yi_ads1258_config_t {label}_cfg = {{
+    .self = &{label}, .spi = &{item.properties['bus'].label},
+    .spi_config = {{ .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label}, .mode = 1U, .cs_active_high = false }},
+    .reset_gpio = {optional('reset-gpio')}, .start_gpio = &{item.properties['start-gpio'].label},
+    .drdy_gpio = {optional('drdy-gpio')}, .transfer_timeout_ms = {timeout}U,
+    .config0 = 0x{item.properties['config0']:02X}U, .config1 = 0x{item.properties['config1']:02X}U,
+    .muxsch = 0x{item.properties['muxsch']:02X}U, .muxdif = 0x{item.properties['muxdif']:02X}U,
+    .single_ended_mask = 0x{mask:04X}U, .system_readings = 0x{item.properties['system-readings']:02X}U
+}};
+static yi_ads1258_data_t {label}_data;
+YI_ADS1258_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data);"""
+
+
+def _generate_ads8688(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["spi-frequency"]
+    timeout = item.properties["transfer-timeout-ms"]
+    channel = item.properties["default-channel"]
+    auto_mask = item.properties["auto-sequence-mask"]
+    power_mask = item.properties["power-down-mask"]
+    ranges = [item.properties[f"channel{i}-range"] for i in range(8)]
+    if not 0 < frequency <= 16000000 or timeout <= 0 or not 0 <= channel < 8:
+        raise BindingError(f"{item.node.path}: invalid SPI, timeout or channel setting")
+    if not 0 <= auto_mask <= 255 or not 0 <= power_mask <= 255:
+        raise BindingError(f"{item.node.path}: channel masks must be in range 0..255")
+    if any(value not in {0, 1, 2, 5, 6} for value in ranges):
+        raise BindingError(f"{item.node.path}: invalid channel input range")
+    range_values = ", ".join(f"(yi_ads8688_range_t){value}U" for value in ranges)
+    return f"""static yi_device_t {label};
+static const yi_ads8688_config_t {label}_cfg = {{
+    .self = &{label}, .spi = &{item.properties['bus'].label},
+    .spi_config = {{ .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label}, .mode = 1U, .cs_active_high = false }},
+    .transfer_timeout_ms = {timeout}U, .default_channel = {channel}U,
+    .auto_sequence_mask = 0x{auto_mask:02X}U, .power_down_mask = 0x{power_mask:02X}U,
+    .range = {{ {range_values} }}
+}};
+static yi_ads8688_data_t {label}_data;
+YI_ADS8688_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data);"""
+
+
+def _generate_mcp4725(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    reference = item.properties["reference-mv"]
+    default = item.properties["default-value"]
+    timeout = item.properties["transfer-timeout-ms"]
+    eeprom_timeout = item.properties["eeprom-timeout-ms"]
+    if not 0 <= address <= 0x7f:
+        raise BindingError(f"{item.node.path}: address must be a 7-bit value")
+    if not 0 < reference <= 65535 or not 0 <= default <= 4095:
+        raise BindingError(f"{item.node.path}: invalid reference or default value")
+    if timeout <= 0 or eeprom_timeout <= 0:
+        raise BindingError(f"{item.node.path}: timeouts must be positive")
+    return f"""static yi_device_t {label};
+static const yi_mcp4725_config_t {label}_cfg = {{
+    .self = &{label}, .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U, .reference_mv = {reference}U,
+    .default_value = {default}U, .transfer_timeout_ms = {timeout}U,
+    .eeprom_timeout_ms = {eeprom_timeout}U
+}};
+static yi_mcp4725_data_t {label}_data;
+YI_MCP4725_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data);"""
+
+
+def _generate_mcp4728(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    default_channel = item.properties["default-channel"]
+    vdd = item.properties["vdd-mv"]
+    timeout = item.properties["transfer-timeout-ms"]
+    eeprom_timeout = item.properties["eeprom-timeout-ms"]
+    values = [item.properties[f"channel{i}-value"] for i in range(4)]
+    if not 0x60 <= address <= 0x67 or not 0 <= default_channel < 4:
+        raise BindingError(f"{item.node.path}: invalid address or default channel")
+    if vdd <= 0 or timeout <= 0 or eeprom_timeout <= 0:
+        raise BindingError(f"{item.node.path}: supply and timeouts must be positive")
+    if any(not 0 <= value <= 4095 for value in values):
+        raise BindingError(f"{item.node.path}: channel values must be in range 0..4095")
+    channels = []
+    for i, value in enumerate(values):
+        internal = str(item.properties[f"channel{i}-internal-reference"]).lower()
+        gain = str(item.properties[f"channel{i}-gain-2x"]).lower()
+        channels.append(f"{{ .value = {value}U, .internal_reference = {internal}, "
+                        f".gain_2x = {gain}, .power = YI_MCP4728_POWER_NORMAL }}")
+    return f"""static yi_device_t {label};
+static const yi_mcp4728_config_t {label}_cfg = {{
+    .self = &{label}, .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U, .default_channel = {default_channel}U,
+    .vdd_mv = {vdd}U, .transfer_timeout_ms = {timeout}U,
+    .eeprom_timeout_ms = {eeprom_timeout}U,
+    .channel = {{ {', '.join(channels)} }}
+}};
+static yi_mcp4728_data_t {label}_data;
+YI_MCP4728_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data);"""
+
+
+def _generate_gp8210s(item: ValidatedNode) -> str:
+    label=item.node.label; address=item.properties["address"]
+    channel=item.properties["default-channel"]; output=item.properties["output-range-mv"]
+    values=[item.properties["channel0-value"],item.properties["channel1-value"]]
+    timeout=item.properties["transfer-timeout-ms"]
+    if not 0<=address<=0x7f or channel not in {0,1} or output not in {5000,10000}:
+        raise BindingError(f"{item.node.path}: invalid address, channel or output range")
+    if any(not 0<=value<=32767 for value in values) or timeout<=0:
+        raise BindingError(f"{item.node.path}: invalid DAC value or timeout")
+    range_name="YI_GP8210S_RANGE_10V" if output==10000 else "YI_GP8210S_RANGE_5V"
+    return f"""static yi_device_t {label};
+static const yi_gp8210s_config_t {label}_cfg = {{
+    .self=&{label}, .i2c=&{item.properties['bus'].label}, .address=0x{address:02X}U,
+    .default_channel={channel}U, .range={range_name},
+    .default_value={{ {values[0]}U, {values[1]}U }}, .transfer_timeout_ms={timeout}U
+}};
+static yi_gp8210s_data_t {label}_data;
+YI_GP8210S_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data);"""
 
 
 def _generate_tsys01(item: ValidatedNode) -> str:
@@ -891,7 +1115,15 @@ _GENERATORS = {
     "w25q64": _generate_w25q64,
     "at24c02": _generate_at24c02,
     "max31856": _generate_max31856,
+    "ad9834": _generate_ad9834,
+    "ad9851": _generate_ad9851,
     "ads7830": _generate_ads7830,
+    "adc081c02": _generate_adc081c02,
+    "ads1258": _generate_ads1258,
+    "ads8688": _generate_ads8688,
+    "mcp4725": _generate_mcp4725,
+    "mcp4728": _generate_mcp4728,
+    "gp8210s": _generate_gp8210s,
     "tsys01": _generate_tsys01,
     "timer": _generate_timer,
     "spi": _generate_spi,

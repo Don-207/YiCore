@@ -1,0 +1,26 @@
+compatible: "adi,ad9834"
+driver: "ad9834"
+header: "yi_ad9834.h"
+define: "YI_AD9834_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  cs-gpio:
+    type: phandle
+    required: true
+  spi-frequency:
+    type: int
+    default: 1000000
+  mclk-frequency:
+    type: int
+    required: true
+  transfer-timeout-ms:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: application
+  init-priority:
+    type: int
+    default: 20
