@@ -1,0 +1,29 @@
+compatible: "microchip,mcp4725"
+driver: "mcp4725"
+header: "yi_mcp4725.h"
+define: "YI_MCP4725_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 96
+  reference-mv:
+    type: int
+    default: 3300
+  default-value:
+    type: int
+    default: 0
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  eeprom-timeout-ms:
+    type: int
+    default: 100
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

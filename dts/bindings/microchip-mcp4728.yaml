@@ -1,0 +1,65 @@
+compatible: "microchip,mcp4728"
+driver: "mcp4728"
+header: "yi_mcp4728.h"
+define: "YI_MCP4728_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 96
+  default-channel:
+    type: int
+    default: 0
+  vdd-mv:
+    type: int
+    default: 3300
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  eeprom-timeout-ms:
+    type: int
+    default: 100
+  channel0-value:
+    type: int
+    default: 0
+  channel1-value:
+    type: int
+    default: 0
+  channel2-value:
+    type: int
+    default: 0
+  channel3-value:
+    type: int
+    default: 0
+  channel0-internal-reference:
+    type: boolean
+    default: false
+  channel1-internal-reference:
+    type: boolean
+    default: false
+  channel2-internal-reference:
+    type: boolean
+    default: false
+  channel3-internal-reference:
+    type: boolean
+    default: false
+  channel0-gain-2x:
+    type: boolean
+    default: false
+  channel1-gain-2x:
+    type: boolean
+    default: false
+  channel2-gain-2x:
+    type: boolean
+    default: false
+  channel3-gain-2x:
+    type: boolean
+    default: false
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30
