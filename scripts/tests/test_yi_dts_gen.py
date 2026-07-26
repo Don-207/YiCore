@@ -351,6 +351,145 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn(".average_samples = 4U", source)
         self.assertIn('#define YI_DT_SENSOR_NAME "sensor"', header)
 
+    def test_ad9834_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>; clocks = <&clk>; };
+            cs: cs { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>;
+                clocks = <&clk>; direction = "output"; };
+            spi: spi { compatible = "yi,soft-spi"; sck-gpio = <&sck>;
+                miso-gpio = <&miso>; mosi-gpio = <&mosi>; max-frequency = <500000>; };
+            dds: dds { compatible = "adi,ad9834"; bus = <&spi>; cs-gpio = <&cs>;
+                spi-frequency = <500000>; mclk-frequency = <75000000>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "ad9834.dts")
+        self.assertIn(".mclk_frequency = 75000000U", source)
+        self.assertIn(".mode = 2U", source)
+        self.assertIn('#define YI_DT_DDS_NAME "dds"', header)
+
+    def test_ad9851_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            wclk: wclk { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>;
+                clocks = <&clk>; direction = "output"; };
+            fqud: fqud { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>;
+                clocks = <&clk>; direction = "output"; };
+            data: data { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>;
+                clocks = <&clk>; direction = "output"; };
+            reset: reset { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>;
+                clocks = <&clk>; direction = "output"; };
+            dds: dds { compatible = "adi,ad9851"; w-clk-gpio = <&wclk>;
+                fq-ud-gpio = <&fqud>; data-gpio = <&data>; reset-gpio = <&reset>;
+                reference-clock-frequency = <30000000>; clock-multiplier; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "ad9851.dts")
+        self.assertIn(".reference_clock_frequency = 30000000U", source)
+        self.assertIn(".clock_multiplier = true", source)
+        self.assertIn('#define YI_DT_DDS_NAME "dds"', header)
+
+    def test_adc081c02_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            scl: scl { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            sda: sda { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            i2c: i2c { compatible = "yi,soft-i2c"; scl-gpio = <&scl>; sda-gpio = <&sda>; };
+            adc: adc { compatible = "ti,adc081c02"; bus = <&i2c>; address = <0x50>;
+                reference-mv = <3300>; configuration = <0x20>;
+                low-limit = <10>; high-limit = <240>; hysteresis = <4>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "adc081c02.dts")
+        self.assertIn(".address = 0x50U", source)
+        self.assertIn(".configuration = 0x20U", source)
+        self.assertIn(".high_limit = 240U", source)
+        self.assertIn('#define YI_DT_ADC_NAME "adc"', header)
+
+    def test_ads1258_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>; clocks = <&clk>; };
+            cs: cs { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>; clocks = <&clk>; direction = "output"; };
+            start: start { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <4>; clocks = <&clk>; direction = "output"; };
+            drdy: drdy { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <5>; clocks = <&clk>; direction = "input"; };
+            spi: spi { compatible = "yi,soft-spi"; sck-gpio = <&sck>; miso-gpio = <&miso>;
+                mosi-gpio = <&mosi>; max-frequency = <500000>; };
+            adc: adc { compatible = "ti,ads1258"; bus = <&spi>; cs-gpio = <&cs>;
+                start-gpio = <&start>; drdy-gpio = <&drdy>; spi-frequency = <500000>;
+                single-ended-mask = <0xffff>; config1 = <0x01>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "ads1258.dts")
+        self.assertIn(".single_ended_mask = 0xFFFFU", source)
+        self.assertIn(".config1 = 0x01U", source)
+        self.assertIn(".mode = 1U", source)
+        self.assertIn('#define YI_DT_ADC_NAME "adc"', header)
+
+    def test_ads8688_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>; clocks = <&clk>; };
+            cs: cs { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>; clocks = <&clk>; direction = "output"; };
+            spi: spi { compatible = "yi,soft-spi"; sck-gpio = <&sck>; miso-gpio = <&miso>;
+                mosi-gpio = <&mosi>; max-frequency = <500000>; };
+            adc: adc { compatible = "ti,ads8688"; bus = <&spi>; cs-gpio = <&cs>;
+                spi-frequency = <500000>; default-channel = <2>; auto-sequence-mask = <0x0f>;
+                channel0-range = <0>; channel1-range = <1>; channel2-range = <2>;
+                channel3-range = <5>; channel4-range = <6>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "ads8688.dts")
+        self.assertIn(".default_channel = 2U", source)
+        self.assertIn(".auto_sequence_mask = 0x0FU", source)
+        self.assertIn("(yi_ads8688_range_t)6U", source)
+        self.assertIn('#define YI_DT_ADC_NAME "adc"', header)
+
+    def test_mcp4725_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            scl: scl { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            sda: sda { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            i2c: i2c { compatible = "yi,soft-i2c"; scl-gpio = <&scl>; sda-gpio = <&sda>; };
+            dac: dac { compatible = "microchip,mcp4725"; bus = <&i2c>; address = <0x60>;
+                reference-mv = <3300>; default-value = <2048>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "mcp4725.dts")
+        self.assertIn(".address = 0x60U", source)
+        self.assertIn(".default_value = 2048U", source)
+        self.assertIn('#define YI_DT_DAC_NAME "dac"', header)
+
+    def test_mcp4728_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            scl: scl { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            sda: sda { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            i2c: i2c { compatible = "yi,soft-i2c"; scl-gpio = <&scl>; sda-gpio = <&sda>; };
+            dac: dac { compatible = "microchip,mcp4728"; bus = <&i2c>; address = <0x60>;
+                default-channel = <1>; channel0-value = <1000>;
+                channel0-internal-reference; channel0-gain-2x; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "mcp4728.dts")
+        self.assertIn(".default_channel = 1U", source)
+        self.assertIn(".value = 1000U", source)
+        self.assertIn(".internal_reference = true", source)
+        self.assertIn('#define YI_DT_DAC_NAME "dac"', header)
+
+    def test_gp8210s_generation(self):
+        tree=parse_text('''/ {
+            clk: clk { compatible="yi,stm32-clock"; clock-id="gpioa"; };
+            scl: scl { compatible="yi,stm32-gpio"; port="GPIOA"; pin=<0>; clocks=<&clk>; };
+            sda: sda { compatible="yi,stm32-gpio"; port="GPIOA"; pin=<1>; clocks=<&clk>; };
+            i2c: i2c { compatible="yi,soft-i2c"; scl-gpio=<&scl>; sda-gpio=<&sda>; };
+            dac: dac { compatible="guestgood,gp8210s"; bus=<&i2c>; address=<0x58>;
+                output-range-mv=<10000>; channel0-value=<1000>; channel1-value=<2000>; };
+        };''')
+        source,header=generate_sources(validate_tree(tree,self.bindings),"gp8210s.dts")
+        self.assertIn(".range=YI_GP8210S_RANGE_10V",source)
+        self.assertIn(".default_value={ 1000U, 2000U }",source)
+        self.assertIn('#define YI_DT_DAC_NAME "dac"',header)
+
     def test_invalid_rtt_mode_is_rejected(self):
         tree = parse_text('''/ {
             rtt: rtt { compatible = "yi,segger-rtt"; mode = "drop-sometimes"; };

@@ -1,0 +1,35 @@
+compatible: "ti,adc081c02"
+driver: "adc081c02"
+header: "yi_adc081c02.h"
+define: "YI_ADC081C02_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 80
+  reference-mv:
+    type: int
+    default: 3300
+  configuration:
+    type: int
+    default: 0
+  low-limit:
+    type: int
+    default: 0
+  high-limit:
+    type: int
+    default: 255
+  hysteresis:
+    type: int
+    default: 0
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30
