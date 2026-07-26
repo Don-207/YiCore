@@ -3,3 +3,4 @@
     /include/ "spi.dtsi"
     /include/ "i2c.dtsi"
     /include/ "can.dtsi"
+    /include/ "adc.dtsi"

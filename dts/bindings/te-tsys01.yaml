@@ -1,0 +1,30 @@
+compatible: "te,tsys01"
+driver: "tsys01"
+header: "yi_tsys01.h"
+define: "YI_TSYS01_DEFINE_LEVEL"
+
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 119
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  conversion-delay-ms:
+    type: int
+    default: 10
+  reset-delay-ms:
+    type: int
+    default: 3
+  validate-prom-checksum:
+    type: boolean
+    default: false
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

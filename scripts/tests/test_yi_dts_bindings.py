@@ -23,23 +23,28 @@ class DtsBindingTests(unittest.TestCase):
         nodes = validate_tree(tree, self.bindings)
         self.assertEqual(
             [item.binding.driver for item in nodes],
-            ["timer", "uart", "flash", "clock", "clock",
-             "gpio", "gpio", "pinmux", "pinmux", "led", "led",
+            ["timer", "uart", "i2c", "adc", "flash", "clock", "clock", "clock",
+             "gpio", "gpio", "pinmux", "pinmux", "pinmux", "pinmux", "pinmux",
+             "ads7830", "led", "led",
              "rtt", "console"],
         )
         self.assertEqual(nodes[0].properties["reg"], 0x40001400)
         self.assertEqual(nodes[0].properties["interrupts"], "TIM7_IRQn")
         self.assertEqual(nodes[1].properties["current-speed"], 921600)
         self.assertEqual(nodes[1].properties["rx-dma-channel"], "DMA1_Channel5")
-        self.assertEqual(nodes[2].properties["base-address"], 0x08000000)
-        self.assertEqual(nodes[3].properties["clock-id"], "gpioa")
-        self.assertEqual(nodes[5].properties["pin"], 2)
-        self.assertEqual(nodes[7].properties["function"], "uart-tx")
-        self.assertEqual(nodes[8].properties["function"], "uart-rx")
-        self.assertEqual(nodes[9].properties["gpios"], DtsReference("led0_gpio"))
-        self.assertEqual(nodes[11].properties["mode"], "no-block-skip")
-        self.assertEqual(nodes[12].properties["backend"], DtsReference("rtt0"))
-        self.assertTrue(nodes[12].properties["default-console"])
+        self.assertEqual(nodes[3].properties["channel"], 0)
+        self.assertEqual(nodes[4].properties["base-address"], 0x08000000)
+        self.assertEqual(nodes[5].properties["clock-id"], "gpioa")
+        self.assertEqual(nodes[8].properties["pin"], 2)
+        self.assertEqual(nodes[10].properties["function"], "i2c-scl")
+        self.assertEqual(nodes[12].properties["function"], "uart-tx")
+        self.assertEqual(nodes[13].properties["function"], "uart-rx")
+        self.assertEqual(nodes[14].properties["function"], "adc")
+        self.assertEqual(nodes[15].properties["address"], 0x48)
+        self.assertEqual(nodes[16].properties["gpios"], DtsReference("led0_gpio"))
+        self.assertEqual(nodes[18].properties["mode"], "no-block-skip")
+        self.assertEqual(nodes[19].properties["backend"], DtsReference("rtt0"))
+        self.assertTrue(nodes[19].properties["default-console"])
 
     def test_missing_required_property(self):
         tree = parse_text('''/ {

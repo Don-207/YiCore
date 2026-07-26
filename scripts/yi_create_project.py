@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from yi_build_info_gen import generate as generate_build_info
 from yi_dts_gen import generate
 
 
@@ -254,6 +255,7 @@ def create_project(
     try:
         destination.mkdir(parents=True)
         shutil.copytree(template / "Core", destination / "Core")
+        shutil.copy2(template / "VERSION", destination / "VERSION")
 
         mdk_dir = destination / "MDK-ARM"
         mdk_dir.mkdir()
@@ -309,6 +311,11 @@ def create_project(
             destination / "app.dts",
             repo_root / "dts" / "bindings",
             destination / "generated",
+        )
+        generate_build_info(
+            "application",
+            (destination / "VERSION").read_text(encoding="utf-8").strip(),
+            destination / "generated" / "yi_build_info.c",
         )
     except Exception:
         if destination.exists():

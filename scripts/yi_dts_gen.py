@@ -561,6 +561,42 @@ YI_AT24C02_DEFINE_LEVEL(
 );"""
 
 
+def _generate_max31856(item: ValidatedNode) -> str:
+    label = item.node.label
+    types = {name: f"YI_MAX31856_TC_{name.upper()}" for name in "bejknrst"}
+    tc_name = item.properties["thermocouple-type"]
+    if tc_name not in types:
+        raise BindingError(f"{item.node.path}: invalid thermocouple-type")
+    frequency = item.properties["spi-frequency"]
+    filter_hz = item.properties["filter-hz"]
+    average = item.properties["average-samples"]
+    open_ms = item.properties["open-circuit-ms"]
+    timeout = item.properties["transfer-timeout-ms"]
+    if not 0 < frequency <= 5000000:
+        raise BindingError(f"{item.node.path}: spi-frequency must be in range 1..5000000")
+    if filter_hz not in {50, 60} or average not in {1, 2, 4, 8, 16}:
+        raise BindingError(f"{item.node.path}: invalid filter or averaging setting")
+    if open_ms not in {0, 10, 32, 100} or timeout <= 0:
+        raise BindingError(f"{item.node.path}: invalid fault timing or timeout")
+    return f"""static yi_device_t {label};
+static const yi_max31856_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .spi = &{item.properties['bus'].label},
+    .spi_config = {{ .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label},
+        .mode = 1U, .cs_active_high = false }},
+    .thermocouple_type = {types[tc_name]},
+    .transfer_timeout_ms = {timeout}U,
+    .average_samples = {average}U,
+    .filter_hz = {filter_hz}U,
+    .open_circuit_ms = {open_ms}U
+}};
+static yi_max31856_data_t {label}_data;
+YI_MAX31856_DEFINE_LEVEL({label}, {_level(item)},
+    {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
+
+
 def _generate_timer(item: ValidatedNode) -> str:
     label = item.node.label
     reg, clock_bus, clock_enable_mask = _stm32_peripheral(item)
@@ -632,6 +668,108 @@ YI_SPI_STM32_DEFINE_LEVEL(
     {label}_cfg, {label}_data
 );
 void {_irq_handler(irq)}(void) {{ yi_spi_stm32_irq_handler(&{label}); }}"""
+
+
+def _generate_adc(item: ValidatedNode) -> str:
+    label = item.node.label
+    reg, bus, mask = _stm32_peripheral(item)
+    channel = item.properties["channel"]
+    sample_cycles = item.properties["sample-cycles"]
+    divider = item.properties["clock-divider"]
+    if not 0 <= channel <= 15:
+        raise BindingError(f"{item.node.path}: channel must be in range 0..15")
+    if not 0 <= sample_cycles <= 7:
+        raise BindingError(f"{item.node.path}: sample-cycles must be in range 0..7")
+    if divider not in {2, 4, 6, 8}:
+        raise BindingError(f"{item.node.path}: clock-divider must be 2, 4, 6 or 8")
+    return f"""static yi_device_t {label};
+static const yi_adc_stm32f1_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .instance = (ADC_TypeDef *)0x{reg:08X}U,
+    .clock = {{ .bus = {bus}, .enable_mask = 0x{mask:08X}U }},
+    .input_pin = &{item.properties['input-pin'].label},
+    .channel = {channel}U,
+    .sample_cycles = {sample_cycles}U,
+    .clock_divider = {divider}U
+}};
+static yi_adc_stm32f1_data_t {label}_data;
+YI_ADC_STM32F1_DEFINE_LEVEL(
+    {label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data
+);"""
+
+
+def _generate_ads7830(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    channel = item.properties["default-channel"]
+    reference_mv = item.properties["reference-mv"]
+    timeout = item.properties["transfer-timeout-ms"]
+    if not 0x48 <= address <= 0x4B:
+        raise BindingError(f"{item.node.path}: address must be in range 0x48..0x4b")
+    if not 0 <= channel <= 7:
+        raise BindingError(f"{item.node.path}: default-channel must be in range 0..7")
+    if not 0 < reference_mv <= 65535:
+        raise BindingError(f"{item.node.path}: reference-mv must be in range 1..65535")
+    if timeout <= 0:
+        raise BindingError(f"{item.node.path}: transfer-timeout-ms must be positive")
+    internal_reference = 1 if item.properties["internal-reference"] else 0
+    return f"""static yi_device_t {label};
+
+static const yi_ads7830_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U,
+    .default_channel = {channel}U,
+    .internal_reference = {internal_reference},
+    .reference_mv = {reference_mv}U,
+    .transfer_timeout_ms = {timeout}U
+}};
+
+static yi_ads7830_data_t {label}_data;
+
+YI_ADS7830_DEFINE_LEVEL(
+    {label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data
+);"""
+
+
+def _generate_tsys01(item: ValidatedNode) -> str:
+    label = item.node.label
+    address = item.properties["address"]
+    transfer_timeout = item.properties["transfer-timeout-ms"]
+    conversion_delay = item.properties["conversion-delay-ms"]
+    reset_delay = item.properties["reset-delay-ms"]
+    checksum = 1 if item.properties["validate-prom-checksum"] else 0
+    if not 0 <= address <= 0x7F:
+        raise BindingError(f"{item.node.path}: address must be a 7-bit value")
+    if transfer_timeout <= 0:
+        raise BindingError(f"{item.node.path}: transfer-timeout-ms must be positive")
+    if conversion_delay <= 0:
+        raise BindingError(f"{item.node.path}: conversion-delay-ms must be positive")
+    if reset_delay <= 0:
+        raise BindingError(f"{item.node.path}: reset-delay-ms must be positive")
+    return f"""static yi_device_t {label};
+
+static const yi_tsys01_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .i2c = &{item.properties['bus'].label},
+    .address = 0x{address:02X}U,
+    .transfer_timeout_ms = {transfer_timeout}U,
+    .conversion_delay_ms = {conversion_delay}U,
+    .reset_delay_ms = {reset_delay}U,
+    .validate_prom_checksum = {checksum}
+}};
+
+static yi_tsys01_data_t {label}_data;
+
+YI_TSYS01_DEFINE_LEVEL(
+    {label}, {_level(item)}, {item.properties['init-priority']},
+    {label}_cfg, {label}_data
+);"""
 
 
 def _generate_i2c(item: ValidatedNode) -> str:
@@ -747,8 +885,12 @@ _GENERATORS = {
     "flash": _generate_flash,
     "w25q64": _generate_w25q64,
     "at24c02": _generate_at24c02,
+    "max31856": _generate_max31856,
+    "ads7830": _generate_ads7830,
+    "tsys01": _generate_tsys01,
     "timer": _generate_timer,
     "spi": _generate_spi,
+    "adc": _generate_adc,
     "i2c": _generate_i2c,
     "soft-i2c": _generate_soft_i2c,
     "soft-spi": _generate_soft_spi,
@@ -756,7 +898,8 @@ _GENERATORS = {
 }
 
 
-def generate_sources(nodes: list[ValidatedNode], source_name: str) -> tuple[str, str]:
+def generate_sources(nodes: list[ValidatedNode], source_name: str,
+                     bootloader_enabled: bool = False) -> tuple[str, str]:
     ordered = dependency_order(nodes)
     occupied_pins: dict[tuple[str, int], str] = {}
     for item in ordered:
@@ -801,6 +944,19 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str) -> tuple[str,
         macro = item.node.label.upper()
         aliases.append(f'#define YI_DT_{macro}_NAME "{item.node.label}"')
     alias_text = "\n".join(aliases)
+    if bootloader_enabled:
+        boot_config = """#define YI_BOOTLOADER_ENABLED 1
+#define YI_APP_FLASH_OFFSET 0x0000C000U
+#define YI_APP_HEADER_SIZE 0x00000200U
+#define YI_APP_VECTOR_ADDRESS 0x0800C200U
+#define YI_APP_SLOT_SIZE 0x0001A000U"""
+    else:
+        boot_config = """#define YI_BOOTLOADER_ENABLED 0
+#define YI_APP_FLASH_OFFSET 0x00000000U
+#define YI_APP_HEADER_SIZE 0x00000000U
+#define YI_APP_VECTOR_ADDRESS 0x08000000U
+#define YI_APP_SLOT_SIZE 0x00040000U"""
+
     h_source = f"""/*
  * Generated by yi_dts_gen.py from {source_name}.
  * Do not edit manually.
@@ -809,6 +965,8 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str) -> tuple[str,
 #define YI_GENERATED_H
 
 #include "yi_device.h"
+
+{boot_config}
 
 {alias_text}
 
@@ -826,13 +984,61 @@ def _write_if_changed(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8", newline="\n")
 
 
+def _app_scatter(bootloader_enabled: bool) -> str:
+    if bootloader_enabled:
+        address = 0x0800C200
+        size = 0x00019E00
+        description = "MCUboot primary slot, after the 0x200-byte image header"
+    else:
+        address = 0x08000000
+        size = 0x00040000
+        description = "standalone application using the complete internal flash"
+
+    return f"""; Generated by yi_dts_gen.py: {description}.
+LR_IROM1 0x{address:08X} 0x{size:08X} {{
+  ER_IROM1 0x{address:08X} 0x{size:08X} {{
+    *.o (RESET, +First)
+    *(InRoot$$Sections)
+    .ANY (+RO)
+    .ANY (+XO)
+  }}
+
+  yi_device +0 ALIGN 4 {{
+    * (.yi_device)
+  }}
+
+  yi_build_info +0 ALIGN 4 {{
+    * (.yi_build_info)
+  }}
+
+  RW_IRAM1 0x20000000 0x0000C000 {{
+    .ANY (+RW +ZI)
+  }}
+}}
+"""
+
+
 def generate(dts: Path, bindings_dir: Path, output_dir: Path) -> tuple[Path, Path]:
-    nodes = validate_tree(parse_file(dts), load_bindings(bindings_dir))
-    c_source, h_source = generate_sources(nodes, dts.name)
+    tree = parse_file(dts)
+    nodes = validate_tree(tree, load_bindings(bindings_dir))
+    bootloader_enabled = False
+    bootloader = tree.labels.get("bootloader")
+    if bootloader is not None:
+        status = bootloader.properties.get("status", "disable")
+        if status not in ("okay", "disable"):
+            raise BindingError(
+                f"{bootloader.path}: bootloader status must be 'okay' or 'disable'"
+            )
+        bootloader_enabled = status == "okay"
+    c_source, h_source = generate_sources(
+        nodes, dts.name, bootloader_enabled=bootloader_enabled
+    )
     c_path = output_dir / "yi_generated.c"
     h_path = output_dir / "yi_generated.h"
+    scatter_path = output_dir / "yi_app.sct"
     _write_if_changed(c_path, c_source)
     _write_if_changed(h_path, h_source)
+    _write_if_changed(scatter_path, _app_scatter(bootloader_enabled))
     return c_path, h_path
 
 

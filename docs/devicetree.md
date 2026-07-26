@@ -187,7 +187,63 @@ SoC节点提供的寄存器地址、总线类型和RCC位，不依赖CubeMX的`h
 固定数量的运行时Timer数组。换用其他芯片时应提供对应的SoC Timer描述文件，板级
 DTS只选择需要启用的实例。
 
+## ADC
+
+STM32F103xE 的 ADC1、ADC2 和 ADC3 由 `adc.dtsi` 描述。板级默认提供
+ADC1 通道 0（PA0），应用通过 overlay 启用：
+
+```dts
+&adc1 {
+    input-pin = <&adc1_in0_pin>;
+    channel = <0>;
+    sample-cycles = <7>;
+    clock-divider = <6>;
+    status = "okay";
+};
+```
+
+`sample-cycles` 使用 STM32F1 SMPR 寄存器编码 0 至 7，分别对应 1.5、7.5、
+13.5、28.5、41.5、55.5、71.5 和 239.5 个 ADC 周期。`clock-divider` 可为
+2、4、6 或 8，生成器和驱动会拒绝超过 14 MHz 的 ADC 时钟。读取 12 位结果：
+
+```c
+uint16_t raw;
+yi_device_t *adc = YI_DT_GET(ADC1);
+
+if (yi_adc_read(adc, &raw, 10U) == 0) {
+    /* raw: 0..4095 */
+}
+```
+
 ## UART、SPI、I2C和CAN控制器
+
+### ADS7830 外置 ADC
+
+ADS7830 作为 I2C 从设备接入，板级默认配置在 I2C1、地址 `0x48`。A0/A1
+改变时可将地址配置为 `0x49`、`0x4a` 或 `0x4b`：
+
+```dts
+&ads7830 {
+    address = <0x48>;
+    default-channel = <0>;
+    reference-mv = <3300>;
+    /* 使用芯片内部参考时添加：internal-reference; */
+    status = "okay";
+};
+```
+
+读取默认通道或指定的 0 至 7 通道：
+
+```c
+uint16_t raw;
+yi_device_t *adc = YI_DT_GET(ADS7830);
+
+yi_adc_read(adc, &raw, 20U);
+yi_adc_channel_read(adc, 3U, &raw, 20U);
+```
+
+ADS7830 返回 8 位原始值，因此 `raw` 的有效范围是 0 至 255。使用外部参考时，
+电压可按 `raw * reference_mv / 255` 换算。
 
 STM32F103xE的控制器能力分别位于`uart.dtsi`、`spi.dtsi`、`i2c.dtsi`和
 `can.dtsi`。节点默认禁用，板级配置通过overlay提供速率、引脚和优先级。例如：
@@ -235,6 +291,35 @@ Flash API，应用通过`YI_DT_GET(W25Q64)`取得设备，不直接发送SPI NOR
 
 AT24C02使用`atmel,24c02`节点引用I2C控制器。生成的设备实现统一EEPROM API，
 应用通过`YI_DT_GET(AT24C02)`取得设备，页写拆分与ACK polling由驱动处理。
+
+## MAX31856 热电偶转换器
+
+板级预留 MAX31856 使用硬件 SPI1 和 PB0 片选，默认不启用。应用按实际热电偶
+类型选择节点：
+
+```dts
+&max31856 {
+    thermocouple-type = "k";
+    filter-hz = <50>;
+    average-samples = <1>;
+    open-circuit-ms = <100>;
+    status = "okay";
+};
+```
+
+`thermocouple-type` 支持 `b/e/j/k/n/r/s/t`，`average-samples` 支持
+1、2、4、8、16。连续转换启动后，50Hz 滤波的首次结果最长约需 185ms；应用应在
+此后读取。温度以毫摄氏度返回，故障字节对应 MAX31856 的 SR 寄存器：
+
+```c
+int32_t temperature_mc;
+uint8_t faults;
+yi_device_t *sensor = YI_DT_GET(MAX31856);
+
+if (yi_max31856_read(sensor, &temperature_mc, &faults) == 0) {
+    /* faults == 0 表示未检测到故障 */
+}
+```
 
 ## Console与日志
 
@@ -299,3 +384,19 @@ GCC工程在编译前执行相同的生成命令，并编译
 ```text
 -Tlinker/gcc/yi_device.ld
 ```
+## Application boot mode
+
+Boards provide a `bootloader` node. Applications select standalone or
+MCUboot-compatible linking with an overlay in `app.dts`:
+
+```dts
+&bootloader {
+    status = "okay";
+};
+```
+
+Use `status = "disable"` for a standalone image. The generator writes both
+boot-related macros to `yi_generated.h` and the matching ArmClang scatter file to
+`generated/yi_app.sct`. MCUboot mode links the application at `0x0800C200`;
+standalone mode links it at `0x08000000`. Changing this property requires a
+clean rebuild. An MCUboot-mode application must also be signed before flashing.

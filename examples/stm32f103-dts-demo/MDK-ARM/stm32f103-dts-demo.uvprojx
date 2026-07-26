@@ -71,9 +71,9 @@
           </BeforeCompile>
           <BeforeMake>
             <RunUserProg1>1</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
+            <RunUserProg2>1</RunUserProg2>
             <UserProg1Name>python ..\..\..\scripts\yi_dts_gen.py --dts ..\app.dts --bindings ..\..\..\dts\bindings --output ..\generated</UserProg1Name>
-            <UserProg2Name></UserProg2Name>
+            <UserProg2Name>python ..\..\..\scripts\yi_build_info_gen.py --image application --version-file ..\VERSION --output ..\generated\yi_build_info.c</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopB1X>0</nStopB1X>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/src/include</IncludePath>
+              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../drivers/adc;../../../drivers/adc/ads7830;../../../drivers/sensor/max31856;../../../drivers/sensor/tsys01;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/src/include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -371,7 +371,7 @@
             <TextAddressRange></TextAddressRange>
             <DataAddressRange></DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>..\..\..\linker\armclang\stm32f103xe.sct</ScatterFile>
+            <ScatterFile>..\generated\yi_app.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -677,6 +677,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\core\yi_device.c</FilePath>
             </File>
+            <File>
+              <FileName>yi_build_info.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\core\yi_build_info.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -748,6 +753,26 @@
               <FilePath>..\..\..\drivers\spi\yi_spi.c</FilePath>
             </File>
             <File>
+              <FileName>yi_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\drivers\adc\yi_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>yi_ads7830.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\drivers\adc\ads7830\yi_ads7830.c</FilePath>
+            </File>
+            <File>
+              <FileName>yi_max31856.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\drivers\sensor\max31856\yi_max31856.c</FilePath>
+            </File>
+            <File>
+              <FileName>yi_tsys01.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\drivers\sensor\tsys01\yi_tsys01.c</FilePath>
+            </File>
+            <File>
               <FileName>yi_soft_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\drivers\spi\yi_soft_spi.c</FilePath>
@@ -787,6 +812,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_spi_stm32.c</FilePath>
             </File>
+            <File>
+              <FileName>yi_adc_stm32f1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_adc_stm32f1.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -796,6 +826,11 @@
               <FileName>yi_generated.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\generated\yi_generated.c</FilePath>
+            </File>
+            <File>
+              <FileName>yi_build_info.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\generated\yi_build_info.c</FilePath>
             </File>
           </Files>
         </Group>

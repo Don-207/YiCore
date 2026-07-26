@@ -1,0 +1,30 @@
+compatible: "ti,ads7830"
+driver: "ads7830"
+header: "yi_ads7830.h"
+define: "YI_ADS7830_DEFINE_LEVEL"
+
+properties:
+  bus:
+    type: phandle
+    required: true
+  address:
+    type: int
+    default: 72
+  default-channel:
+    type: int
+    default: 0
+  internal-reference:
+    type: boolean
+    default: false
+  reference-mv:
+    type: int
+    default: 3300
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

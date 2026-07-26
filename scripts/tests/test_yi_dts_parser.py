@@ -22,10 +22,12 @@ class DtsParserTests(unittest.TestCase):
 
         self.assertEqual(
             set(tree.labels),
-            {"flash0", "clk_gpioa", "clk_gpiob", "clk_gpioc", "timers1", "timers2",
+            {"bootloader", "flash0", "clk_gpioa", "clk_gpiob", "clk_gpioc", "timers1", "timers2",
              "timers3", "timers4", "timers5", "timers6", "timers7", "timers8", "led0_gpio", "led0",
              "usart1", "usart2", "usart3", "uart4", "uart5", "spi1", "spi2", "spi3",
              "i2c1", "i2c2", "can1", "key0", "led1_gpio", "led1",
+             "adc1", "adc2", "adc3", "adc1_in0_pin", "ads7830",
+             "tsys01", "max31856", "max31856_cs_gpio",
              "soft_i2c0_scl_gpio", "soft_i2c0_sda_gpio", "soft_i2c0", "at24c02",
              "spi1_sck_pin", "spi1_miso_pin", "spi1_mosi_pin", "w25q64_cs_gpio", "w25q64",
              "soft_spi0_sck_gpio", "soft_spi0_miso_gpio", "soft_spi0_mosi_gpio", "soft_spi0",

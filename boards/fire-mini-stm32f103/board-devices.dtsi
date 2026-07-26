@@ -9,6 +9,30 @@
         status = "disabled";
     };
 
+    ads7830: adc-ads7830 {
+        compatible = "ti,ads7830";
+        bus = <&i2c1>;
+        address = <0x48>;
+        default-channel = <0>;
+        reference-mv = <3300>;
+        transfer-timeout-ms = <20>;
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };
+
+    tsys01: temp-tsys01 {
+        compatible = "te,tsys01";
+        bus = <&i2c1>;
+        address = <0x77>;
+        transfer-timeout-ms = <20>;
+        conversion-delay-ms = <10>;
+        reset-delay-ms = <3>;
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };
+
     w25q64: flash-w25q64 {
         compatible = "winbond,w25q64";
         bus = <&soft_spi0>;
@@ -20,6 +44,21 @@
         erase-timeout-ms = <5000>;
         init-level = "post-kernel";
         init-priority = <30>;
+        status = "disabled";
+    };
+
+    max31856: thermocouple-max31856 {
+        compatible = "maxim,max31856";
+        bus = <&spi1>;
+        cs-gpio = <&max31856_cs_gpio>;
+        spi-frequency = <5000000>;
+        thermocouple-type = "k";
+        filter-hz = <50>;
+        average-samples = <1>;
+        open-circuit-ms = <100>;
+        transfer-timeout-ms = <10>;
+        init-level = "application";
+        init-priority = <20>;
         status = "disabled";
     };
 

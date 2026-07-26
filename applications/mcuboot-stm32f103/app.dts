@@ -1,0 +1,14 @@
+/include/ "../../boards/fire-mini-stm32f103/board.dts"
+
+/* This image is the bootloader itself, so it always links at flash base. */
+&bootloader {
+    status = "disable";
+};
+
+&w25q64 {
+    status = "disabled";
+};
+
+&console0 {
+    status = "disabled";
+};
