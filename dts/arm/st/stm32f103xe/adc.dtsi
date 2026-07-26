@@ -1,0 +1,23 @@
+    adc1: adc@40012400 {
+        compatible = "yi,stm32f1-adc";
+        reg = <0x40012400>;
+        clock-bus = "apb2";
+        clock-enable-mask = <0x00000200>;
+        status = "disabled";
+    };
+
+    adc2: adc@40012800 {
+        compatible = "yi,stm32f1-adc";
+        reg = <0x40012800>;
+        clock-bus = "apb2";
+        clock-enable-mask = <0x00000400>;
+        status = "disabled";
+    };
+
+    adc3: adc@40013c00 {
+        compatible = "yi,stm32f1-adc";
+        reg = <0x40013c00>;
+        clock-bus = "apb2";
+        clock-enable-mask = <0x00008000>;
+        status = "disabled";
+    };

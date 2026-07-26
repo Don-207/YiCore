@@ -4,6 +4,14 @@ __pycache__/
 .venv/
 venv/
 
+# Firmware signing private keys
+keys/*.pem
+**/keys/*.pem
+third_party/mcuboot-2.4.0/*.pem
+third_party/mcuboot-2.4.0/*.b64
+third_party/mcuboot-2.4.0/**/*.pem
+third_party/mcuboot-2.4.0/**/*.b64
+
 # YiCore generated DeviceTree sources
 /generated/
 **/generated/

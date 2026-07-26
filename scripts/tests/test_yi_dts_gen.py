@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -7,7 +8,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from yi_dts_bindings import BindingError, load_bindings, validate_tree  # noqa: E402
-from yi_dts_gen import dependency_order, generate_sources  # noqa: E402
+from yi_dts_gen import dependency_order, generate, generate_sources  # noqa: E402
 from yi_dts_parser import parse_file, parse_text  # noqa: E402
 
 
@@ -43,7 +44,43 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("void TIM7_IRQHandler(void)", source)
         self.assertIn("yi_timer_irq_handler(&timers7);", source)
         self.assertIn(".direction = YI_GPIO_DIRECTION_OUTPUT", source)
+        self.assertLess(source.index("adc1_in0_pin_cfg"), source.index("adc1_cfg"))
+        self.assertIn(".instance = (ADC_TypeDef *)0x40012400U", source)
+        self.assertIn(".channel = 0U", source)
+        self.assertIn(".sample_cycles = 7U", source)
+        self.assertIn(".clock_divider = 6U", source)
+        self.assertIn('#define YI_DT_ADC1_NAME "adc1"', header)
+        self.assertLess(source.index("i2c1_cfg"), source.index("ads7830_cfg"))
+        self.assertIn(".address = 0x48U", source)
+        self.assertIn(".default_channel = 0U", source)
+        self.assertIn('#define YI_DT_ADS7830_NAME "ads7830"', header)
         self.assertIn('#define YI_DT_TIMERS7_NAME "timers7"', header)
+
+    def test_bootloader_switch_generates_slot_linker_and_vector(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dts = root / "app.dts"
+            dts.write_text('''/ {
+                bootloader: bootloader { status = "okay"; };
+            };''', encoding="utf-8")
+            output = root / "generated"
+            _, header_path = generate(dts, self.yicore / "dts" / "bindings", output)
+            header = header_path.read_text(encoding="utf-8")
+            scatter = (output / "yi_app.sct").read_text(encoding="utf-8")
+
+        self.assertIn("#define YI_BOOTLOADER_ENABLED 1", header)
+        self.assertIn("#define YI_APP_VECTOR_ADDRESS 0x0800C200U", header)
+        self.assertIn("LR_IROM1 0x0800C200 0x00019E00", scatter)
+
+    def test_bootloader_switch_rejects_unknown_status(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dts = root / "app.dts"
+            dts.write_text('''/ {
+                bootloader: bootloader { status = "enabled"; };
+            };''', encoding="utf-8")
+            with self.assertRaisesRegex(BindingError, "'okay' or 'disable'"):
+                generate(dts, self.yicore / "dts" / "bindings", root / "generated")
 
     def test_gpio_interrupt_generation(self):
         tree = parse_text('''/ {
@@ -101,6 +138,29 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertNotIn(".half_period_us", source)
         self.assertIn("YI_SOFT_SPI_DEFINE_LEVEL", source)
         self.assertIn('#define YI_DT_BUS_NAME "bus"', header)
+
+    def test_tsys01_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpiob"; };
+            scl: scl { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <6>;
+                clocks = <&clk>; drive = "open-drain"; pull = "up"; };
+            sda: sda { compatible = "yi,stm32-gpio"; port = "GPIOB"; pin = <7>;
+                clocks = <&clk>; drive = "open-drain"; pull = "up"; };
+            bus: bus { compatible = "yi,soft-i2c"; scl-gpio = <&scl>;
+                sda-gpio = <&sda>; clock-frequency = <100000>; };
+            tsys01: temp { compatible = "te,tsys01"; bus = <&bus>;
+                address = <0x77>; conversion-delay-ms = <10>;
+                reset-delay-ms = <3>; validate-prom-checksum; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "tsys01.dts")
+        self.assertLess(source.index("bus_cfg"), source.index("tsys01_cfg"))
+        self.assertIn('#include "yi_tsys01.h"', source)
+        self.assertIn(".address = 0x77U", source)
+        self.assertIn(".conversion_delay_ms = 10U", source)
+        self.assertIn(".reset_delay_ms = 3U", source)
+        self.assertIn(".validate_prom_checksum = 1", source)
+        self.assertIn("YI_TSYS01_DEFINE_LEVEL", source)
+        self.assertIn('#define YI_DT_TSYS01_NAME "tsys01"', header)
 
     def test_dependency_cycle_is_rejected(self):
         tree = parse_text('''/ {
@@ -262,6 +322,27 @@ class DtsGeneratorTests(unittest.TestCase):
         nodes = validate_tree(tree, self.bindings)
         with self.assertRaisesRegex(BindingError, "exactly one enabled console"):
             generate_sources(nodes, "consoles.dts")
+
+    def test_max31856_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>; clocks = <&clk>; };
+            cs: cs { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>;
+                clocks = <&clk>; direction = "output"; };
+            spi: spi { compatible = "yi,soft-spi"; sck-gpio = <&sck>;
+                miso-gpio = <&miso>; mosi-gpio = <&mosi>; max-frequency = <100000>; };
+            sensor: sensor { compatible = "maxim,max31856"; bus = <&spi>;
+                cs-gpio = <&cs>; spi-frequency = <100000>;
+                thermocouple-type = "k"; filter-hz = <50>;
+                average-samples = <4>; open-circuit-ms = <100>; };
+        };''')
+        source, header = generate_sources(validate_tree(tree, self.bindings), "max31856.dts")
+        self.assertIn(".thermocouple_type = YI_MAX31856_TC_K", source)
+        self.assertIn(".mode = 1U", source)
+        self.assertIn(".average_samples = 4U", source)
+        self.assertIn('#define YI_DT_SENSOR_NAME "sensor"', header)
 
     def test_invalid_rtt_mode_is_rejected(self):
         tree = parse_text('''/ {

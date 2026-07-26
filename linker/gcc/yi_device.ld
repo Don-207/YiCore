@@ -12,5 +12,9 @@ SECTIONS
     KEEP(*(.yi_device))
     __yi_device_end = .;
   }
+  .yi_build_info ALIGN(4) :
+  {
+    KEEP(*(.yi_build_info))
+  }
 }
 INSERT AFTER .rodata;

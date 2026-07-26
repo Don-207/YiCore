@@ -1,5 +1,10 @@
 /include/ "../../boards/fire-mini-stm32f103/board.dts"
 
+/* Set to "okay" when this application is linked and signed for MCUboot. */
+&bootloader {
+    status = "disable";
+};
+
 &timers7 {
     tick-frequency = <1000>;
     irq-priority = <10>;
@@ -34,5 +39,13 @@
 
 &usart1 {
     current-speed = <921600>;
+    status = "okay";
+};
+
+&adc1 {
+    status = "okay";
+};
+
+&ads7830 {
     status = "okay";
 };

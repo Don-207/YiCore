@@ -56,6 +56,7 @@
   */
 
 #include "stm32f1xx.h"
+#include "yi_generated.h"
 
 /**
   * @}
@@ -179,6 +180,8 @@ void SystemInit (void)
     SystemInit_ExtMemCtl(); 
   #endif /* DATA_IN_ExtSRAM */
 #endif 
+
+  SCB->VTOR = YI_APP_VECTOR_ADDRESS;
 
   /* Configure the Vector Table location -------------------------------------*/
 #if defined(USER_VECT_TAB_ADDRESS)

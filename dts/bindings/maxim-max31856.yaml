@@ -1,0 +1,35 @@
+compatible: "maxim,max31856"
+driver: "max31856"
+header: "yi_max31856.h"
+define: "YI_MAX31856_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  cs-gpio:
+    type: phandle
+    required: true
+  spi-frequency:
+    type: int
+    default: 5000000
+  thermocouple-type:
+    type: string
+    default: k
+  filter-hz:
+    type: int
+    default: 50
+  average-samples:
+    type: int
+    default: 1
+  open-circuit-ms:
+    type: int
+    default: 100
+  transfer-timeout-ms:
+    type: int
+    default: 10
+  init-level:
+    type: string
+    default: application
+  init-priority:
+    type: int
+    default: 20

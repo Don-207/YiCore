@@ -102,3 +102,14 @@
         init-priority = <20>;
         status = "available";
     };
+
+    max31856_cs_gpio: max31856-cs-gpio {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOB";
+        pin = <0>;
+        clocks = <&clk_gpiob>;
+        direction = "output";
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };

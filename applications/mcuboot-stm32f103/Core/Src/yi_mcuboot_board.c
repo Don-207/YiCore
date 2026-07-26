@@ -1,0 +1,120 @@
+#include "yi_mcuboot_board.h"
+
+#include <stdint.h>
+
+#include "bootutil/image.h"
+#include "flash_map_backend/flash_map_backend.h"
+#include "stm32f1xx_hal.h"
+#include "yi_generated.h"
+#include "yi_mcuboot_layout_stm32f103xe.h"
+
+static yi_partition_t boot_partition;
+static yi_partition_t primary_partition;
+static yi_partition_t secondary_partition;
+static struct flash_area flash_areas[3];
+
+static void yi_mcuboot_partition_set(yi_partition_t *partition,
+                                     const char *name,
+                                     yi_device_t *flash,
+                                     uint32_t offset,
+                                     uint32_t size)
+{
+    partition->name = name;
+    partition->flash = flash;
+    partition->offset = offset;
+    partition->size = size;
+}
+
+static void yi_mcuboot_area_set(struct flash_area *area,
+                                uint8_t id,
+                                const yi_partition_t *partition)
+{
+    area->fa_id = id;
+    area->fa_device_id = 0U;
+    area->pad16 = 0U;
+    area->fa_off = partition->offset;
+    area->fa_size = partition->size;
+    area->partition = partition;
+}
+
+int yi_mcuboot_board_flash_map_init(void)
+{
+    yi_device_t *internal_flash = YI_DT_GET(FLASH0);
+
+    if(!yi_device_is_ready(internal_flash))
+    {
+        return -1;
+    }
+
+    yi_mcuboot_partition_set(&boot_partition, "mcuboot", internal_flash,
+                             YI_MCUBOOT_BOOT_OFFSET,
+                             YI_MCUBOOT_BOOT_SIZE);
+    yi_mcuboot_partition_set(&primary_partition, "image-0", internal_flash,
+                             YI_MCUBOOT_PRIMARY_OFFSET,
+                             YI_MCUBOOT_SLOT_SIZE);
+    yi_mcuboot_partition_set(&secondary_partition, "image-1", internal_flash,
+                             YI_MCUBOOT_SECONDARY_OFFSET,
+                             YI_MCUBOOT_SLOT_SIZE);
+
+    yi_mcuboot_area_set(&flash_areas[0], FLASH_AREA_BOOTLOADER,
+                        &boot_partition);
+    yi_mcuboot_area_set(&flash_areas[1], FLASH_AREA_IMAGE_PRIMARY(0),
+                        &primary_partition);
+    yi_mcuboot_area_set(&flash_areas[2], FLASH_AREA_IMAGE_SECONDARY(0),
+                        &secondary_partition);
+
+    return yi_mcuboot_flash_map_set(flash_areas,
+                                    sizeof(flash_areas) /
+                                    sizeof(flash_areas[0]));
+}
+
+void yi_mcuboot_jump(const struct boot_rsp *response)
+{
+    uint32_t vector_address;
+    uint32_t initial_sp;
+    uint32_t reset_handler;
+    void (*application_reset)(void);
+
+    if((response == NULL) || (response->br_hdr == NULL) ||
+       (response->br_flash_dev_id != 0U) ||
+       (response->br_image_off != YI_MCUBOOT_PRIMARY_OFFSET) ||
+       (response->br_hdr->ih_hdr_size != YI_MCUBOOT_IMAGE_HEADER_SIZE))
+    {
+        return;
+    }
+
+    vector_address = YI_MCUBOOT_FLASH_BASE + response->br_image_off +
+                     response->br_hdr->ih_hdr_size;
+    initial_sp = *(const uint32_t *)vector_address;
+    reset_handler = *(const uint32_t *)(vector_address + sizeof(uint32_t));
+
+    if((initial_sp < SRAM_BASE) || (initial_sp > (SRAM_BASE + 0x0000C000U)) ||
+       ((initial_sp & 0x7U) != 0U) || ((reset_handler & 1U) == 0U) ||
+       ((reset_handler & ~1U) < vector_address) ||
+       ((reset_handler & ~1U) >= (YI_MCUBOOT_FLASH_BASE +
+                                  YI_MCUBOOT_PRIMARY_OFFSET +
+                                  YI_MCUBOOT_SLOT_SIZE)))
+    {
+        return;
+    }
+
+    __disable_irq();
+    SysTick->CTRL = 0U;
+    SysTick->LOAD = 0U;
+    SysTick->VAL = 0U;
+    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk | SCB_ICSR_PENDSVCLR_Msk;
+    NVIC->ICER[0] = 0xFFFFFFFFU;
+    NVIC->ICER[1] = 0xFFFFFFFFU;
+    NVIC->ICPR[0] = 0xFFFFFFFFU;
+    NVIC->ICPR[1] = 0xFFFFFFFFU;
+    (void)HAL_RCC_DeInit();
+    (void)HAL_DeInit();
+    SCB->VTOR = vector_address;
+    __DSB();
+    __ISB();
+
+    application_reset = (void (*)(void))reset_handler;
+    __set_MSP(initial_sp);
+    __enable_irq();
+    application_reset();
+}

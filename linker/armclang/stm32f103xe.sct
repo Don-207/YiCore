@@ -15,6 +15,9 @@ LR_IROM1 0x08000000 0x00040000  {    ; load region size_region
   yi_device +0 ALIGN 4 {
    * (.yi_device)
   }
+  yi_build_info +0 ALIGN 4 {
+   * (.yi_build_info)
+  }
   RW_IRAM1 0x20000000 0x0000C000  {  ; RW data
    .ANY (+RW +ZI)
   }
