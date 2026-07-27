@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../drivers/adc;../../../drivers/adc/ads7830;../../../drivers/adc/ads1298;../../../drivers/sensor/max31856;../../../drivers/sensor/tsys01;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/src/include</IncludePath>
+              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../drivers/adc;../../../drivers/adc/ads1298;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/src/include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -398,6 +398,16 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
+            </File>
+            <File>
+              <FileName>ecg_service.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/ecg_service.c</FilePath>
+            </File>
+            <File>
+              <FileName>ecg_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/ecg_protocol.c</FilePath>
             </File>
             <File>
               <FileName>gpio.c</FileName>
@@ -728,11 +738,6 @@
               <FilePath>..\..\..\soc\st\stm32\stm32f1\yi_flash_stm32f1.c</FilePath>
             </File>
             <File>
-              <FileName>yi_w25q64.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\flash\w25q64\yi_w25q64.c</FilePath>
-            </File>
-            <File>
               <FileName>yi_eeprom.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\drivers\eeprom\yi_eeprom.c</FilePath>
@@ -758,24 +763,9 @@
               <FilePath>..\..\..\drivers\adc\yi_adc.c</FilePath>
             </File>
             <File>
-              <FileName>yi_ads7830.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\adc\ads7830\yi_ads7830.c</FilePath>
-            </File>
-            <File>
               <FileName>yi_ads1298.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\drivers\adc\ads1298\yi_ads1298.c</FilePath>
-            </File>
-            <File>
-              <FileName>yi_max31856.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\sensor\max31856\yi_max31856.c</FilePath>
-            </File>
-            <File>
-              <FileName>yi_tsys01.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\drivers\sensor\tsys01\yi_tsys01.c</FilePath>
             </File>
             <File>
               <FileName>yi_soft_spi.c</FileName>

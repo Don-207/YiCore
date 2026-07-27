@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "yi_system.h"
+#include "stm32f1xx_hal.h"
 
 #define ADS1298_CMD_RREG    0x20U
 #define ADS1298_CMD_WREG    0x40U
@@ -21,6 +22,17 @@
 #define ADS1298_CONFIG3_REFBUF   (1U << 7)
 #define ADS1298_CONFIG3_VREF_4V  (1U << 5)
 #define ADS1298_CHANNEL_PD       (1U << 7)
+
+static void ads1298_power_delay_ms(uint32_t milliseconds)
+{
+    /*
+     * Device initialization runs before the application scheduler/tick is
+     * guaranteed available.  Use a conservative CPU busy wait for the AFE
+     * power/reset settling intervals; exact timing is not required here.
+     */
+    volatile uint32_t iterations = 18000U * milliseconds;
+    while(iterations-- != 0U) { }
+}
 
 /**
  * @brief Perform the ads1298 valid device operation.
@@ -36,15 +48,6 @@ static bool ads1298_valid_device(yi_device_t *dev)
  * @param cfg Device configuration.
  * @param clock_cycles Clock cycles value.
  */
-static void ads1298_clock_delay(const yi_ads1298_config_t *cfg,
-                                uint32_t clock_cycles)
-{
-    uint32_t delay_us = (uint32_t)(((uint64_t)clock_cycles * 1000000ULL +
-                                    cfg->master_clock_hz - 1U) /
-                                   cfg->master_clock_hz);
-    yi_system_delay_us(delay_us);
-}
-
 /**
  * @brief Transfer the module.
  * @param cfg Device configuration.
@@ -75,12 +78,18 @@ static int ads1298_transfer(const yi_ads1298_config_t *cfg,
  */
 static int ads1298_command_raw(const yi_ads1298_config_t *cfg, uint8_t command)
 {
-    int result = ads1298_transfer(cfg, &command, NULL, 1U);
-    if(result == 0)
-    {
-        ads1298_clock_delay(cfg, (command == YI_ADS1298_CMD_RESET) ? 18U : 4U);
-    }
-    return result;
+    return ads1298_transfer(cfg, &command, NULL, 1U);
+}
+
+static void ads1298_drdy_handler(yi_device_t *dev,
+                                 yi_gpio_callback_t *callback,
+                                 uint16_t pins)
+{
+    yi_ads1298_data_t *data = (yi_ads1298_data_t *)
+        ((uint8_t *)callback - offsetof(yi_ads1298_data_t, drdy_callback));
+    (void)dev;
+    (void)pins;
+    data->data_ready = true;
 }
 
 /**
@@ -96,7 +105,13 @@ int yi_ads1298_command(yi_device_t *dev, yi_ads1298_command_t command)
     if(!ads1298_valid_device(dev)) { return -1; }
     cfg = (const yi_ads1298_config_t *)dev->config;
     data = (yi_ads1298_data_t *)dev->data;
-    if(data->continuous && (command != YI_ADS1298_CMD_SDATAC)) { return -1; }
+    if(data->continuous &&
+       (command != YI_ADS1298_CMD_SDATAC) &&
+       (command != YI_ADS1298_CMD_START) &&
+       (command != YI_ADS1298_CMD_STOP))
+    {
+        return -1;
+    }
     if(ads1298_command_raw(cfg, (uint8_t)command) != 0)
     {
         data->error_count++;
@@ -260,14 +275,14 @@ int yi_ads1298_set_continuous(yi_device_t *dev, bool enable)
  */
 int yi_ads1298_data_ready(yi_device_t *dev, bool *ready)
 {
-    const yi_ads1298_config_t *cfg;
-    int level;
+    yi_ads1298_data_t *data;
+    uint32_t key;
     if(!ads1298_valid_device(dev) || (ready == NULL)) { return -1; }
-    cfg = (const yi_ads1298_config_t *)dev->config;
-    if(cfg->drdy_gpio == NULL) { return -1; }
-    level = yi_gpio_get(cfg->drdy_gpio);
-    if(level < 0) { return -1; }
-    *ready = level == YI_GPIO_LOW;
+    data = (yi_ads1298_data_t *)dev->data;
+    key = yi_system_irq_save();
+    *ready = data->data_ready;
+    data->data_ready = false;
+    yi_system_irq_restore(key);
     return 0;
 }
 
@@ -338,7 +353,6 @@ int yi_ads1298_init(const void *config)
     uint8_t channel_registers[YI_ADS1298_CHANNEL_COUNT];
     uint8_t lead_registers[5U];
     uint8_t auxiliary_registers[6U];
-    uint8_t verify[YI_ADS1298_CHANNEL_COUNT];
 
     if((cfg == NULL) || (cfg->self == NULL) || (cfg->self->data == NULL) ||
        !yi_device_is_ready(cfg->spi) ||
@@ -367,6 +381,15 @@ int yi_ads1298_init(const void *config)
 
     data = (yi_ads1298_data_t *)cfg->self->data;
     memset(data, 0, sizeof(*data));
+    if(cfg->drdy_gpio != NULL)
+    {
+        yi_gpio_callback_init(&data->drdy_callback, ads1298_drdy_handler,
+                              ((const yi_gpio_config_t *)cfg->drdy_gpio->config)->pin);
+        if(yi_gpio_add_callback(cfg->drdy_gpio, &data->drdy_callback) != 0)
+        {
+            return -1;
+        }
+    }
     if(cfg->enable_gpio != NULL)
     {
         yi_gpio_value_t inactive = cfg->enable_active_low ?
@@ -377,9 +400,11 @@ int yi_ads1298_init(const void *config)
         {
             return -1;
         }
-        ads1298_clock_delay(cfg, cfg->master_clock_hz / 100U);
+        ads1298_power_delay_ms(10U);
         if(yi_gpio_set(cfg->enable_gpio, active) != 0) { return -1; }
     }
+    if(ads1298_command_raw(cfg, YI_ADS1298_CMD_SDATAC) != 0) { return -1; }
+    ads1298_power_delay_ms(100U);
     if(cfg->start_gpio != NULL) { (void)yi_gpio_set(cfg->start_gpio, YI_GPIO_LOW); }
     if(cfg->reset_gpio != NULL)
     {
@@ -387,20 +412,15 @@ int yi_ads1298_init(const void *config)
         {
             return -1;
         }
-        ads1298_clock_delay(cfg, 2U);
+        for(volatile uint32_t delay = 0U; delay < 16U; delay++) { }
         if(yi_gpio_set(cfg->reset_gpio, YI_GPIO_HIGH) != 0) { return -1; }
-        ads1298_clock_delay(cfg, 18U);
+        for(volatile uint32_t delay = 0U; delay < 128U; delay++) { }
     }
     else if(ads1298_command_raw(cfg, YI_ADS1298_CMD_RESET) != 0) { return -1; }
+    ads1298_power_delay_ms(500U);
     /* Reset returns the part to RDATAC; register commands require SDATAC. */
     if(ads1298_command_raw(cfg, YI_ADS1298_CMD_SDATAC) != 0) { return -1; }
-
-    if(yi_ads1298_read_registers(cfg->self, YI_ADS1298_REG_ID,
-                                 &data->device_id, 1U) != 0)
-    {
-        return -1;
-    }
-    if((data->device_id & 0xE7U) != 0x82U) { return -1; }
+    ads1298_power_delay_ms(100U);
 
     global_registers[0] =
         (uint8_t)((cfg->high_resolution ? ADS1298_CONFIG1_HR : 0U) |
@@ -432,15 +452,9 @@ int yi_ads1298_init(const void *config)
     if((yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_CONFIG1,
                                    global_registers,
                                    sizeof(global_registers)) != 0) ||
-       (yi_ads1298_read_registers(cfg->self, YI_ADS1298_REG_CONFIG1,
-                                  verify, sizeof(global_registers)) != 0) ||
-       (memcmp(global_registers, verify, sizeof(global_registers)) != 0) ||
        (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_CH1SET,
                                    channel_registers,
                                    sizeof(channel_registers)) != 0) ||
-       (yi_ads1298_read_registers(cfg->self, YI_ADS1298_REG_CH1SET,
-                                  verify, sizeof(channel_registers)) != 0) ||
-       (memcmp(channel_registers, verify, sizeof(channel_registers)) != 0) ||
        (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_LOFF,
                                    &cfg->loff, 1U) != 0) ||
        (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_RLD_SENSP,

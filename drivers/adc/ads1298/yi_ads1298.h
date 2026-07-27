@@ -141,7 +141,10 @@ typedef struct
     uint8_t device_id; /**< Device id value. */
     bool initialized; /**< Initialized value. */
     bool continuous; /**< Continuous value. */
-    bool running; /**< Running value. */} yi_ads1298_data_t;
+    bool running; /**< Running value. */
+    volatile bool data_ready; /**< Latched DRDY falling edge. */
+    yi_gpio_callback_t drdy_callback; /**< DRDY GPIO callback. */
+} yi_ads1298_data_t;
 
 /**
  * @brief Initialize the module.

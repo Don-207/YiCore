@@ -14,11 +14,14 @@ import os
 import re
 import shutil
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
 from yi_build_info_gen import generate as generate_build_info
+from yi_dts_bindings import load_bindings
 from yi_dts_gen import generate
+from yi_dts_parser import parse_file
 
 
 _NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
@@ -40,6 +43,40 @@ _REQUIRED_BOARD_FIELDS = (
     "model",
     "description",
 )
+
+# Optional leaf drivers copied from the reference Keil project.  Platform,
+# bus and common subsystem sources intentionally remain in every project;
+# only standalone device drivers are selected from the resolved DeviceTree.
+_OPTIONAL_DRIVER_PATHS = {
+    "led": (
+        "drivers/led/yi_led.c",
+        "drivers/led",
+    ),
+    "w25q64": (
+        "drivers/flash/w25q64/yi_w25q64.c",
+        "drivers/flash/w25q64",
+    ),
+    "at24c02": (
+        "drivers/eeprom/at24c02/yi_at24c02.c",
+        "drivers/eeprom/at24c02",
+    ),
+    "ads7830": (
+        "drivers/adc/ads7830/yi_ads7830.c",
+        "drivers/adc/ads7830",
+    ),
+    "ads1298": (
+        "drivers/adc/ads1298/yi_ads1298.c",
+        "drivers/adc/ads1298",
+    ),
+    "max31856": (
+        "drivers/sensor/max31856/yi_max31856.c",
+        "drivers/sensor/max31856",
+    ),
+    "tsys01": (
+        "drivers/sensor/tsys01/yi_tsys01.c",
+        "drivers/sensor/tsys01",
+    ),
+}
 
 
 class ProjectCreationError(ValueError):
@@ -65,6 +102,90 @@ def _relative_path(source_dir: Path, target: Path, separator: str) -> str:
     if separator == "/":
         return Path(relative).as_posix()
     return relative.replace("/", "\\")
+
+
+def _normalize_project_path(value: str) -> str:
+    return value.replace("\\", "/").lower().rstrip("/")
+
+
+def _select_optional_drivers(
+    dts: Path, bindings_dir: Path
+) -> set[str]:
+    tree = parse_file(dts)
+    bindings = load_bindings(bindings_dir)
+    selected: set[str] = set()
+
+    # Keep every optional device type exposed by the selected board, including
+    # nodes currently marked disabled.  Applications commonly enable those
+    # nodes after project creation; pruning them here would make the next
+    # DeviceTree pre-build generate headers for sources absent from uvprojx.
+    for node in tree.root.walk():
+        compatible_value = node.properties.get("compatible")
+        if compatible_value is None:
+            continue
+        compatibles = (
+            compatible_value
+            if isinstance(compatible_value, list)
+            else [compatible_value]
+        )
+        binding = next(
+            (
+                bindings[compatible]
+                for compatible in compatibles
+                if isinstance(compatible, str) and compatible in bindings
+            ),
+            None,
+        )
+        if (
+            binding is not None
+            and binding.driver in _OPTIONAL_DRIVER_PATHS
+        ):
+            selected.add(binding.driver)
+    return selected
+
+
+def _prune_optional_drivers(
+    project_text: str, selected_drivers: set[str]
+) -> str:
+    """Remove unused leaf drivers and their private include directories."""
+
+    root = ET.fromstring(project_text)
+    unused = set(_OPTIONAL_DRIVER_PATHS) - selected_drivers
+    unused_sources = {
+        _normalize_project_path(_OPTIONAL_DRIVER_PATHS[name][0])
+        for name in unused
+    }
+    unused_includes = {
+        _normalize_project_path(_OPTIONAL_DRIVER_PATHS[name][1])
+        for name in unused
+    }
+
+    for files in root.findall(".//Files"):
+        for file_node in list(files.findall("File")):
+            path_node = file_node.find("FilePath")
+            if path_node is None or not path_node.text:
+                continue
+            normalized = _normalize_project_path(path_node.text)
+            if any(normalized.endswith(path) for path in unused_sources):
+                files.remove(file_node)
+
+    for include_node in root.findall(".//IncludePath"):
+        entries = (include_node.text or "").split(";")
+        kept = [
+            entry for entry in entries
+            if not any(
+                _normalize_project_path(entry).endswith(path)
+                for path in unused_includes
+            )
+        ]
+        include_node.text = ";".join(kept)
+
+    ET.indent(root, space="  ")
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n'
+        + ET.tostring(root, encoding="unicode")
+        + "\n"
+    )
 
 
 def _project_readme(
@@ -551,6 +672,13 @@ def create_project(
             "../../..", root_from_mdk_posix
         ).replace(
             "..\\..\\..", root_from_mdk_windows
+        )
+        selected_drivers = _select_optional_drivers(
+            destination / "app.dts",
+            repo_root / "dts" / "bindings",
+        )
+        project_text = _prune_optional_drivers(
+            project_text, selected_drivers
         )
         (mdk_dir / f"{name}.uvprojx").write_text(
             project_text, encoding="utf-8", newline="\n"

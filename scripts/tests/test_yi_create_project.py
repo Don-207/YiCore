@@ -18,6 +18,7 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 from yi_create_project import (  # noqa: E402
     ProjectCreationError,
+    _prune_optional_drivers,
     _relative_path,
     create_project,
     load_supported_boards,
@@ -151,6 +152,32 @@ class ProjectCreationTests(unittest.TestCase):
                 tree.node_by_label("ads1298").properties["status"],
                 "disabled",
             )
+            project_text = (
+                project / "MDK-ARM" / "ecg-app.uvprojx"
+            ).read_text(encoding="utf-8")
+            self.assertIn("yi_ads1298.c", project_text)
+            self.assertIn("yi_led.c", project_text)
+            self.assertNotIn("yi_ads7830.c", project_text)
+            self.assertNotIn("yi_max31856.c", project_text)
+
+    def test_optional_driver_pruning_keeps_only_selected_devices(self):
+        template = (
+            self.yicore
+            / "examples"
+            / "stm32f103-dts-demo"
+            / "MDK-ARM"
+            / "stm32f103-dts-demo.uvprojx"
+        ).read_text(encoding="utf-8")
+
+        project_text = _prune_optional_drivers(template, {"ads1298"})
+
+        self.assertIn("yi_ads1298.c", project_text)
+        self.assertIn("drivers\\adc\\ads1298", project_text)
+        self.assertNotIn("yi_ads7830.c", project_text)
+        self.assertNotIn("yi_max31856.c", project_text)
+        self.assertNotIn("yi_tsys01.c", project_text)
+        self.assertNotIn("drivers\\adc\\ads7830", project_text)
+        self.assertNotIn("drivers\\sensor\\max31856", project_text)
 
     def test_existing_destination_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:

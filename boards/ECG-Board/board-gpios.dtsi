@@ -2,7 +2,7 @@
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <15>;
-        clocks = <&clk_gpioc>;
+        clocks = <&clk_gpioa>;
         init-level = "pre-kernel";
         init-priority = <10>;
         status = "available";

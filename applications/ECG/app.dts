@@ -11,15 +11,18 @@
  * application-local .dtsi files above.
  */
 
+&console0 {
+    status = "okay";
+};
+
 &led0 {
     status = "okay";
 };
 
-&ads1298 {
+&usart1 {
     status = "okay";
 };
 
-&usart1 {
-    current-speed = <921600>;
+&ads1298 {
     status = "okay";
 };

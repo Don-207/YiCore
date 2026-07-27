@@ -13,5 +13,5 @@
         default-console;
         init-level = "application";
         init-priority = <0>;
-        status = "disabled";
+        status = "okay";
     };

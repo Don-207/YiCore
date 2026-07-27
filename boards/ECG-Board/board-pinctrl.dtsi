@@ -86,13 +86,3 @@
         clocks = <&clk_gpioa>;
         status = "available";
     };
-
-    adc1_in0_pin: adc1-in0-pin {
-        compatible = "yi,stm32-pinmux";
-        port = "GPIOA";
-        pin = <0>;
-        function = "adc";
-        mode = "analog";
-        clocks = <&clk_gpioa>;
-        status = "available";
-    };
