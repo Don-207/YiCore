@@ -35,6 +35,13 @@ extern const yi_build_info_t yi_build_info;
  */
 const yi_build_info_t *yi_build_info_get(void);
 
+/**
+ * @brief Get and validate build information at a fixed memory address.
+ * @param address Memory-mapped address of a yi_build_info_t record.
+ * @return Valid build information, or NULL when the record is invalid.
+ */
+const yi_build_info_t *yi_build_info_at(uintptr_t address);
+
 #ifdef __cplusplus
 }
 #endif

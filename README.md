@@ -77,9 +77,10 @@ Create another MCU application interactively:
 .\create-project
 ```
 
-The creator asks for the project name, then lists supported vendors, then lists
-the selected vendor's supported chip series/models. Supported targets are
-recorded in `scripts/yi_supported_targets.json`.
+The creator asks for the project name, then lists supported vendors, MCU
+series/models, and compatible boards. MCU targets are recorded in
+`scripts/yi_supported_targets.json`. Boards are discovered automatically from
+`boards/*/board.json`.
 
 You can also pass the project name directly:
 
@@ -95,11 +96,15 @@ destination non-interactively with:
   --vendor st `
   --series stm32f1 `
   --model stm32f103xe `
+  --board fire-mini-stm32f103 `
   --output-root applications
 ```
 
-Use `--board` only when you need to override the board selected by the target
-registry.
+One MCU may have multiple boards. Give each physical board its own
+`boards/<board-id>/board.json` manifest and DTS files; no central board
+registry needs to be edited. When more than one board supports the selected
+MCU, choose one interactively or pass `--board`; the creator rejects a board
+that does not match the selected MCU.
 
 `create-project.cmd` is a thin launcher for `scripts/yi_create_project.py`. If
 the repository root is on `PATH`, it can also be called as
@@ -108,6 +113,28 @@ the repository root is on `PATH`, it can also be called as
 The creator refuses to overwrite an existing project directory. It gives each
 application a private `generated/` directory while sharing YiCore, SoC, CMSIS,
 and HAL sources from the repository root.
+
+Create a new board interactively:
+
+```powershell
+.\create-board
+```
+
+The creator asks for a new board id, MCU target, and compatible reference
+board. It copies the reference board and writes a board-local `board.json`
+manifest. A non-interactive example is:
+
+```powershell
+.\create-board product-a-stm32f103 `
+  --model stm32f103xe `
+  --from-board fire-mini-stm32f103 `
+  --display-name "Product A STM32F103" `
+  --description "Product A controller board"
+```
+
+After creation, edit the new directory under `boards/` to match the physical
+PCB, then pass its id to `create-project --board`. The creator refuses to
+overwrite an existing board.
 
 ## Documentation
 

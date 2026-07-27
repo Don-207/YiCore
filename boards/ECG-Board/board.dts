@@ -1,0 +1,35 @@
+/ {
+    /include/ "../../dts/arm/st/stm32f103xe/soc.dtsi"
+
+    bootloader: bootloader {
+        status = "disable";
+    };
+
+    /include/ "board-clocks.dtsi"
+    /include/ "board-gpios.dtsi"
+    /include/ "board-pinctrl.dtsi"
+    /include/ "board-software-buses.dtsi"
+    /include/ "board-devices.dtsi"
+    /include/ "board-console.dtsi"
+};
+
+&usart1 {
+    current-speed = <115200>;
+    tx-pin = <&usart1_tx_pin>;
+    rx-pin = <&usart1_rx_pin>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "available";
+};
+
+&spi2 {
+    sck-pin = <&spi2_sck_pin>;
+    miso-pin = <&spi2_miso_pin>;
+    mosi-pin = <&spi2_mosi_pin>;
+    max-frequency = <18000000>;
+    irq-priority = <10>;
+    init-level = "post-kernel";
+    init-priority = <20>;
+    status = "available";
+};

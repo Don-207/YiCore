@@ -1,0 +1,14 @@
+/*
+ * Application-local GPIO overrides.
+ *
+ * Put project-specific LEDs, keys, chip selects and software-bus GPIO
+ * assignments here. When changing port, update the clock phandle as well.
+ *
+ * Example:
+ *
+ * &soft_i2c0_scl_gpio {
+ *     port = "GPIOB";
+ *     pin = <8>;
+ *     clocks = <&clk_gpiob>;
+ * };
+ */

@@ -336,11 +336,14 @@ int yi_ads1298_init(const void *config)
     yi_ads1298_data_t *data;
     uint8_t global_registers[3U];
     uint8_t channel_registers[YI_ADS1298_CHANNEL_COUNT];
+    uint8_t lead_registers[5U];
+    uint8_t auxiliary_registers[6U];
     uint8_t verify[YI_ADS1298_CHANNEL_COUNT];
 
     if((cfg == NULL) || (cfg->self == NULL) || (cfg->self->data == NULL) ||
        !yi_device_is_ready(cfg->spi) ||
        !yi_device_is_ready(cfg->spi_config.cs_gpio) ||
+       ((cfg->enable_gpio != NULL) && !yi_device_is_ready(cfg->enable_gpio)) ||
        ((cfg->reset_gpio != NULL) && !yi_device_is_ready(cfg->reset_gpio)) ||
        ((cfg->start_gpio != NULL) && !yi_device_is_ready(cfg->start_gpio)) ||
        ((cfg->drdy_gpio != NULL) && !yi_device_is_ready(cfg->drdy_gpio)) ||
@@ -364,6 +367,19 @@ int yi_ads1298_init(const void *config)
 
     data = (yi_ads1298_data_t *)cfg->self->data;
     memset(data, 0, sizeof(*data));
+    if(cfg->enable_gpio != NULL)
+    {
+        yi_gpio_value_t inactive = cfg->enable_active_low ?
+                                   YI_GPIO_HIGH : YI_GPIO_LOW;
+        yi_gpio_value_t active = cfg->enable_active_low ?
+                                 YI_GPIO_LOW : YI_GPIO_HIGH;
+        if(yi_gpio_set(cfg->enable_gpio, inactive) != 0)
+        {
+            return -1;
+        }
+        ads1298_clock_delay(cfg, cfg->master_clock_hz / 100U);
+        if(yi_gpio_set(cfg->enable_gpio, active) != 0) { return -1; }
+    }
     if(cfg->start_gpio != NULL) { (void)yi_gpio_set(cfg->start_gpio, YI_GPIO_LOW); }
     if(cfg->reset_gpio != NULL)
     {
@@ -389,11 +405,12 @@ int yi_ads1298_init(const void *config)
     global_registers[0] =
         (uint8_t)((cfg->high_resolution ? ADS1298_CONFIG1_HR : 0U) |
                   cfg->data_rate);
-    global_registers[1] = 0x40U;
+    global_registers[1] = cfg->config2;
     global_registers[2] =
         (uint8_t)(ADS1298_CONFIG3_RESERVED |
                   (cfg->internal_reference ? ADS1298_CONFIG3_REFBUF : 0U) |
-                  (cfg->reference_4v ? ADS1298_CONFIG3_VREF_4V : 0U));
+                  (cfg->reference_4v ? ADS1298_CONFIG3_VREF_4V : 0U) |
+                  (cfg->config3_extra & 0x1FU));
     for(uint8_t channel = 0U; channel < YI_ADS1298_CHANNEL_COUNT; channel++)
     {
         channel_registers[channel] =
@@ -401,6 +418,17 @@ int yi_ads1298_init(const void *config)
                       ((uint8_t)cfg->channels[channel].gain << 4U) |
                       cfg->channels[channel].mux);
     }
+    lead_registers[0] = cfg->rld_sensp;
+    lead_registers[1] = cfg->rld_sensn;
+    lead_registers[2] = cfg->loff_sensp;
+    lead_registers[3] = cfg->loff_sensn;
+    lead_registers[4] = cfg->loff_flip;
+    auxiliary_registers[0] = cfg->gpio;
+    auxiliary_registers[1] = cfg->pace;
+    auxiliary_registers[2] = cfg->resp;
+    auxiliary_registers[3] = cfg->config4;
+    auxiliary_registers[4] = cfg->wct1;
+    auxiliary_registers[5] = cfg->wct2;
     if((yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_CONFIG1,
                                    global_registers,
                                    sizeof(global_registers)) != 0) ||
@@ -412,7 +440,15 @@ int yi_ads1298_init(const void *config)
                                    sizeof(channel_registers)) != 0) ||
        (yi_ads1298_read_registers(cfg->self, YI_ADS1298_REG_CH1SET,
                                   verify, sizeof(channel_registers)) != 0) ||
-       (memcmp(channel_registers, verify, sizeof(channel_registers)) != 0))
+       (memcmp(channel_registers, verify, sizeof(channel_registers)) != 0) ||
+       (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_LOFF,
+                                   &cfg->loff, 1U) != 0) ||
+       (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_RLD_SENSP,
+                                   lead_registers,
+                                   sizeof(lead_registers)) != 0) ||
+       (yi_ads1298_write_registers(cfg->self, YI_ADS1298_REG_GPIO,
+                                   auxiliary_registers,
+                                   sizeof(auxiliary_registers)) != 0))
     {
         return -1;
     }

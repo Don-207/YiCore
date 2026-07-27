@@ -41,7 +41,7 @@ class DtsParserTests(unittest.TestCase):
              "i2c1_scl_pin", "i2c1_sda_pin",
              "usart1_tx_pin", "usart1_rx_pin", "rtt0", "console0"},
         )
-        self.assertEqual(tree.node_by_label("led0_gpio").properties["pin"], DtsCells((2,)))
+        self.assertEqual(tree.node_by_label("led0_gpio").properties["pin"], DtsCells((15,)))
         self.assertEqual(
             tree.node_by_label("led0").properties["gpios"],
             DtsCells((DtsReference("led0_gpio"),)),

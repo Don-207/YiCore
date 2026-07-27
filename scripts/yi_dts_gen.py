@@ -857,6 +857,108 @@ YI_ADS1258_DEFINE_LEVEL({label}, {_level(item)}, {item.properties['init-priority
     {label}_cfg, {label}_data);"""
 
 
+def _generate_ads1298(item: ValidatedNode) -> str:
+    label = item.node.label
+    frequency = item.properties["spi-frequency"]
+    master_clock = item.properties["master-clock-hz"]
+    timeout = item.properties["transfer-timeout-ms"]
+    data_rate = item.properties["data-rate"]
+    power_mask = item.properties["channel-power-down-mask"]
+    channel_gains = [item.properties[f"channel{i}-gain"] for i in range(8)]
+    channel_muxes = [item.properties[f"channel{i}-mux"] for i in range(8)]
+    gains = {
+        1: "YI_ADS1298_GAIN_1", 2: "YI_ADS1298_GAIN_2",
+        3: "YI_ADS1298_GAIN_3", 4: "YI_ADS1298_GAIN_4",
+        6: "YI_ADS1298_GAIN_6", 8: "YI_ADS1298_GAIN_8",
+        12: "YI_ADS1298_GAIN_12",
+    }
+    muxes = {
+        "normal": "YI_ADS1298_MUX_NORMAL",
+        "input-short": "YI_ADS1298_MUX_INPUT_SHORT",
+        "rld-measure": "YI_ADS1298_MUX_RLD_MEASURE",
+        "mvdd": "YI_ADS1298_MUX_MVDD",
+        "temperature": "YI_ADS1298_MUX_TEMPERATURE",
+        "test-signal": "YI_ADS1298_MUX_TEST_SIGNAL",
+        "rld-drp": "YI_ADS1298_MUX_RLD_DRP",
+        "rld-drn": "YI_ADS1298_MUX_RLD_DRN",
+    }
+    if (frequency <= 0 or master_clock <= 0 or
+            frequency > master_clock * 2 or timeout <= 0):
+        raise BindingError(
+            f"{item.node.path}: invalid SPI, master clock or timeout setting"
+        )
+    if not 0 <= data_rate <= 6 or not 0 <= power_mask <= 0xff:
+        raise BindingError(
+            f"{item.node.path}: invalid data rate or power-down mask"
+        )
+    if (any(gain not in gains for gain in channel_gains) or
+            any(mux not in muxes for mux in channel_muxes)):
+        raise BindingError(
+            f"{item.node.path}: invalid channel gain or mux"
+        )
+    register_names = (
+        "config2", "config3-extra", "loff", "rld-sensp", "rld-sensn",
+        "loff-sensp", "loff-sensn", "loff-flip", "gpio-register",
+        "pace", "resp", "config4", "wct1", "wct2",
+    )
+    if any(not 0 <= item.properties[name] <= 0xff
+           for name in register_names):
+        raise BindingError(
+            f"{item.node.path}: register values must be in range 0..255"
+        )
+    def optional(name: str) -> str:
+        reference = item.properties.get(name)
+        return f"&{reference.label}" if reference else "NULL"
+    channels = ",\n        ".join(
+        f"{{ .power_down = {'true' if power_mask & (1 << channel) else 'false'}, "
+        f".gain = {gains[channel_gains[channel]]}, "
+        f".mux = {muxes[channel_muxes[channel]]} }}"
+        for channel in range(8)
+    )
+    high_resolution = str(item.properties["high-resolution"]).lower()
+    internal_reference = str(item.properties["internal-reference"]).lower()
+    reference_4v = str(item.properties["reference-4v"]).lower()
+    enable_active_low = str(item.properties["enable-active-low"]).lower()
+    return f"""static yi_device_t {label};
+static const yi_ads1298_config_t {label}_cfg = {{
+    .self = &{label}, .spi = &{item.properties['bus'].label},
+    .spi_config = {{ .frequency = {frequency}U,
+        .cs_gpio = &{item.properties['cs-gpio'].label},
+        .mode = 1U, .cs_active_high = false }},
+    .enable_gpio = {optional('enable-gpio')},
+    .enable_active_low = {enable_active_low},
+    .reset_gpio = {optional('reset-gpio')},
+    .start_gpio = {optional('start-gpio')},
+    .drdy_gpio = {optional('drdy-gpio')},
+    .master_clock_hz = {master_clock}U,
+    .transfer_timeout_ms = {timeout}U,
+    .data_rate = YI_ADS1298_DATA_RATE_{data_rate},
+    .high_resolution = {high_resolution},
+    .internal_reference = {internal_reference},
+    .reference_4v = {reference_4v},
+    .config2 = 0x{item.properties['config2']:02X}U,
+    .config3_extra = 0x{item.properties['config3-extra']:02X}U,
+    .loff = 0x{item.properties['loff']:02X}U,
+    .rld_sensp = 0x{item.properties['rld-sensp']:02X}U,
+    .rld_sensn = 0x{item.properties['rld-sensn']:02X}U,
+    .loff_sensp = 0x{item.properties['loff-sensp']:02X}U,
+    .loff_sensn = 0x{item.properties['loff-sensn']:02X}U,
+    .loff_flip = 0x{item.properties['loff-flip']:02X}U,
+    .gpio = 0x{item.properties['gpio-register']:02X}U,
+    .pace = 0x{item.properties['pace']:02X}U,
+    .resp = 0x{item.properties['resp']:02X}U,
+    .config4 = 0x{item.properties['config4']:02X}U,
+    .wct1 = 0x{item.properties['wct1']:02X}U,
+    .wct2 = 0x{item.properties['wct2']:02X}U,
+    .channels = {{
+        {channels}
+    }}
+}};
+static yi_ads1298_data_t {label}_data;
+YI_ADS1298_DEFINE_LEVEL({label}, {_level(item)},
+    {item.properties['init-priority']}, {label}_cfg, {label}_data);"""
+
+
 def _generate_ads8688(item: ValidatedNode) -> str:
     label = item.node.label
     frequency = item.properties["spi-frequency"]
@@ -1120,6 +1222,7 @@ _GENERATORS = {
     "ads7830": _generate_ads7830,
     "adc081c02": _generate_adc081c02,
     "ads1258": _generate_ads1258,
+    "ads1298": _generate_ads1298,
     "ads8688": _generate_ads8688,
     "mcp4725": _generate_mcp4725,
     "mcp4728": _generate_mcp4728,

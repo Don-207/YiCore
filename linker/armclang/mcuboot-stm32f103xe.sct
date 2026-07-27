@@ -1,6 +1,7 @@
 ; STM32F103xE MCUboot region: 48 KiB at the beginning of internal flash.
 LR_IROM1 0x08000000 0x0000C000 {
-  ER_IROM1 0x08000000 0x0000C000 {
+  ; Reserve the last 2 KiB erase page for fixed-address build metadata.
+  ER_IROM1 0x08000000 0x0000B800 {
     *.o (RESET, +First)
     *(InRoot$$Sections)
     .ANY (+RO)
@@ -11,7 +12,7 @@ LR_IROM1 0x08000000 0x0000C000 {
     * (.yi_device)
   }
 
-  yi_build_info +0 ALIGN 4 {
+  yi_build_info 0x0800B800 FIXED 0x00000800 {
     * (.yi_build_info)
   }
 
