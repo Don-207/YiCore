@@ -48,10 +48,10 @@ Generate a project-owned key outside version control, then export only its
 public half into the bootloader sources:
 
 ```powershell
-python third_party\mcuboot-2.4.0\scripts\imgtool.py keygen `
+python third_party\mcuboot\scripts\imgtool.py keygen `
   --key keys\root-ec-p256.pem --type ecdsa-p256
 
-python third_party\mcuboot-2.4.0\scripts\imgtool.py getpub `
+python third_party\mcuboot\scripts\imgtool.py getpub `
   --key keys\root-ec-p256.pem `
   --output applications\mcuboot-stm32f103\Core\Src\mcuboot_public_key.c
 ```
@@ -62,7 +62,7 @@ the bootloader target, but never add the private PEM file to the repository.
 Sign the application using the same private key:
 
 ```powershell
-python third_party\mcuboot-2.4.0\scripts\imgtool.py sign `
+python third_party\mcuboot\scripts\imgtool.py sign `
   --key keys\root-ec-p256.pem `
   --header-size 0x200 `
   --align 2 `

@@ -1,0 +1,8 @@
+[submodule "third_party/lwrb"]
+	path = third_party/lwrb
+	url = https://github.com/MaJerle/lwrb.git
+	shallow = true
+[submodule "third_party/mcuboot"]
+	path = third_party/mcuboot
+	url = https://github.com/mcu-tools/mcuboot.git
+	shallow = true

@@ -1,7 +1,7 @@
 # MCUboot integration
 
 This directory is YiCore's porting layer for the unmodified MCUboot sources in
-`third_party/mcuboot-2.4.0`. It currently provides the flash-map API required by
+`third_party/mcuboot`. It currently provides the flash-map API required by
 MCUboot for a single updatable image.
 
 A bootloader application must initialize YiCore devices, declare its board
