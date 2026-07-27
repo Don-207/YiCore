@@ -130,36 +130,6 @@ class ProjectCreationTests(unittest.TestCase):
             ]
             self.assertEqual(missing_includes, [])
 
-    def test_ecg_board_project_has_no_reference_board_overlays(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            project = create_project(
-                self.yicore,
-                "ecg-app",
-                board="ECG-Board",
-                output_root=Path(temporary),
-                target=resolve_target(
-                    load_supported_targets(self.yicore),
-                    model="stm32f103xe",
-                ),
-            )
-
-            app_dts = (project / "app.dts").read_text(encoding="utf-8")
-            tree = parse_file(project / "app.dts")
-
-            self.assertIn("boards/ECG-Board/board.dts", app_dts)
-            self.assertNotIn("&w25q64", app_dts)
-            self.assertEqual(
-                tree.node_by_label("ads1298").properties["status"],
-                "disabled",
-            )
-            project_text = (
-                project / "MDK-ARM" / "ecg-app.uvprojx"
-            ).read_text(encoding="utf-8")
-            self.assertIn("yi_ads1298.c", project_text)
-            self.assertIn("yi_led.c", project_text)
-            self.assertNotIn("yi_ads7830.c", project_text)
-            self.assertNotIn("yi_max31856.c", project_text)
-
     def test_optional_driver_pruning_keeps_only_selected_devices(self):
         template = (
             self.yicore

@@ -53,32 +53,6 @@ class DtsBindingTests(unittest.TestCase):
         self.assertEqual(nodes[19].properties["backend"], DtsReference("rtt0"))
         self.assertTrue(nodes[19].properties["default-console"])
 
-    def test_ecg_board_ads1298_can_be_enabled(self):
-        tree = parse_file(
-            self.yicore / "boards" / "ECG-Board" / "board.dts"
-        )
-        ads1298 = tree.node_by_label("ads1298")
-        ads1298.properties["status"] = "okay"
-
-        nodes = validate_tree(tree, self.bindings)
-        adc = next(
-            item for item in nodes if item.node.label == "ads1298"
-        )
-
-        self.assertEqual(adc.binding.driver, "ads1298")
-        self.assertEqual(adc.properties["bus"], DtsReference("spi2"))
-        self.assertEqual(
-            adc.properties["cs-gpio"], DtsReference("ads1298_cs_gpio")
-        )
-        self.assertEqual(
-            adc.properties["drdy-gpio"],
-            DtsReference("ads1298_drdy_gpio"),
-        )
-        self.assertEqual(adc.properties["master-clock-hz"], 2048000)
-        self.assertEqual(adc.properties["spi-frequency"], 2250000)
-        self.assertEqual(adc.properties["channel0-gain"], 1)
-        self.assertEqual(adc.properties["channel-power-down-mask"], 0xF8)
-
     def test_missing_required_property(self):
         tree = parse_text('''/ {
             p: p { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };

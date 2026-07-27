@@ -20,6 +20,9 @@ third_party/mcuboot-2.4.0/**/*.b64
 *.jlink
 *.log
 
+# Product host tools live in their own repositories.
+/Tools/
+
 # Keil build output and per-user settings
 **/MDK-ARM/*/
 **/MDK-ARM/*.log

@@ -32,6 +32,7 @@ scripts/      DeviceTree generator and unit tests
 linker/       GCC and Arm linker fragments
 docs/         Architecture and DeviceTree documentation
 examples/     Buildable board/toolchain examples
+applications/ Framework-owned utility images such as the reference bootloader
 ```
 
 The dependency direction is:
@@ -39,6 +40,26 @@ The dependency direction is:
 ```text
 application -> core/subsys/drivers -> soc backend -> vendor library -> hardware
 ```
+
+## Product repositories
+
+Independent products should live in separate repositories and pin YiCore as a
+Git submodule. Product firmware, PCB descriptions, host tools, captures, and
+release binaries stay with the product; reusable drivers and framework changes
+stay in YiCore.
+
+```text
+product/
+  applications/<product>/
+  boards/<product-board>/
+  Tools/<product-tool>/
+  YiCore/                    Git submodule pinned to a tested commit
+```
+
+This prevents a YiCore update from changing released products automatically.
+Each product advances its `YiCore` submodule pointer only after its own build
+and hardware validation. YiECG is the first product split this way:
+`https://github.com/Don-207/YiECG`.
 
 Files below `vendor/` retain their upstream licenses and should not be edited
 locally. Platform-specific HAL types and calls belong below `soc/`, while
@@ -88,8 +109,11 @@ You can also pass the project name directly:
 .\create-project product-bootloader
 ```
 
-The default destination is `applications/<project-name>/`. Select a target and
-destination non-interactively with:
+The default destination is `applications/<project-name>/`, which is convenient
+for examples and framework development. For a standalone product repository,
+run the creator from its `YiCore` submodule and pass the product's application
+parent as `--output-root`. Select a target and destination non-interactively
+with:
 
 ```powershell
 .\create-project controller-app `
