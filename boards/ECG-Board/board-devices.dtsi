@@ -1,0 +1,60 @@
+    at24c02: eeprom-at24c02 {
+        compatible = "atmel,24c02";
+        bus = <&soft_i2c0>;
+        address = <0x50>;
+        transfer-timeout-ms = <20>;
+        write-timeout-ms = <20>;
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };
+
+    ads1298: adc-ads1298 {
+        compatible = "ti,ads1298";
+        bus = <&spi2>;
+        cs-gpio = <&ads1298_cs_gpio>;
+        enable-gpio = <&ads1298_enable_gpio>;
+        enable-active-low;
+        drdy-gpio = <&ads1298_drdy_gpio>;
+        spi-frequency = <2250000>;
+        master-clock-hz = <2048000>;
+        transfer-timeout-ms = <20>;
+        data-rate = <6>;
+        high-resolution;
+        internal-reference;
+        config2 = <0x40>;
+        config3-extra = <0x0C>;
+        loff = <0x03>;
+        rld-sensp = <0x03>;
+        rld-sensn = <0x03>;
+        loff-sensp = <0x07>;
+        loff-sensn = <0x03>;
+        loff-flip = <0x00>;
+        gpio-register = <0x00>;
+        pace = <0x00>;
+        resp = <0x00>;
+        config4 = <0x02>;
+        wct1 = <0x00>;
+        wct2 = <0x00>;
+        channel-power-down-mask = <0xF8>;
+        channel0-gain = <1>;
+        channel1-gain = <1>;
+        channel2-gain = <1>;
+        channel3-mux = "input-short";
+        channel4-mux = "input-short";
+        channel5-mux = "input-short";
+        channel6-mux = "input-short";
+        channel7-mux = "input-short";
+        init-level = "post-kernel";
+        init-priority = <30>;
+        status = "disabled";
+    };
+
+    led0: led0 {
+        compatible = "yi,gpio-led";
+        gpios = <&led0_gpio>;
+        active-low;
+        init-level = "application";
+        init-priority = <10>;
+        status = "disabled";
+    };

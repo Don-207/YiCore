@@ -19,6 +19,10 @@
 #define YI_MCUBOOT_SLOT_SIZE         0x0001A000U
 #define YI_MCUBOOT_IMAGE_HEADER_SIZE 0x00000200U
 #define YI_MCUBOOT_ERASE_SIZE        0x00000800U
+#define YI_MCUBOOT_BUILD_INFO_OFFSET \
+    (YI_MCUBOOT_BOOT_OFFSET + YI_MCUBOOT_BOOT_SIZE - YI_MCUBOOT_ERASE_SIZE)
+#define YI_MCUBOOT_BUILD_INFO_ADDRESS \
+    (YI_MCUBOOT_FLASH_BASE + YI_MCUBOOT_BUILD_INFO_OFFSET)
 
 #if (YI_MCUBOOT_BOOT_SIZE + (2U * YI_MCUBOOT_SLOT_SIZE)) != YI_MCUBOOT_FLASH_SIZE
 #error "MCUboot partitions do not fill STM32F103xE flash"
@@ -27,6 +31,10 @@
 #if ((YI_MCUBOOT_BOOT_SIZE % YI_MCUBOOT_ERASE_SIZE) != 0U) || \
     ((YI_MCUBOOT_SLOT_SIZE % YI_MCUBOOT_ERASE_SIZE) != 0U)
 #error "MCUboot partitions must be erase-page aligned"
+#endif
+
+#if YI_MCUBOOT_BUILD_INFO_OFFSET != 0x0000B800U
+#error "MCUboot build information address changed unexpectedly"
 #endif
 
 #endif

@@ -426,6 +426,39 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn(".mode = 1U", source)
         self.assertIn('#define YI_DT_ADC_NAME "adc"', header)
 
+    def test_ads1298_generation(self):
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+            sck: sck { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <0>; clocks = <&clk>; };
+            miso: miso { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <1>; clocks = <&clk>; };
+            mosi: mosi { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <2>; clocks = <&clk>; };
+            cs: cs { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <3>;
+                clocks = <&clk>; direction = "output"; };
+            reset: reset { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <4>;
+                clocks = <&clk>; direction = "output"; };
+            drdy: drdy { compatible = "yi,stm32-gpio"; port = "GPIOA"; pin = <5>;
+                clocks = <&clk>; direction = "input"; };
+            spi: spi { compatible = "yi,soft-spi"; sck-gpio = <&sck>;
+                miso-gpio = <&miso>; mosi-gpio = <&mosi>; max-frequency = <500000>; };
+            adc: adc { compatible = "ti,ads1298"; bus = <&spi>; cs-gpio = <&cs>;
+                reset-gpio = <&reset>; drdy-gpio = <&drdy>;
+                spi-frequency = <500000>; master-clock-hz = <2048000>;
+                data-rate = <6>; high-resolution; internal-reference;
+                channel-power-down-mask = <0x80>; channel0-gain = <12>;
+                channel7-mux = "input-short"; };
+        };''')
+        source, header = generate_sources(
+            validate_tree(tree, self.bindings), "ads1298.dts"
+        )
+        self.assertIn(".mode = 1U", source)
+        self.assertIn(".master_clock_hz = 2048000U", source)
+        self.assertIn(".data_rate = YI_ADS1298_DATA_RATE_6", source)
+        self.assertIn(".gain = YI_ADS1298_GAIN_12", source)
+        self.assertIn(".power_down = true", source)
+        self.assertIn(".mux = YI_ADS1298_MUX_INPUT_SHORT", source)
+        self.assertIn(".drdy_gpio = &drdy", source)
+        self.assertIn('#define YI_DT_ADC_NAME "adc"', header)
+
     def test_ads8688_generation(self):
         tree = parse_text('''/ {
             clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };

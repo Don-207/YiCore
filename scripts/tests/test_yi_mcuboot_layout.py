@@ -50,6 +50,12 @@ class McubootLayoutTests(unittest.TestCase):
 
         self.assertIn(f"0x{values['YI_MCUBOOT_FLASH_BASE']:08X} 0x{values['YI_MCUBOOT_BOOT_SIZE']:08X}", boot_sct)
         self.assertIn(f"0x{app_address:08X} 0x{app_size:08X}", app_sct)
+        build_info_address = (values["YI_MCUBOOT_FLASH_BASE"] +
+                              values["YI_MCUBOOT_BOOT_OFFSET"] +
+                              values["YI_MCUBOOT_BOOT_SIZE"] -
+                              values["YI_MCUBOOT_ERASE_SIZE"])
+        self.assertIn(f"yi_build_info 0x{build_info_address:08X} FIXED",
+                      boot_sct)
 
 
 if __name__ == "__main__":

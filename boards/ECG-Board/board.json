@@ -1,0 +1,8 @@
+{
+  "id": "ECG-Board",
+  "name": "Ecg Board",
+  "vendor": "st",
+  "series": "stm32f1",
+  "model": "stm32f103xe",
+  "description": "Ecg Board based on stm32f103xe"
+}
