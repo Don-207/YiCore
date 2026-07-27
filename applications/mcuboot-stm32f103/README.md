@@ -8,6 +8,15 @@ This bootloader uses only the STM32F103xE 256 KiB internal flash:
 | Primary slot | `0x0C000` | `0x0800C000` | 104 KiB |
 | Secondary slot | `0x26000` | `0x08026000` | 104 KiB |
 
+The final MCUboot erase page starts at `0x0800B800` and is reserved for the
+fixed-address `.yi_build_info` record. Application code can read and validate
+the bootloader metadata with:
+
+```c
+const yi_build_info_t *bootloader_info =
+    yi_build_info_at(YI_MCUBOOT_BUILD_INFO_ADDRESS);
+```
+
 The application is linked at `0x0800C200`, leaving a 512-byte MCUboot image
 header at the beginning of the primary slot. Both slots contain MCUboot image
 trailers and therefore the usable application payload is smaller than 104 KiB.

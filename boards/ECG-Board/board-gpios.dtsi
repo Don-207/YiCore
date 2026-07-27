@@ -2,16 +2,6 @@
         compatible = "yi,stm32-gpio";
         port = "GPIOA";
         pin = <15>;
-        clocks = <&clk_gpioa>;
-        init-level = "pre-kernel";
-        init-priority = <10>;
-        status = "available";
-    };
-
-    led1_gpio: led1-gpio {
-        compatible = "yi,stm32-gpio";
-        port = "GPIOC";
-        pin = <3>;
         clocks = <&clk_gpioc>;
         init-level = "pre-kernel";
         init-priority = <10>;
@@ -92,23 +82,41 @@
         status = "available";
     };
 
-    w25q64_cs_gpio: w25q64-cs-gpio {
+    ads1298_cs_gpio: ads1298-cs-gpio {
         compatible = "yi,stm32-gpio";
-        port = "GPIOA";
-        pin = <4>;
-        clocks = <&clk_gpioa>;
+        port = "GPIOB";
+        pin = <12>;
+        clocks = <&clk_gpiob>;
         direction = "output";
+        drive = "push-pull";
+        pull = "none";
         init-level = "pre-kernel";
         init-priority = <20>;
         status = "available";
     };
 
-    max31856_cs_gpio: max31856-cs-gpio {
+    ads1298_drdy_gpio: ads1298-drdy-gpio {
         compatible = "yi,stm32-gpio";
-        port = "GPIOB";
-        pin = <0>;
-        clocks = <&clk_gpiob>;
+        port = "GPIOC";
+        pin = <6>;
+        clocks = <&clk_gpioc>;
+        direction = "input";
+        pull = "up";
+        interrupt = "falling";
+        irq-priority = <5>;
+        init-level = "pre-kernel";
+        init-priority = <20>;
+        status = "available";
+    };
+
+    ads1298_enable_gpio: ads1298-enable-gpio {
+        compatible = "yi,stm32-gpio";
+        port = "GPIOC";
+        pin = <8>;
+        clocks = <&clk_gpioc>;
         direction = "output";
+        drive = "push-pull";
+        pull = "none";
         init-level = "pre-kernel";
         init-priority = <20>;
         status = "available";

@@ -107,6 +107,8 @@ typedef struct
     yi_device_t *self; /**< Self value. */
     yi_device_t *spi; /**< Spi value. */
     yi_spi_transfer_config_t spi_config; /**< Spi config value. */
+    yi_device_t *enable_gpio; /* Optional board-level power enable. */
+    bool enable_active_low; /**< Enable active low value. */
     yi_device_t *reset_gpio; /* Optional, active low. */
     yi_device_t *start_gpio; /* Optional; command control is used if NULL. */
     yi_device_t *drdy_gpio;  /* Optional, active low. */
@@ -116,6 +118,20 @@ typedef struct
     bool high_resolution; /**< High resolution value. */
     bool internal_reference; /**< Internal reference value. */
     bool reference_4v; /**< Reference 4v value. */
+    uint8_t config2; /**< CONFIG2 register value. */
+    uint8_t config3_extra; /**< Additional CONFIG3 low-bit value. */
+    uint8_t loff; /**< LOFF register value. */
+    uint8_t rld_sensp; /**< RLD_SENSP register value. */
+    uint8_t rld_sensn; /**< RLD_SENSN register value. */
+    uint8_t loff_sensp; /**< LOFF_SENSP register value. */
+    uint8_t loff_sensn; /**< LOFF_SENSN register value. */
+    uint8_t loff_flip; /**< LOFF_FLIP register value. */
+    uint8_t gpio; /**< GPIO register value. */
+    uint8_t pace; /**< PACE register value. */
+    uint8_t resp; /**< RESP register value. */
+    uint8_t config4; /**< CONFIG4 register value. */
+    uint8_t wct1; /**< WCT1 register value. */
+    uint8_t wct2; /**< WCT2 register value. */
     yi_ads1298_channel_config_t channels[YI_ADS1298_CHANNEL_COUNT]; /**< Channels value. */} yi_ads1298_config_t;
 
 typedef struct

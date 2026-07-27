@@ -1,0 +1,146 @@
+compatible: "ti,ads1298"
+driver: "ads1298"
+header: "yi_ads1298.h"
+define: "YI_ADS1298_DEFINE_LEVEL"
+properties:
+  bus:
+    type: phandle
+    required: true
+  cs-gpio:
+    type: phandle
+    required: true
+  enable-gpio:
+    type: phandle
+    required: false
+  enable-active-low:
+    type: boolean
+    default: false
+  reset-gpio:
+    type: phandle
+    required: false
+  start-gpio:
+    type: phandle
+    required: false
+  drdy-gpio:
+    type: phandle
+    required: false
+  spi-frequency:
+    type: int
+    default: 1000000
+  master-clock-hz:
+    type: int
+    default: 2048000
+  transfer-timeout-ms:
+    type: int
+    default: 20
+  data-rate:
+    type: int
+    default: 6
+  high-resolution:
+    type: boolean
+    default: true
+  internal-reference:
+    type: boolean
+    default: true
+  reference-4v:
+    type: boolean
+    default: false
+  config2:
+    type: int
+    default: 64
+  config3-extra:
+    type: int
+    default: 0
+  loff:
+    type: int
+    default: 0
+  rld-sensp:
+    type: int
+    default: 0
+  rld-sensn:
+    type: int
+    default: 0
+  loff-sensp:
+    type: int
+    default: 0
+  loff-sensn:
+    type: int
+    default: 0
+  loff-flip:
+    type: int
+    default: 0
+  gpio-register:
+    type: int
+    default: 0
+  pace:
+    type: int
+    default: 0
+  resp:
+    type: int
+    default: 0
+  config4:
+    type: int
+    default: 0
+  wct1:
+    type: int
+    default: 0
+  wct2:
+    type: int
+    default: 0
+  channel-power-down-mask:
+    type: int
+    default: 0
+  channel0-gain:
+    type: int
+    default: 6
+  channel1-gain:
+    type: int
+    default: 6
+  channel2-gain:
+    type: int
+    default: 6
+  channel3-gain:
+    type: int
+    default: 6
+  channel4-gain:
+    type: int
+    default: 6
+  channel5-gain:
+    type: int
+    default: 6
+  channel6-gain:
+    type: int
+    default: 6
+  channel7-gain:
+    type: int
+    default: 6
+  channel0-mux:
+    type: string
+    default: normal
+  channel1-mux:
+    type: string
+    default: normal
+  channel2-mux:
+    type: string
+    default: normal
+  channel3-mux:
+    type: string
+    default: normal
+  channel4-mux:
+    type: string
+    default: normal
+  channel5-mux:
+    type: string
+    default: normal
+  channel6-mux:
+    type: string
+    default: normal
+  channel7-mux:
+    type: string
+    default: normal
+  init-level:
+    type: string
+    default: post-kernel
+  init-priority:
+    type: int
+    default: 30

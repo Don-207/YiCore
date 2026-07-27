@@ -1,0 +1,12 @@
+/*
+ * Application-local device and bus overrides.
+ *
+ * Put project-specific baud rates, bus frequencies, addresses and similar
+ * properties here. Keep app.dts focused on enabling and disabling devices.
+ *
+ * Example:
+ *
+ * &usart1 {
+ *     current-speed = <115200>;
+ * };
+ */

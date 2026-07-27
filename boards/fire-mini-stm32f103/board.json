@@ -1,0 +1,8 @@
+{
+  "id": "fire-mini-stm32f103",
+  "name": "Fire Mini STM32F103",
+  "vendor": "st",
+  "series": "stm32f1",
+  "model": "stm32f103xe",
+  "description": "Fire Mini board with STM32F103xE"
+}

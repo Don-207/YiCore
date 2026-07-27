@@ -29,8 +29,15 @@ _REQUIRED_TARGET_FIELDS = (
     "vendor_name",
     "series",
     "model",
-    "board",
     "template",
+    "description",
+)
+_REQUIRED_BOARD_FIELDS = (
+    "id",
+    "name",
+    "vendor",
+    "series",
+    "model",
     "description",
 )
 
@@ -85,11 +92,128 @@ YiCore application target:
 3. Build the `{name}` target.
 
 The Keil pre-build command generates this application's DeviceTree sources in
-`generated/`. Edit `app.dts` to select devices exposed by the board.
+`generated/`.
+
+- Keep the shared board files under `boards/{board}/` unchanged.
+- Edit `app-gpios.dtsi` for application-specific GPIO assignments.
+- Edit `app-pinctrl.dtsi` for application-specific peripheral pinmux.
+- Edit `app-devices.dtsi` for application-specific device and bus properties.
+- Edit `app.dts` to enable or disable devices exposed by the board.
+
+Create a new board directory only when the physical PCB wiring changes.
 
 The project references shared YiCore sources, the STM32F1 SoC backend, CMSIS,
 and STM32Cube HAL from the repository root. Do not copy vendor libraries into
 this application.
+"""
+
+
+def _app_pinctrl_template() -> str:
+    return """/*
+ * Application-local peripheral pinmux overrides.
+ *
+ * Keep reusable PCB wiring in the selected board. Override a labeled board
+ * pinmux node here only when this application intentionally assigns it
+ * differently. MCU alternate-function remap settings must match the selected
+ * peripheral pins.
+ *
+ * Example:
+ *
+ * &usart1_tx_pin {
+ *     speed = "medium";
+ * };
+ */
+"""
+
+
+def _app_gpios_template() -> str:
+    return """/*
+ * Application-local GPIO overrides.
+ *
+ * Put project-specific LEDs, keys, chip selects and software-bus GPIO
+ * assignments here. When changing port, update the clock phandle as well.
+ *
+ * Example:
+ *
+ * &soft_i2c0_scl_gpio {
+ *     port = "GPIOB";
+ *     pin = <8>;
+ *     clocks = <&clk_gpiob>;
+ * };
+ */
+"""
+
+
+def _app_devices_template() -> str:
+    return """/*
+ * Application-local device and bus overrides.
+ *
+ * Put project-specific baud rates, bus frequencies, addresses and similar
+ * properties here. Keep app.dts focused on enabling and disabling devices.
+ *
+ * Example:
+ *
+ * &usart1 {
+ *     current-speed = <115200>;
+ * };
+ */
+"""
+
+
+def _app_dts_template(board_include: str) -> str:
+    return f"""/include/ "{board_include}"
+/include/ "app-gpios.dtsi"
+/include/ "app-pinctrl.dtsi"
+/include/ "app-devices.dtsi"
+
+/*
+ * Application device selection.
+ *
+ * The selected board supplies all available labels. Enable only labels that
+ * exist in that board; keep board-independent parameter overrides in the
+ * application-local .dtsi files above.
+ */
+"""
+
+
+def _main_source_template() -> str:
+    return """/**
+ * @file main.c
+ * @brief YiCore application entry.
+ */
+
+#include "main.h"
+
+#include "yi_device.h"
+#include "yi_system.h"
+
+int main(void)
+{
+    if((yi_system_init() != 0) || (yi_device_init_all() != 0))
+    {
+        Error_Handler();
+    }
+
+    while(1)
+    {
+    }
+}
+
+void Error_Handler(void)
+{
+    yi_system_irq_lock();
+    while(1)
+    {
+    }
+}
+
+#ifdef USE_FULL_ASSERT
+void assert_failed(uint8_t *file, uint32_t line)
+{
+    (void)file;
+    (void)line;
+}
+#endif
 """
 
 
@@ -129,11 +253,115 @@ def load_supported_targets(repo_root: Path) -> list[dict[str, str]]:
         _validate_name(target["vendor"], "vendor id")
         _validate_name(target["series"], "chip series")
         _validate_name(target["model"], "chip model")
-        _validate_name(target["board"], "board name")
         _validate_name(target["template"], "template name")
         targets.append(target)
 
     return targets
+
+
+def load_supported_boards(repo_root: Path) -> list[dict[str, str]]:
+    """Discover and validate boards from boards/*/board.json manifests."""
+
+    boards: list[dict[str, str]] = []
+    seen_ids: set[str] = set()
+    manifests = sorted((repo_root / "boards").glob("*/board.json"))
+    if not manifests:
+        raise ProjectCreationError(
+            f"no board manifests found below: {repo_root / 'boards'}"
+        )
+
+    for manifest_path in manifests:
+        try:
+            raw_board = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except OSError as error:
+            raise ProjectCreationError(
+                f"cannot read board manifest: {manifest_path}"
+            ) from error
+        except json.JSONDecodeError as error:
+            raise ProjectCreationError(
+                f"board manifest is not valid JSON: {manifest_path}"
+            ) from error
+
+        if not isinstance(raw_board, dict):
+            raise ProjectCreationError(
+                f"board manifest must be an object: {manifest_path}"
+            )
+        board: dict[str, str] = {}
+        for field in _REQUIRED_BOARD_FIELDS:
+            value = raw_board.get(field)
+            if not isinstance(value, str) or not value:
+                raise ProjectCreationError(
+                    f"board manifest missing {field}: {manifest_path}"
+                )
+            board[field] = value
+
+        _validate_name(board["id"], "board id")
+        _validate_name(board["vendor"], "vendor id")
+        _validate_name(board["series"], "chip series")
+        _validate_name(board["model"], "chip model")
+        if board["id"] != manifest_path.parent.name:
+            raise ProjectCreationError(
+                f"board id {board['id']!r} must match directory "
+                f"{manifest_path.parent.name!r}"
+            )
+        normalized_id = board["id"].lower()
+        if normalized_id in seen_ids:
+            raise ProjectCreationError(
+                f"duplicate board id: {board['id']}"
+            )
+        seen_ids.add(normalized_id)
+
+        board_dts = manifest_path.parent / "board.dts"
+        if not board_dts.is_file():
+            raise ProjectCreationError(
+                f"registered board not found: {board_dts}"
+            )
+        boards.append(board)
+
+    return boards
+
+
+def _board_matches_target(
+    board: dict[str, str], target: dict[str, str]
+) -> bool:
+    return all(
+        board[field].lower() == target[field].lower()
+        for field in ("vendor", "series", "model")
+    )
+
+
+def resolve_board(
+    boards: list[dict[str, str]],
+    target: dict[str, str] | None = None,
+    board_id: str | None = None,
+) -> dict[str, str]:
+    """Resolve a board, optionally constrained to one MCU target."""
+
+    matches = boards
+    if target is not None:
+        matches = [
+            board for board in matches
+            if _board_matches_target(board, target)
+        ]
+    if board_id:
+        board_id = _validate_name(board_id, "board id").lower()
+        matches = [
+            board for board in matches if board["id"].lower() == board_id
+        ]
+
+    if not matches:
+        if board_id and target is not None:
+            raise ProjectCreationError(
+                f"board {board_id!r} does not support "
+                f"{target['vendor']}/{target['series']}/{target['model']}"
+            )
+        raise ProjectCreationError("no supported board matches selection")
+    if len(matches) > 1:
+        choices = ", ".join(board["id"] for board in matches)
+        raise ProjectCreationError(
+            f"board selection is ambiguous: {choices}; use --board"
+        )
+    return matches[0]
 
 
 def _select_option(
@@ -183,10 +411,28 @@ def select_target_interactive(
     return _select_option(
         f"Supported {vendor['vendor_name']} chip series/models:",
         vendor_targets,
-        lambda item: (
-            f"{item['model']} ({item['series']}, board: {item['board']})"
-        ),
+        lambda item: f"{item['model']} ({item['series']})",
         lambda item: item["model"],
+    )
+
+
+def select_board_interactive(
+    boards: list[dict[str, str]], target: dict[str, str]
+) -> dict[str, str]:
+    """Prompt for a board compatible with the selected MCU target."""
+
+    compatible = [
+        board for board in boards if _board_matches_target(board, target)
+    ]
+    if not compatible:
+        raise ProjectCreationError(
+            "selected MCU has no registered boards"
+        )
+    return _select_option(
+        f"Supported boards for {target['model']}:",
+        compatible,
+        lambda item: f"{item['name']} ({item['id']})",
+        lambda item: item["id"],
     )
 
 
@@ -261,6 +507,9 @@ def create_project(
         destination.mkdir(parents=True)
         shutil.copytree(template / "Core", destination / "Core")
         shutil.copy2(template / "VERSION", destination / "VERSION")
+        (destination / "Core" / "Src" / "main.c").write_text(
+            _main_source_template(), encoding="utf-8", newline="\n"
+        )
 
         mdk_dir = destination / "MDK-ARM"
         mdk_dir.mkdir()
@@ -268,12 +517,19 @@ def create_project(
             shutil.copy2(template / "MDK-ARM" / filename, mdk_dir / filename)
 
         board_include = _relative_path(destination, board_dts, "/")
-        template_dts = (template / "app.dts").read_text(encoding="utf-8")
-        first_line_end = template_dts.find("\n")
-        app_body = template_dts[first_line_end + 1 :]
-        app_dts = f'/include/ "{board_include}"\n{app_body}'
         (destination / "app.dts").write_text(
-            app_dts, encoding="utf-8", newline="\n"
+            _app_dts_template(board_include),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (destination / "app-gpios.dtsi").write_text(
+            _app_gpios_template(), encoding="utf-8", newline="\n"
+        )
+        (destination / "app-pinctrl.dtsi").write_text(
+            _app_pinctrl_template(), encoding="utf-8", newline="\n"
+        )
+        (destination / "app-devices.dtsi").write_text(
+            _app_devices_template(), encoding="utf-8", newline="\n"
         )
 
         project_template = (
@@ -353,7 +609,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--board",
-        help="board directory name below boards/; overrides target board",
+        help="board id discovered from boards/*/board.json",
     )
     parser.add_argument(
         "--output-root",
@@ -369,29 +625,43 @@ def main() -> int:
                 parser.error("the following arguments are required: name")
             args.name = input("Project name: ").strip()
 
+        targets = load_supported_targets(repo_root)
+        boards = load_supported_boards(repo_root)
         target = None
-        board = args.board
+        board_entry = None
         if args.vendor or args.series or args.model:
             target = resolve_target(
-                load_supported_targets(repo_root),
+                targets,
                 args.vendor,
                 args.series,
                 args.model,
             )
-            board = board or target["board"]
-        elif board is None:
-            targets = load_supported_targets(repo_root)
+        elif args.board:
+            board_entry = resolve_board(boards, board_id=args.board)
+            target = resolve_target(
+                targets,
+                board_entry["vendor"],
+                board_entry["series"],
+                board_entry["model"],
+            )
+        else:
             target = (
                 select_target_interactive(targets)
                 if sys.stdin.isatty()
                 else resolve_target(targets)
             )
-            board = target["board"]
+
+        if board_entry is None:
+            board_entry = (
+                resolve_board(boards, target, args.board)
+                if args.board or not sys.stdin.isatty()
+                else select_board_interactive(boards, target)
+            )
 
         destination = create_project(
             repo_root,
             args.name,
-            board,
+            board_entry["id"],
             args.output_root,
             target,
         )
