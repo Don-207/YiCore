@@ -201,6 +201,7 @@ def create_product(
     board: dict[str, str],
     target: dict[str, str],
     output_root: Path,
+    board_root: Path | None = None,
 ) -> Path:
     """Create a standalone product repository with one application image."""
     destination = output_root.resolve() / name
@@ -250,7 +251,9 @@ def create_product(
             for source in (legacy / "MDK-ARM").iterdir():
                 shutil.move(str(source), str(keil / source.name))
 
-            board_source = repo_root / "boards" / board["id"]
+            board_source = (
+                board_root.resolve() if board_root else repo_root
+            ) / "boards" / board["id"]
             board_destination = destination / "boards" / board["id"]
             shutil.copytree(board_source, board_destination)
             product_board_dts = board_destination / "board.dts"
@@ -394,6 +397,7 @@ def create_application_in_place(
     product_root: Path,
     board: dict[str, str],
     target: dict[str, str],
+    board_root: Path | None = None,
 ) -> Path:
     """Populate an existing product repository with its application image."""
     product_root = product_root.resolve()
@@ -410,6 +414,7 @@ def create_application_in_place(
             board,
             target,
             Path(temporary),
+            board_root,
         )
         shutil.copytree(
             generated / "boards",
@@ -437,7 +442,13 @@ def main() -> int:
     try:
         if args.command == "app":
             targets = load_supported_targets(repo_root)
-            boards = load_supported_boards(repo_root)
+            product_boards = args.product_root / "boards"
+            board_registry_root = (
+                args.product_root
+                if list(product_boards.glob("*/board.json"))
+                else repo_root
+            )
+            boards = load_supported_boards(board_registry_root)
             board = resolve_board(boards, board_id=args.board) if args.board else boards[0]
             target = resolve_target(
                 targets, board["vendor"], board["series"], board["model"]
@@ -449,6 +460,7 @@ def main() -> int:
                     board,
                     target,
                     args.product_root,
+                    board_registry_root,
                 )
             else:
                 result = create_application_in_place(
@@ -456,6 +468,7 @@ def main() -> int:
                     args.product_root,
                     board,
                     target,
+                    board_registry_root,
                 )
         else:
             image = "bootloader" if args.command == "boot" else "test"
