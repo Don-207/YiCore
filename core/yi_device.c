@@ -112,7 +112,7 @@ int yi_device_init_level(yi_init_level_t level)
 {
     int result = 0;
 
-    if((level < YI_INIT_PRE_KERNEL) || (level >= YI_INIT_LEVEL_COUNT))
+    if(level >= YI_INIT_LEVEL_COUNT)
     {
         return -1;
     }

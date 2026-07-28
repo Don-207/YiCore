@@ -1,0 +1,20 @@
+[
+  {
+    "id": "st-stm32f1",
+    "arch": "arm",
+    "vendor": "st",
+    "family": "stm32f1",
+    "backend": "soc/st/stm32/stm32f1",
+    "vendor_package": "st-stm32f1",
+    "status": "ready"
+  },
+  {
+    "id": "gigadevice-gd32f30x",
+    "arch": "arm",
+    "vendor": "gigadevice",
+    "family": "gd32f30x",
+    "backend": "soc/gigadevice/gd32f30x",
+    "vendor_package": "gigadevice-gd32f30x",
+    "status": "reserved"
+  }
+]

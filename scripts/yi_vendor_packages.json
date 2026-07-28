@@ -1,0 +1,33 @@
+[
+  {
+    "id": "st-stm32f1",
+    "vendor": "st",
+    "family": "stm32f1",
+    "package": "STM32CubeF1",
+    "version": "vendored",
+    "source": "https://github.com/STMicroelectronics/STM32CubeF1",
+    "path": "vendor/st",
+    "status": "ready",
+    "required": [
+      "cmsis/Include/core_cm3.h",
+      "cmsis/Device/ST/STM32F1xx/Include/stm32f103xe.h",
+      "stm32cube/stm32f1xx_hal_driver/Inc/stm32f1xx_hal.h"
+    ]
+  },
+  {
+    "id": "gigadevice-gd32f30x",
+    "vendor": "gigadevice",
+    "family": "gd32f30x",
+    "package": "GD32F30x_Firmware_Library",
+    "version": "3.0.3",
+    "source": "https://www.gigadevice.com/product/mcu/main-stream-mcus/gd32f30x-series",
+    "path": "vendor/gigadevice/gd32f30x",
+    "status": "pending",
+    "required": [
+      "CMSIS/GD/GD32F30x/Include/gd32f30x.h",
+      "CMSIS/GD/GD32F30x/Source/system_gd32f30x.c",
+      "GD32F30x_standard_peripheral/Include/gd32f30x_usart.h",
+      "GD32F30x_standard_peripheral/Include/gd32f30x_dma.h"
+    ]
+  }
+]

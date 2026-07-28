@@ -143,6 +143,60 @@ overwrite an existing board.
 - [DeviceTree guide](docs/devicetree.md)
 - [STM32F103 example](examples/stm32f103-dts-demo/README.md)
 
+## Thin applications
+
+New applications follow an application-centric layout and select hardware at
+build time through the unified command:
+
+```text
+yi app create MyApp
+yi boards
+yi sdk list
+yi sdk verify
+yi update -m yi-manifest.yml
+yi manifest freeze -m yi-manifest.yml
+yi build -b fire-mini-stm32f103 applications/MyApp
+yi build -p always -b fire-mini-stm32f103 applications/MyApp
+```
+
+This creates:
+
+```text
+applications/MyApp/
+├── CMakeLists.txt
+├── app.conf
+├── app.overlay
+├── VERSION
+└── src/main.c
+```
+
+The application contains no startup, linker, board, SoC or vendor-library
+copies. Configure with `-DBOARD=<board-id>` and `-DYICORE_ROOT=<path>`.
+
+The STM32F103xE GCC adapter is available for
+`-DBOARD=fire-mini-stm32f103`. The previous standalone product generator
+remains available as `create-product.cmd` for production Keil projects and
+multi-image product layouts.
+
+On Windows run `yi.cmd` when the repository directory is not on `PATH`.
+`create-app.cmd` remains as a compatibility alias for application creation.
+
+`yi build` prefers external workspace modules at `modules/hal/st` and
+`modules/lib/cmsis`. If they are absent it uses the compatible packages below
+`YiCore/vendor/`, allowing SDK repositories to be extracted without breaking
+existing products.
+
+The optional multi-repository manifest format is demonstrated by
+`yi-manifest.example.yml`. `yi update` refuses to switch a repository with
+uncommitted changes. `yi manifest freeze` records checked-out full commit SHAs
+in `yi-manifest.lock.yml`.
+
+Install CLI dependencies with:
+
+```text
+python -m pip install -r YiCore/scripts/requirements.txt
+```
+
 ## Project status
 
 YiCore is under active development. Interfaces may evolve before the first

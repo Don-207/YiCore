@@ -1,0 +1,7 @@
+# File: requirements.txt
+# Function: Declare Python dependencies for YiCore tooling.
+# Author: Don
+# Date: 2026-07-28
+# Version: 1.0.0
+
+PyYAML>=6.0,<7.0
