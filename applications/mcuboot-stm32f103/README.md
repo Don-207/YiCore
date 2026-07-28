@@ -5,8 +5,10 @@ This bootloader uses only the STM32F103xE 256 KiB internal flash:
 | Region | Offset | CPU address | Size |
 | --- | ---: | ---: | ---: |
 | MCUboot | `0x00000` | `0x08000000` | 48 KiB |
-| Primary slot | `0x0C000` | `0x0800C000` | 104 KiB |
-| Secondary slot | `0x26000` | `0x08026000` | 104 KiB |
+| Primary slot | `0x0C000` | `0x0800C000` | 96 KiB |
+| Secondary slot | `0x24000` | `0x08024000` | 96 KiB |
+| Update state | `0x3C000` | `0x0803C000` | 12 KiB |
+| Swap scratch | `0x3F000` | `0x0803F000` | 4 KiB |
 
 The final MCUboot erase page starts at `0x0800B800` and is reserved for the
 fixed-address `.yi_build_info` record. Application code can read and validate
@@ -18,8 +20,8 @@ const yi_build_info_t *bootloader_info =
 ```
 
 The application is linked at `0x0800C200`, leaving a 512-byte MCUboot image
-header at the beginning of the primary slot. Both slots contain MCUboot image
-trailers and therefore the usable application payload is smaller than 104 KiB.
+header at the beginning of the primary slot. One 2 KiB erase page is reserved
+for each MCUboot trailer, leaving 93.5 KiB for linked application content.
 
 The MCUboot target must use `linker/armclang/mcuboot-stm32f103xe.sct`. The
 application target must use `linker/armclang/app-slot0-stm32f103xe.sct` and set
@@ -44,32 +46,21 @@ resulting `.yi_build_info` record contains the image name, version, build date,
 and build time. Change `VERSION` before releasing a new bootloader. The
 application uses its own `VERSION` file and generated metadata record.
 
-Generate a project-owned key outside version control, then export only its
-public half into the bootloader sources:
-
-```powershell
-python third_party\mcuboot\scripts\imgtool.py keygen `
-  --key keys\root-ec-p256.pem --type ecdsa-p256
-
-python third_party\mcuboot\scripts\imgtool.py getpub `
-  --key keys\root-ec-p256.pem `
-  --output applications\mcuboot-stm32f103\Core\Src\mcuboot_public_key.c
-```
-
-`keys.c` references the generated `ecdsa_pub_key` symbols. Add both files to
-the bootloader target, but never add the private PEM file to the repository.
-
-Sign the application using the same private key:
+Create the unsigned MCUboot image with its SHA-256 integrity TLV:
 
 ```powershell
 python third_party\mcuboot\scripts\imgtool.py sign `
-  --key keys\root-ec-p256.pem `
   --header-size 0x200 `
   --align 2 `
-  --slot-size 0x1A000 `
+  --slot-size 0x18000 `
   --version 1.0.0 `
   --pad-header `
-  app.bin app.signed.bin
+  app.bin app.mcuboot.bin
 ```
 
-Do not use MCUboot's repository example keys for production firmware.
+This configuration intentionally contains no public or private key. SHA-256
+detects corruption but does not authenticate the firmware producer.
+
+The bootloader uses scratch swapping. A downloaded image is requested as a
+test image; the application confirms it after its health checks pass. Reset or
+failure before confirmation causes MCUboot to restore the previous image.

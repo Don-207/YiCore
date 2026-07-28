@@ -1,7 +1,7 @@
 ; Primary slot starts at 0x0800C000. MCUboot reserves a 0x200-byte header,
 ; so the application's vector table and linked image start at 0x0800C200.
-LR_IROM1 0x0800C200 0x00019E00 {
-  ER_IROM1 0x0800C200 0x00019E00 {
+LR_IROM1 0x0800C200 0x00017600 {
+  ER_IROM1 0x0800C200 0x00017600 {
     *.o (RESET, +First)
     *(InRoot$$Sections)
     .ANY (+RO)

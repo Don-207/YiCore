@@ -9,10 +9,8 @@
 #ifndef YI_MCUBOOT_CONFIG_H
 #define YI_MCUBOOT_CONFIG_H
 
-/* Initial YiCore profile: one image, overwrite-only upgrade, EC-P256 signing. */
-#define MCUBOOT_SIGN_EC256
+/* One image with SHA-256 integrity and scratch test/confirm/rollback. */
 #define MCUBOOT_USE_TINYCRYPT
-#define MCUBOOT_OVERWRITE_ONLY
 #define MCUBOOT_VALIDATE_PRIMARY_SLOT
 
 #define MCUBOOT_USE_FLASH_AREA_GET_SECTORS
@@ -20,5 +18,6 @@
 #define MCUBOOT_IMAGE_NUMBER 1
 
 #define MCUBOOT_CPU_IDLE() do { } while (0)
+#define MCUBOOT_WATCHDOG_FEED() do { } while (0)
 
 #endif

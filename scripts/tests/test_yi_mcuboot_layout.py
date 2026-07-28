@@ -30,13 +30,19 @@ class McubootLayoutTests(unittest.TestCase):
         boot_end = values["YI_MCUBOOT_BOOT_OFFSET"] + values["YI_MCUBOOT_BOOT_SIZE"]
         primary_end = values["YI_MCUBOOT_PRIMARY_OFFSET"] + values["YI_MCUBOOT_SLOT_SIZE"]
         secondary_end = values["YI_MCUBOOT_SECONDARY_OFFSET"] + values["YI_MCUBOOT_SLOT_SIZE"]
+        state_end = values["YI_MCUBOOT_UPDATE_STATE_OFFSET"] + values["YI_MCUBOOT_UPDATE_STATE_SIZE"]
+        scratch_end = values["YI_MCUBOOT_SCRATCH_OFFSET"] + values["YI_MCUBOOT_SCRATCH_SIZE"]
 
         self.assertEqual(boot_end, values["YI_MCUBOOT_PRIMARY_OFFSET"])
         self.assertEqual(primary_end, values["YI_MCUBOOT_SECONDARY_OFFSET"])
-        self.assertEqual(secondary_end, values["YI_MCUBOOT_FLASH_SIZE"])
+        self.assertEqual(secondary_end, values["YI_MCUBOOT_UPDATE_STATE_OFFSET"])
+        self.assertEqual(state_end, values["YI_MCUBOOT_SCRATCH_OFFSET"])
+        self.assertEqual(scratch_end, values["YI_MCUBOOT_FLASH_SIZE"])
         for key in ("YI_MCUBOOT_BOOT_OFFSET", "YI_MCUBOOT_BOOT_SIZE",
                     "YI_MCUBOOT_PRIMARY_OFFSET", "YI_MCUBOOT_SECONDARY_OFFSET",
-                    "YI_MCUBOOT_SLOT_SIZE"):
+                    "YI_MCUBOOT_SLOT_SIZE", "YI_MCUBOOT_UPDATE_STATE_OFFSET",
+                    "YI_MCUBOOT_UPDATE_STATE_SIZE", "YI_MCUBOOT_SCRATCH_OFFSET",
+                    "YI_MCUBOOT_SCRATCH_SIZE"):
             self.assertEqual(values[key] % values["YI_MCUBOOT_ERASE_SIZE"], 0)
 
     def test_scatter_files_match_layout(self):
@@ -46,7 +52,9 @@ class McubootLayoutTests(unittest.TestCase):
         app_address = (values["YI_MCUBOOT_FLASH_BASE"] +
                        values["YI_MCUBOOT_PRIMARY_OFFSET"] +
                        values["YI_MCUBOOT_IMAGE_HEADER_SIZE"])
-        app_size = values["YI_MCUBOOT_SLOT_SIZE"] - values["YI_MCUBOOT_IMAGE_HEADER_SIZE"]
+        app_size = (values["YI_MCUBOOT_SLOT_SIZE"] -
+                    values["YI_MCUBOOT_IMAGE_HEADER_SIZE"] -
+                    values["YI_MCUBOOT_ERASE_SIZE"])
 
         self.assertIn(f"0x{values['YI_MCUBOOT_FLASH_BASE']:08X} 0x{values['YI_MCUBOOT_BOOT_SIZE']:08X}", boot_sct)
         self.assertIn(f"0x{app_address:08X} 0x{app_size:08X}", app_sct)

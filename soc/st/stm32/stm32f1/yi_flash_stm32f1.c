@@ -102,6 +102,12 @@ static int yi_stm32_flash_write(yi_device_t *dev, uint32_t offset,
     {
         result = -1;
     }
+    if((result == 0) &&
+       (memcmp((const void *)(uintptr_t)(cfg->base_address + offset),
+               data, length) != 0))
+    {
+        result = -1;
+    }
     return result;
 }
 

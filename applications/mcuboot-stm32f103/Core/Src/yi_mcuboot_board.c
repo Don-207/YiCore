@@ -19,7 +19,26 @@
 static yi_partition_t boot_partition;
 static yi_partition_t primary_partition;
 static yi_partition_t secondary_partition;
-static struct flash_area flash_areas[3];
+static yi_partition_t storage_partition;
+static yi_partition_t scratch_partition;
+static struct flash_area flash_areas[4];
+
+/**
+ * @brief Atomically replace MSP and branch to the application reset handler.
+ * @param initial_sp Application vector-table stack pointer.
+ * @param reset_handler Thumb reset-handler address.
+ * @return This function never returns.
+ * @note Naked implementation is required because no C stack access is valid
+ *       after MSP changes from the bootloader stack to the application stack.
+ */
+__attribute__((naked, noreturn))
+static void yi_mcuboot_branch(uint32_t initial_sp, uint32_t reset_handler)
+{
+    __asm volatile(
+        "msr msp, r0\n"
+        "cpsie i\n"
+        "bx r1\n");
+}
 
 /**
  * @brief Set the module.
@@ -80,6 +99,18 @@ int yi_mcuboot_board_flash_map_init(void)
     yi_mcuboot_partition_set(&secondary_partition, "image-1", internal_flash,
                              YI_MCUBOOT_SECONDARY_OFFSET,
                              YI_MCUBOOT_SLOT_SIZE);
+    yi_mcuboot_partition_set(&storage_partition, "update-state", internal_flash,
+                             YI_MCUBOOT_UPDATE_STATE_OFFSET,
+                             YI_MCUBOOT_UPDATE_STATE_SIZE);
+    yi_mcuboot_partition_set(&scratch_partition, "image-scratch", internal_flash,
+                             YI_MCUBOOT_SCRATCH_OFFSET,
+                             YI_MCUBOOT_SCRATCH_SIZE);
+
+    if((yi_partition_validate(&storage_partition) != 0) ||
+       (yi_partition_validate(&scratch_partition) != 0))
+    {
+        return -1;
+    }
 
     yi_mcuboot_area_set(&flash_areas[0], FLASH_AREA_BOOTLOADER,
                         &boot_partition);
@@ -87,6 +118,8 @@ int yi_mcuboot_board_flash_map_init(void)
                         &primary_partition);
     yi_mcuboot_area_set(&flash_areas[2], FLASH_AREA_IMAGE_SECONDARY(0),
                         &secondary_partition);
+    yi_mcuboot_area_set(&flash_areas[3], FLASH_AREA_IMAGE_SCRATCH,
+                        &scratch_partition);
 
     /**
      * @brief Set the module.
@@ -106,7 +139,6 @@ void yi_mcuboot_jump(const struct boot_rsp *response)
     uint32_t vector_address;
     uint32_t initial_sp;
     uint32_t reset_handler;
-    void (*application_reset)(void);
 
     if((response == NULL) || (response->br_hdr == NULL) ||
        (response->br_flash_dev_id != 0U) ||
@@ -146,8 +178,5 @@ void yi_mcuboot_jump(const struct boot_rsp *response)
     __DSB();
     __ISB();
 
-    application_reset = (void (*)(void))reset_handler;
-    __set_MSP(initial_sp);
-    __enable_irq();
-    application_reset();
+    yi_mcuboot_branch(initial_sp, reset_handler);
 }

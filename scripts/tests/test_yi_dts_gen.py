@@ -77,7 +77,7 @@ class DtsGeneratorTests(unittest.TestCase):
 
         self.assertIn("#define YI_BOOTLOADER_ENABLED 1", header)
         self.assertIn("#define YI_APP_VECTOR_ADDRESS 0x0800C200U", header)
-        self.assertIn("LR_IROM1 0x0800C200 0x00019E00", scatter)
+        self.assertIn("LR_IROM1 0x0800C200 0x00017600", scatter)
 
     def test_bootloader_switch_rejects_unknown_status(self):
         with tempfile.TemporaryDirectory() as directory:

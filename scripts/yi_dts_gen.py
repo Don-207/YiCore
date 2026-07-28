@@ -1289,7 +1289,7 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str,
 #define YI_APP_FLASH_OFFSET 0x0000C000U
 #define YI_APP_HEADER_SIZE 0x00000200U
 #define YI_APP_VECTOR_ADDRESS 0x0800C200U
-#define YI_APP_SLOT_SIZE 0x0001A000U"""
+#define YI_APP_SLOT_SIZE 0x00018000U"""
     else:
         boot_config = """#define YI_BOOTLOADER_ENABLED 0
 #define YI_APP_FLASH_OFFSET 0x00000000U
@@ -1327,8 +1327,8 @@ def _write_if_changed(path: Path, content: str) -> None:
 def _app_scatter(bootloader_enabled: bool) -> str:
     if bootloader_enabled:
         address = 0x0800C200
-        size = 0x00019E00
-        description = "MCUboot primary slot, after the 0x200-byte image header"
+        size = 0x00017600
+        description = "MCUboot primary slot, excluding header and trailer"
     else:
         address = 0x08000000
         size = 0x00040000

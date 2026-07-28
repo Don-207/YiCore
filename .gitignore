@@ -4,7 +4,7 @@ __pycache__/
 .venv/
 venv/
 
-# Firmware signing private keys
+# Third-party and locally generated private-key artifacts
 keys/*.pem
 **/keys/*.pem
 third_party/mcuboot-2.4.0/*.pem
