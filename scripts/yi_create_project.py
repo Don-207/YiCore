@@ -301,6 +301,9 @@ def _main_source_template() -> str:
     return """/**
  * @file main.c
  * @brief YiCore application entry.
+ * @author Don
+ * @date 2026-07-28
+ * @version 1.0.0
  */
 
 #include "main.h"
@@ -308,6 +311,10 @@ def _main_source_template() -> str:
 #include "yi_device.h"
 #include "yi_system.h"
 
+/**
+ * @brief Initialize YiCore devices and run the application loop.
+ * @return This function does not return during normal operation.
+ */
 int main(void)
 {
     if((yi_system_init() != 0) || (yi_device_init_all() != 0))
@@ -320,6 +327,7 @@ int main(void)
     }
 }
 
+/** @brief Enter the interrupt-locked fail-safe state. */
 void Error_Handler(void)
 {
     yi_system_irq_lock();
@@ -329,6 +337,11 @@ void Error_Handler(void)
 }
 
 #ifdef USE_FULL_ASSERT
+/**
+ * @brief Handle a HAL full-assert failure.
+ * @param file Source file that raised the assertion.
+ * @param line Source line that raised the assertion.
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
     (void)file;

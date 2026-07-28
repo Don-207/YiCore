@@ -92,52 +92,29 @@ Open
 `examples/stm32f103-dts-demo/MDK-ARM/stm32f103-dts-demo.uvprojx` in Keil.
 The project regenerates the DeviceTree sources before each build.
 
-Create another MCU application interactively:
+Create a standalone product with the application image only:
 
 ```powershell
-.\create-project
+.\create-app ProductName --board fire-mini-stm32f103
 ```
 
-The creator asks for the project name, then lists supported vendors, MCU
-series/models, and compatible boards. MCU targets are recorded in
-`scripts/yi_supported_targets.json`. Boards are discovered automatically from
-`boards/*/board.json`.
+The default output is `<current-directory>/ProductName`. The generated product
+contains shared `firmware/common`, one `firmware/images/application`, flat Keil
+and GCC project directories, linker descriptions, a product-local board copy,
+and a pinned local YiCore checkout. It does not create bootloader or test
+images by default.
 
-You can also pass the project name directly:
+Add optional images from the product root:
 
 ```powershell
-.\create-project product-bootloader
+YiCore\create-boot --product-root .
+YiCore\create-test --product-root .
 ```
 
-The default destination is `applications/<project-name>/`, which is convenient
-for examples and framework development. For a standalone product repository,
-run the creator from its `YiCore` submodule and pass the product's application
-parent as `--output-root`. Select a target and destination non-interactively
-with:
-
-```powershell
-.\create-project controller-app `
-  --vendor st `
-  --series stm32f1 `
-  --model stm32f103xe `
-  --board fire-mini-stm32f103 `
-  --output-root applications
-```
-
-One MCU may have multiple boards. Give each physical board its own
-`boards/<board-id>/board.json` manifest and DTS files; no central board
-registry needs to be edited. When more than one board supports the selected
-MCU, choose one interactively or pass `--board`; the creator rejects a board
-that does not match the selected MCU.
-
-`create-project.cmd` is a thin launcher for `scripts/yi_create_project.py`. If
-the repository root is on `PATH`, it can also be called as
-`create-project product-bootloader`.
-
-The creator refuses to overwrite an existing project directory. It gives each
-application a private `generated/` directory while sharing YiCore, SoC, CMSIS,
-and HAL sources from the repository root.
-
+`create-boot` initializes the pinned MCUboot dependency. Both commands refuse
+to overwrite an existing image. Keil metadata stays flat under
+`firmware/projects/keil`; GCC uses one CMake entry selected with
+`YI_PRODUCT_IMAGE=application|bootloader|test`.
 Create a new board interactively:
 
 ```powershell
@@ -157,7 +134,7 @@ manifest. A non-interactive example is:
 ```
 
 After creation, edit the new directory under `boards/` to match the physical
-PCB, then pass its id to `create-project --board`. The creator refuses to
+PCB, then pass its id to `create-app --board`. The creator refuses to
 overwrite an existing board.
 
 ## Documentation
