@@ -389,6 +389,41 @@ def create_product(
     return destination
 
 
+def create_application_in_place(
+    repo_root: Path,
+    product_root: Path,
+    board: dict[str, str],
+    target: dict[str, str],
+) -> Path:
+    """Populate an existing product repository with its application image."""
+    product_root = product_root.resolve()
+    application = product_root / "firmware" / "images" / "application"
+    if (application / "main.c").is_file():
+        raise ProjectCreationError(
+            f"application already exists: {application}"
+        )
+
+    with tempfile.TemporaryDirectory() as temporary:
+        generated = create_product(
+            repo_root,
+            product_root.name,
+            board,
+            target,
+            Path(temporary),
+        )
+        shutil.copytree(
+            generated / "boards",
+            product_root / "boards",
+            dirs_exist_ok=True,
+        )
+        shutil.copytree(
+            generated / "firmware",
+            product_root / "firmware",
+            dirs_exist_ok=True,
+        )
+    return product_root
+
+
 def main() -> int:
     """Parse the selected product command and perform it."""
     parser = argparse.ArgumentParser()
@@ -401,21 +436,27 @@ def main() -> int:
 
     try:
         if args.command == "app":
-            if not args.name:
-                raise ProjectCreationError("create-app requires a product name")
             targets = load_supported_targets(repo_root)
             boards = load_supported_boards(repo_root)
             board = resolve_board(boards, board_id=args.board) if args.board else boards[0]
             target = resolve_target(
                 targets, board["vendor"], board["series"], board["model"]
             )
-            result = create_product(
-                repo_root,
-                args.name,
-                board,
-                target,
-                args.product_root,
-            )
+            if args.name:
+                result = create_product(
+                    repo_root,
+                    args.name,
+                    board,
+                    target,
+                    args.product_root,
+                )
+            else:
+                result = create_application_in_place(
+                    repo_root,
+                    args.product_root,
+                    board,
+                    target,
+                )
         else:
             image = "bootloader" if args.command == "boot" else "test"
             result = add_image(args.product_root, image)
