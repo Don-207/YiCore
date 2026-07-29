@@ -6,5 +6,13 @@
     "model": "stm32f103xe",
     "template": "stm32f103-dts-demo",
     "description": "STM32F103xE target"
+  },
+  {
+    "vendor": "hpmicro",
+    "vendor_name": "HPMicro",
+    "series": "hpm5300",
+    "model": "hpm5301",
+    "template": "hpm5301-bringup",
+    "description": "HPM5301 RISC-V target"
   }
 ]

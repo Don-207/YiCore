@@ -1,0 +1,37 @@
+/ {
+    cpus {
+        cpu0: cpu@0 {
+            compatible = "andestech,d25";
+            reg = <0>;
+            clock-frequency = <360000000>;
+            riscv,isa = "rv32imac_zicsr_zifencei";
+            status = "available";
+        };
+    };
+
+    memory@0 {
+        device_type = "memory";
+        reg = <0x00000000 0x00020000>;
+        yi,region = "ilm";
+    };
+
+    memory@80300 {
+        device_type = "memory";
+        reg = <0x00080300 0x0001fd00>;
+        yi,region = "dlm";
+    };
+
+    flash@80000000 {
+        compatible = "hpmicro,xpi-nor";
+        reg = <0x80000000 0x00100000>;
+        erase-block-size = <4096>;
+        status = "available";
+    };
+
+    uart0: serial@f0040000 {
+        compatible = "hpmicro,hpm5300-uart";
+        reg = <0xf0040000 0x4000>;
+        current-speed = <115200>;
+        status = "available";
+    };
+};

@@ -24,6 +24,219 @@ from yi_build_info_gen import generate as generate_build_info
 from yi_dts_gen import generate
 
 
+def _hpm5301_main() -> str:
+    """Return the minimum HPM5301 product application entry."""
+
+    return """/**
+ * @file main.c
+ * @brief Start an HPM5301 YiCore product application.
+ * @author Don
+ * @date 2026-07-29
+ * @version 1.0.0
+ */
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include "board.h"
+#include "yi_riscv_irq.h"
+
+/** Product heartbeat interval in milliseconds. */
+#define YI_PRODUCT_HEARTBEAT_MS (1000U)
+
+/**
+ * @brief Initialize the HPM5301 board and run product processing.
+ * @return This function does not return during normal operation.
+ * @note Runs in machine mode after the official HPM SDK reset path.
+ */
+int main(void)
+{
+    /** Saved global interrupt state used to validate critical sections. */
+    uint32_t irq_key;
+    /** Monotonic product heartbeat counter. */
+    uint32_t heartbeat = 0U;
+
+    board_init();
+    irq_key = yi_riscv_irq_lock();
+    yi_riscv_memory_barrier();
+    yi_riscv_irq_unlock(irq_key);
+
+    printf("HPM5301 YiCore product ready\\r\\n");
+    for (;;) {
+        printf("heartbeat %lu\\r\\n", (unsigned long)heartbeat);
+        heartbeat++;
+        board_delay_ms(YI_PRODUCT_HEARTBEAT_MS);
+    }
+}
+"""
+
+
+def _hpm5301_cmake(name: str, sdk_board: str) -> str:
+    """Return the official-SDK CMake entry for one HPM5301 product."""
+
+    return f"""# File: CMakeLists.txt
+# Function: Build the {name} HPM5301 product application.
+# Author: Don
+# Date: 2026-07-29
+# Version: 1.0.0
+
+cmake_minimum_required(VERSION 3.20)
+
+get_filename_component(
+    YI_PRODUCT_ROOT "${{CMAKE_CURRENT_LIST_DIR}}/../../.." ABSOLUTE
+)
+set(
+    HPM_SDK_BASE
+    "${{YI_PRODUCT_ROOT}}/modules/hal/hpmicro/hpm_sdk"
+    CACHE PATH
+    "Pinned official HPM SDK root"
+)
+set(ENV{{HPM_SDK_BASE}} "${{HPM_SDK_BASE}}")
+set(BOARD "{sdk_board}" CACHE STRING "Official HPM SDK board backend")
+set(HPM_BUILD_TYPE "flash_xip" CACHE STRING "HPM image memory layout")
+set(APP_NAME "{name}" CACHE STRING "Output image base name")
+set(STACK_SIZE "0x1000" CACHE STRING "Application stack size in bytes")
+set(HEAP_SIZE "0x1000" CACHE STRING "Application heap size in bytes")
+set(
+    RV_ARCH
+    "rv32imac_zicsr_zifencei"
+    CACHE STRING
+    "Portable HPM5301 ISA baseline"
+)
+set(RV_ABI "ilp32" CACHE STRING "HPM5301 integer ABI")
+
+find_package(hpm-sdk REQUIRED HINTS "${{HPM_SDK_BASE}}")
+project({name} LANGUAGES C ASM)
+
+set(YICORE_ROOT "${{YI_PRODUCT_ROOT}}/YiCore")
+sdk_app_src(
+    "${{YI_PRODUCT_ROOT}}/firmware/images/application/main.c"
+    "${{YICORE_ROOT}}/arch/riscv/yi_riscv_irq.c"
+)
+sdk_app_inc("${{YICORE_ROOT}}/arch/riscv")
+"""
+
+
+def _hpm5301_product_readme(name: str, board_id: str) -> str:
+    """Return build guidance for a generated HPM5301 product."""
+
+    return f"""# {name}
+
+HPM5301 YiCore product generated from `{board_id}`. The first build uses the
+official HPM5301EVKLite SDK board backend and Flash XIP layout.
+
+```powershell
+.\\YiCore\\yi.cmd update
+$env:GNURISCV_TOOLCHAIN_PATH = `
+  'D:\\toolchains\\rv32imac_zicsr_zifencei_multilib_b_ext-win'
+$env:Path = 'C:\\Qt\\Tools\\Ninja;' + $env:Path
+cmake -S firmware\\projects\\gcc -B build -G Ninja
+cmake --build build --parallel
+```
+
+Replace the official SDK board backend with a product-owned HPM SDK board
+directory before changing oscillator, flash, console, or pin assignments.
+"""
+
+
+def _hpm5301_manifest(repo_root: Path) -> str:
+    """Return a reproducible external HPMicro module manifest."""
+
+    sdk_revision = (
+        "88b01b43900d8c30844a1e5cdd3f3b7aff6db40e"
+    )
+    return f"""# File: yi-manifest.yml
+# Function: Pin external HPM5301 workspace modules.
+# Author: Don
+# Date: 2026-07-29
+# Version: 1.0.0
+
+manifest:
+  version: "1.0"
+  projects:
+    - name: YiHAL-HPMicro
+      url: https://github.com/Don-207/YiHAL-HPMicro.git
+      revision: 5d8e4881ef930506ecc4eabb54ccf66513ff12c8
+      path: modules/hal/hpmicro
+"""
+
+
+def _create_hpm5301_product(
+    repo_root: Path,
+    name: str,
+    board: dict[str, str],
+    output_root: Path,
+    board_root: Path | None,
+) -> Path:
+    """Create a standalone HPM5301 product using the official SDK backend."""
+
+    destination = output_root.resolve() / name
+    if destination.exists():
+        raise ProjectCreationError(f"destination already exists: {destination}")
+
+    board_source = (
+        board_root.resolve() if board_root else repo_root
+    ) / "boards" / board["id"]
+    try:
+        application = destination / "firmware" / "images" / "application"
+        gcc = destination / "firmware" / "projects" / "gcc"
+        application.mkdir(parents=True)
+        gcc.mkdir(parents=True)
+        shutil.copytree(
+            board_source,
+            destination / "boards" / board["id"],
+        )
+        (application / "main.c").write_text(
+            _hpm5301_main(), encoding="utf-8", newline="\n"
+        )
+        (application / "VERSION").write_text(
+            "0.1.0\n", encoding="utf-8", newline="\n"
+        )
+        (gcc / "CMakeLists.txt").write_text(
+            _hpm5301_cmake(name, "hpm5301evklite"),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (destination / "README.md").write_text(
+            _hpm5301_product_readme(name, board["id"]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (destination / "yi-manifest.yml").write_text(
+            _hpm5301_manifest(repo_root),
+            encoding="utf-8",
+            newline="\n",
+        )
+        subprocess.run(
+            [
+                "git", "clone", "--local", "--no-hardlinks",
+                str(repo_root), str(destination / "YiCore"),
+            ],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git", "-C", str(destination / "YiCore"),
+                "remote", "set-url", "origin",
+                "https://github.com/Don-207/YiCore.git",
+            ],
+            check=True,
+        )
+        (destination / ".gitmodules").write_text(
+            '[submodule "YiCore"]\n'
+            "\tpath = YiCore\n"
+            "\turl = https://github.com/Don-207/YiCore.git\n"
+            "\tshallow = true\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    except Exception:
+        if destination.exists():
+            shutil.rmtree(destination)
+        raise
+    return destination
+
+
 def _image_main(image: str) -> str:
     """Return a documented minimal entry source for one optional image."""
     purpose = "bootloader" if image == "bootloader" else "board-test"
@@ -199,6 +412,11 @@ def create_product(
     board_root: Path | None = None,
 ) -> Path:
     """Create a standalone product repository with one application image."""
+    if target["vendor"] == "hpmicro" and target["model"] == "hpm5301":
+        return _create_hpm5301_product(
+            repo_root, name, board, output_root, board_root
+        )
+
     destination = output_root.resolve() / name
     if destination.exists():
         raise ProjectCreationError(f"destination already exists: {destination}")
@@ -440,6 +658,10 @@ def create_application_in_place(
             product_root / "firmware",
             dirs_exist_ok=True,
         )
+        generated_manifest = generated / "yi-manifest.yml"
+        product_manifest = product_root / "yi-manifest.yml"
+        if generated_manifest.is_file() and not product_manifest.exists():
+            shutil.copy2(generated_manifest, product_manifest)
     return product_root
 
 

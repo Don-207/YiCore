@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+/build*/
 
 # Third-party and locally generated private-key artifacts
 keys/*.pem

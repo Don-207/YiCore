@@ -4,9 +4,10 @@ YiCore is a lightweight DeviceTree-based embedded device framework for MCUs,
 bootloaders, and bare-metal applications.
 
 It separates application code from board configuration and vendor HAL details.
-The current reference port targets the STM32F103xE high-density SoC group and
-keeps compatibility with STM32CubeMX and Keil MDK-ARM. Exact orderable parts,
-packages, and memory sizes belong to board manifests.
+The reference ports target the STM32F103xE high-density SoC group and the
+HPM5301 RISC-V MCU. STM32 keeps compatibility with STM32CubeMX and Keil
+MDK-ARM, while HPM5301 uses HPMicro's official SDK and GNU toolchain. Exact
+orderable parts, packages, and memory sizes belong to board manifests.
 
 ## Features
 
@@ -15,6 +16,7 @@ packages, and memory sizes belong to board manifests.
 - GPIO, pinmux, clock, UART, SPI, I2C, CAN, timer, and flash abstractions
 - Console and leveled logging with UART or SEGGER RTT backends
 - STM32F1 reference port and Fire Mini STM32F103 board description
+- HPM5301 official-SDK bring-up application and HPM5301EVKLite board
 - Dependency-free Python generator with unit tests
 
 ## Repository layout
@@ -137,6 +139,20 @@ refuse to overwrite an existing image. Keil metadata stays flat under
 After creation, edit the new directory under `boards/` to match the physical
 PCB before running `yi product create`. The creator refuses to overwrite an
 existing board.
+
+For HPM5301, select the `hpm5301` target and copy the reference EVK:
+
+```powershell
+.\YiCore\yi.cmd board create product-name-hpm5301 `
+  --model hpm5301 `
+  --from-board hpm5301evklite
+.\YiCore\yi.cmd product create --board product-name-hpm5301
+.\YiCore\yi.cmd update
+```
+
+The generated GCC/CMake project uses the official HPM SDK. Set
+`GNURISCV_TOOLCHAIN_PATH` to the toolchain root (not its `bin` directory), then
+configure and build `firmware/projects/gcc`.
 
 ## Documentation
 

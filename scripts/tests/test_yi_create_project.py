@@ -220,6 +220,20 @@ class ProjectCreationTests(unittest.TestCase):
         self.assertEqual(target["vendor_name"], "STMicroelectronics")
         self.assertEqual(target["template"], "stm32f103-dts-demo")
 
+    def test_hpm5301_target_and_reference_board_are_resolved(self):
+        """Resolve the HPM5301 target through its official reference board."""
+
+        targets = load_supported_targets(self.yicore)
+        boards = load_supported_boards(self.yicore)
+        target = resolve_target(targets, model="hpm5301")
+        board = resolve_board(
+            boards, target, "hpm5301evklite"
+        )
+
+        self.assertEqual(target["vendor"], "hpmicro")
+        self.assertEqual(target["series"], "hpm5300")
+        self.assertEqual(board["flash_size"], 1048576)
+
     def test_supported_board_is_resolved_for_target(self):
         targets = load_supported_targets(self.yicore)
         boards = load_supported_boards(self.yicore)

@@ -3,7 +3,7 @@ File: product-project-creation.md
 Description: YiCore independent product project creation and build workflow.
 Author: Don
 Date: 2026-07-29
-Version: 1.0.0
+Version: 1.1.0
 -->
 
 # YiCore 新建产品工程流程
@@ -20,6 +20,7 @@ Windows 开发环境需要：
 - Python 3；
 - Keil MDK（使用 Keil 工程时）；
 - CMake、Ninja 和 Arm GNU Toolchain（使用 GCC 工程时）。
+- HPMicro 推荐的 RISC-V GNU Toolchain（构建 HPM5301 时）。
 
 可先确认基础工具：
 
@@ -29,6 +30,14 @@ python --version
 cmake --version
 ninja --version
 arm-none-eabi-gcc --version
+```
+
+HPM5301 推荐工具链已安装在下列位置时，配置根目录而不是 `bin` 目录：
+
+```powershell
+$env:GNURISCV_TOOLCHAIN_PATH = `
+  "D:\toolchains\rv32imac_zicsr_zifencei_multilib_b_ext-win"
+& "$env:GNURISCV_TOOLCHAIN_PATH\bin\riscv32-unknown-elf-gcc.exe" --version
 ```
 
 ## 2. 创建独立产品仓库
@@ -119,6 +128,27 @@ YiCore 按 Zephyr 的硬件分层区分 SoC 兼容组和具体料号。例如 ST
 
 板卡还必须根据原理图配置时钟、GPIO、复用引脚和外设节点。
 
+HPM5301 日常创建推荐直接使用交互模式：
+
+```powershell
+.\YiCore\yi.cmd board create
+```
+
+依次选择 `HPMicro`、`hpm5301` 和 `HPM5301EVKLite`，然后输入产品板卡 ID、显示名称
+和描述。完整参数形式主要用于脚本和自动化：
+
+```powershell
+.\YiCore\yi.cmd board create product-name-hpm5301 `
+  --model hpm5301 `
+  --from-board hpm5301evklite `
+  --display-name "Product Name HPM5301" `
+  --description "Product Name HPM5301 controller board"
+```
+
+首版工程沿用官方 SDK 的 `hpm5301evklite` 底层板级启动配置。若产品 PCB 的晶振、
+Flash、调试串口或引脚与 EVK 不同，应先在 YiHAL-HPMicro 中增加产品专用 SDK board，
+再修改生成工程中的 `BOARD`，不能只改 YiCore 的 `board.dts`。
+
 ## 4. 生成默认 application 工程
 
 在产品根目录执行以下命令进入板卡选择提示：
@@ -175,6 +205,20 @@ ProductName/
 - `YiCore` 继续作为独立 Git 子模块维护。
 
 如果 application 已经存在，命令会拒绝覆盖。
+
+HPM5301 生成的结构更精简，入口和 CMake 工程分别位于：
+
+```text
+firmware/images/application/main.c
+firmware/projects/gcc/CMakeLists.txt
+```
+
+同时生成 `yi-manifest.yml`，其中固定 YiHAL-HPMicro 版本。执行以下命令会下载该模块并
+递归初始化其中固定版本的官方 `hpm_sdk`：
+
+```powershell
+.\YiCore\yi.cmd update
+```
 
 ## 5. 添加可选固件镜像
 
@@ -237,6 +281,20 @@ firmware/projects/keil/ProductName-test.uvprojx
 ```
 
 构建成功后，对应构建目录中会生成 `.elf`、`.hex`、`.bin` 和 `.map` 文件。
+
+HPM5301 当前使用官方 SDK 的 CMake 入口，构建命令如下：
+
+```powershell
+$env:GNURISCV_TOOLCHAIN_PATH = `
+  "D:\toolchains\rv32imac_zicsr_zifencei_multilib_b_ext-win"
+$env:Path = "C:\Qt\Tools\Ninja;$env:Path"
+
+cmake -S firmware\projects\gcc -B build\application -G Ninja
+cmake --build build\application --parallel
+```
+
+输出位于 `build/application/output/`。当前 HPM5301 路径只生成 application；STM32
+专用的 Keil、MCUboot 和 `image add bootloader|test` 尚未接入 HPM5301。
 
 ## 8. 首次提交建议
 

@@ -293,7 +293,13 @@ class _Parser:
             node.children.append(child)
             return
 
-        name = first.value
+        # Devicetree vendor-prefixed property names use a literal comma.
+        name_parts = [first.value]
+        while self._accept("COMMA") is not None:
+            name_parts.append(
+                self._expect("IDENT", "property name after ','").value
+            )
+        name = ",".join(name_parts)
         if name in node.properties and not allow_override:
             raise self._error(f"duplicate property {name!r}", first)
         if self._accept("SEMI") is not None:

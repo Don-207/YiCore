@@ -1,0 +1,7 @@
+/ {
+    /include/ "../../dts/riscv/hpmicro/hpm5301/soc.dtsi"
+
+    chosen {
+        yi,console = "uart0";
+    };
+};

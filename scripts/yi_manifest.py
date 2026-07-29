@@ -91,6 +91,30 @@ def _git_output(arguments: list[str], cwd: Path) -> str:
     return result.stdout.strip()
 
 
+def _update_submodules(destination: Path, project_name: str) -> None:
+    """Initialize every nested Git submodule in a manifest project.
+
+    Args:
+        destination: Checked-out manifest project directory.
+        project_name: Human-readable project name used in errors.
+    Side effects:
+        Clones and checks out the revisions recorded by nested repositories.
+    Raises:
+        ManifestError: Git cannot initialize a recorded submodule revision.
+    """
+
+    try:
+        subprocess.run(
+            ["git", "submodule", "update", "--init", "--recursive"],
+            cwd=destination,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise ManifestError(
+            f"failed to update submodules: {project_name}"
+        ) from error
+
+
 def update_workspace(
     workspace: Path,
     manifest: dict[str, Any],
@@ -156,6 +180,7 @@ def update_workspace(
                 raise ManifestError(
                     f"failed to update project: {project['name']}"
                 ) from error
+        _update_submodules(destination, project["name"])
         updated.append(project["name"])
     return updated
 

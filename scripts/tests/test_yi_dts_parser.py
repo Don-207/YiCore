@@ -71,6 +71,24 @@ class DtsParserTests(unittest.TestCase):
         self.assertEqual(node.properties["values"], DtsCells((16, 20)))
         self.assertIs(node.properties["enabled"], True)
 
+    def test_vendor_prefixed_property_name(self):
+        """Vendor-prefixed properties retain their standard comma."""
+
+        tree = parse_text(
+            '''
+            / {
+                cpu@0 {
+                    riscv,isa = "rv32imac_zicsr_zifencei";
+                };
+            };
+            '''
+        )
+        cpu = tree.root.children[0]
+        self.assertEqual(
+            cpu.properties["riscv,isa"],
+            "rv32imac_zicsr_zifencei",
+        )
+
     def test_unknown_reference_is_rejected(self):
         with self.assertRaisesRegex(DtsParseError, "unknown label 'missing'"):
             parse_text("/ { node { target = <&missing>; }; };")

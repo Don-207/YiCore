@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -113,6 +114,39 @@ class ManifestTests(unittest.TestCase):
                 ManifestError, "dirty project"
             ):
                 update_workspace(root, manifest)
+
+    def test_update_initializes_nested_submodules(self):
+        """A checked-out manifest project initializes recursive submodules."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            origin, revision = self._create_origin(root)
+            manifest = {
+                "projects": [
+                    {
+                        "name": "local",
+                        "url": origin.as_posix(),
+                        "revision": revision,
+                        "path": "modules/local",
+                    }
+                ]
+            }
+            real_run = subprocess.run
+            with mock.patch(
+                "yi_manifest.subprocess.run", wraps=real_run
+            ) as run:
+                update_workspace(root, manifest)
+            run.assert_any_call(
+                [
+                    "git",
+                    "submodule",
+                    "update",
+                    "--init",
+                    "--recursive",
+                ],
+                cwd=root / "modules" / "local",
+                check=True,
+            )
 
     def test_optional_project_is_skipped_by_default(self):
         """Optional SDK repositories require explicit all-project updates."""

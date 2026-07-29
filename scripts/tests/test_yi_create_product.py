@@ -76,6 +76,43 @@ class ProductCreationTests(unittest.TestCase):
                 ).is_file()
             )
 
+    def test_hpm5301_product_uses_official_sdk_build(self):
+        """Generate an HPM5301 product without STM32 or Keil artifacts."""
+
+        targets = load_supported_targets(self.yicore)
+        boards = load_supported_boards(self.yicore)
+        target = resolve_target(targets, model="hpm5301")
+        board = resolve_board(
+            boards, target, "hpm5301evklite"
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            product = create_product(
+                self.yicore,
+                "HpmProduct",
+                board,
+                target,
+                Path(temporary),
+            )
+            cmake = (
+                product / "firmware/projects/gcc/CMakeLists.txt"
+            ).read_text(encoding="utf-8")
+            main_source = (
+                product / "firmware/images/application/main.c"
+            ).read_text(encoding="utf-8")
+            manifest = (
+                product / "yi-manifest.yml"
+            ).read_text(encoding="utf-8")
+
+            self.assertIn("find_package(hpm-sdk REQUIRED", cmake)
+            self.assertIn('BOARD "hpm5301evklite"', cmake)
+            self.assertIn("yi_riscv_irq.c", cmake)
+            self.assertIn("board_init()", main_source)
+            self.assertIn("YiHAL-HPMicro", manifest)
+            self.assertFalse(
+                (product / "firmware/projects/keil").exists()
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,12 +1,12 @@
 # RISC-V architecture boundary
 
-Status: reserved, not buildable.
+Status: architecture primitives available; hardware build pending.
 
 This directory owns architecture-wide RISC-V startup contracts, trap entry,
 interrupt state primitives and toolchain definitions shared by future YiCore
 RISC-V platforms. SoC register definitions and vendor runtime code do not
 belong here.
 
-The first consumer is HPMicro HPM5300. Its exact ISA and ABI flags must be
-copied from the pinned HPM5301 SDK configuration and validated with the
-selected toolchain before architecture sources are added.
+`yi_riscv_irq.h` provides machine-mode interrupt save/restore and memory
+barriers without depending on a silicon vendor. The first consumer is HPMicro
+HPM5300; startup and trap entry continue to come from the pinned official SDK.

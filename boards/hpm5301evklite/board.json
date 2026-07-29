@@ -1,0 +1,11 @@
+{
+  "id": "hpm5301evklite",
+  "name": "HPM5301EVKLite",
+  "vendor": "hpmicro",
+  "series": "hpm5300",
+  "model": "hpm5301",
+  "part": "hpm5301xegx",
+  "flash_size": 1048576,
+  "ram_size": 294912,
+  "description": "Official HPM5301EVKLite reference board"
+}

@@ -1,6 +1,7 @@
 # HPM5300 backend reservation
 
-Status: reserved, not buildable.
+Status: minimum official-SDK bring-up application available; platform adapter
+and YiCore peripheral backends remain reserved.
 
 This directory is the YiCore backend boundary for the HPM5300 family and the
 HPM5301 model. It will adapt the pinned official HPM SDK to existing `yi_*`
@@ -19,3 +20,8 @@ the HPM5301EVKLite SDK target:
 Bring-up proceeds through startup/linker and traps, clock/timebase, polling
 UART, then GPIO/pinmux. Interrupt-driven peripherals and DMA follow only after
 the minimum image runs on hardware.
+
+The first build target is `applications/hpm5301-bringup`. It deliberately uses
+the SDK's `hpm5301evklite` board sources, startup, trap handler, boot header and
+`flash_xip.ld`. This validates the architecture boundary before YiCore replaces
+any board-facing service.
