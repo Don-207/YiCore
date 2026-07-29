@@ -24,6 +24,7 @@ from yi_create_project import (
     load_supported_targets,
     resolve_board,
     resolve_target,
+    select_board_any_interactive,
     select_board_interactive,
     select_target_interactive,
 )
@@ -214,7 +215,7 @@ def _create_parser() -> argparse.ArgumentParser:
     product_create = product_commands.add_parser(
         "create", help="create the application layout in a product root"
     )
-    product_create.add_argument("--board", required=True)
+    product_create.add_argument("--board")
     product_create.add_argument(
         "--product-root", type=Path, default=Path.cwd()
     )
@@ -404,14 +405,14 @@ def create_board_for_product(yicore_root: Path, args: argparse.Namespace) -> Pat
 
 
 def create_product_in_place(
-    yicore_root: Path, product_root: Path, board_id: str
+    yicore_root: Path, product_root: Path, board_id: str | None
 ) -> Path:
     """Create the standard firmware layout in an existing product root.
 
     Args:
         yicore_root: YiCore repository root.
         product_root: Existing independent product repository.
-        board_id: Product-local board identifier.
+        board_id: Product-local board identifier, or None to prompt.
     Returns:
         Absolute product root.
     Side effects:
@@ -423,8 +424,14 @@ def create_product_in_place(
         raise YiCliError(
             f"YiCore submodule not found below product root: {product_root}"
         )
+    if board_id is None and not sys.stdin.isatty():
+        raise YiCliError(
+            "product create requires --board when stdin is not interactive"
+        )
     board_root = product_root
     boards = load_supported_boards(board_root)
+    if board_id is None:
+        board_id = select_board_any_interactive(boards)["id"]
     board = resolve_board(boards, board_id=board_id)
     targets = load_supported_targets(yicore_root)
     target = resolve_target(

@@ -20,6 +20,7 @@ from yi_cli import (  # noqa: E402
     _create_parser,
     build_app,
     create_board_for_product,
+    create_product_in_place,
     list_boards,
     sdk_list,
     sdk_verify,
@@ -66,6 +67,64 @@ class YiCliTests(unittest.TestCase):
         self.assertEqual(product.product_root, Path.cwd())
         self.assertEqual(image.image_command, "add")
         self.assertEqual(image.image, "bootloader")
+
+    def test_product_create_parser_accepts_interactive_board_selection(self):
+        """Product creation may obtain its board from an interactive list."""
+
+        args = _create_parser().parse_args(["product", "create"])
+
+        self.assertIsNone(args.board)
+
+    def test_product_create_interactive_selects_product_local_board(self):
+        """Prompt mode resolves a board registered below the product root."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            product = Path(temporary)
+            marker = product / "YiCore" / "scripts" / "yi_cli.py"
+            board = product / "boards" / "product-board"
+            marker.parent.mkdir(parents=True)
+            marker.write_text("# marker\n", encoding="utf-8")
+            board.mkdir(parents=True)
+            (board / "board.json").write_text(
+                '{"id":"product-board","name":"Product Board",'
+                '"vendor":"st","series":"stm32f1",'
+                '"model":"stm32f103xe","description":"Test board"}\n',
+                encoding="utf-8",
+            )
+            (board / "board.dts").write_text(
+                "/dts-v1/;\n/ {};\n", encoding="utf-8"
+            )
+
+            with (
+                patch("yi_cli.sys.stdin.isatty", return_value=True),
+                patch("builtins.input", return_value="product-board"),
+                patch(
+                    "yi_cli.create_application_in_place",
+                    return_value=product,
+                ) as create,
+            ):
+                result = create_product_in_place(
+                    SCRIPTS_DIR.parent, product, None
+                )
+
+        self.assertEqual(result, product)
+        self.assertEqual(create.call_args.args[2]["id"], "product-board")
+
+    def test_product_create_noninteractive_requires_board_argument(self):
+        """Automation must provide --board instead of waiting for input."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            product = Path(temporary)
+            marker = product / "YiCore" / "scripts" / "yi_cli.py"
+            marker.parent.mkdir(parents=True)
+            marker.write_text("# marker\n", encoding="utf-8")
+            with (
+                patch("yi_cli.sys.stdin.isatty", return_value=False),
+                self.assertRaisesRegex(YiCliError, "requires --board"),
+            ):
+                create_product_in_place(
+                    SCRIPTS_DIR.parent, product, None
+                )
 
     def test_board_create_parser_accepts_interactive_mode(self):
         """Board creation may omit values that an interactive terminal asks."""

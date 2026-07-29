@@ -570,6 +570,31 @@ def select_board_interactive(
     )
 
 
+def select_board_any_interactive(
+    boards: list[dict[str, str]]
+) -> dict[str, str]:
+    """Prompt for any registered product board.
+
+    Args:
+        boards: Validated board manifests available in the product.
+    Returns:
+        Board manifest selected by number or board identifier.
+    Side effects:
+        Writes choices to stdout and reads a selection from stdin.
+    """
+
+    if not boards:
+        raise ProjectCreationError("product has no registered boards")
+    return _select_option(
+        "Product boards:",
+        boards,
+        lambda item: (
+            f"{item['name']} ({item['id']}, {item['model']})"
+        ),
+        lambda item: item["id"],
+    )
+
+
 def resolve_target(
     targets: list[dict[str, str]],
     vendor: str | None = None,

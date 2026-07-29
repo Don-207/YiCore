@@ -26,6 +26,7 @@ from yi_create_project import (  # noqa: E402
     resolve_board,
     resolve_target,
     select_board_interactive,
+    select_board_any_interactive,
     select_target_interactive,
 )
 from yi_dts_parser import DtsCells, parse_file  # noqa: E402
@@ -331,6 +332,17 @@ class ProjectCreationTests(unittest.TestCase):
             board = select_board_interactive(boards, target)
 
         self.assertEqual(board["id"], "board-b")
+
+    def test_interactive_product_board_selection_accepts_board_id(self):
+        """Product board selection accepts a stable board identifier."""
+
+        boards = load_supported_boards(self.yicore)
+        with patch(
+            "builtins.input", return_value="fire-mini-stm32f103"
+        ):
+            board = select_board_any_interactive(boards)
+
+        self.assertEqual(board["id"], "fire-mini-stm32f103")
 
 
 if __name__ == "__main__":

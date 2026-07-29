@@ -105,7 +105,14 @@ boards/product-name-stm32f103/
 
 ## 4. 生成默认 application 工程
 
-在产品根目录执行：
+在产品根目录执行以下命令进入板卡选择提示：
+
+```powershell
+.\YiCore\yi.cmd product create
+```
+
+命令会列出当前产品 `boards/` 下注册的板卡，可输入序号或板卡 ID。也可以直接通过
+参数指定板卡，适用于自动化：
 
 ```powershell
 .\YiCore\yi.cmd product create --board product-name-stm32f103
