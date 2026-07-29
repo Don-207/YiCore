@@ -23,6 +23,13 @@ third_party/mcuboot-2.4.0/**/*.b64
 # Product host tools live in their own repositories.
 /Tools/
 
+# Pruned vendor content that is not part of the YiCore STM32 build.
+/vendor/st/cmsis/DSP/Examples/
+/vendor/st/cmsis/NN/Examples/
+/vendor/st/cmsis/NN/NN_Lib_Tests/
+/vendor/st/cmsis/Lib/IAR/
+/vendor/st/cmsis/Lib/ARM/arm_cortexM3b_math.lib
+
 # Keil build output and per-user settings
 **/MDK-ARM/*/
 **/MDK-ARM/*.log
