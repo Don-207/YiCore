@@ -8,6 +8,7 @@ Version: 1.0.0
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import tempfile
@@ -306,6 +307,24 @@ def create_product(
             shutil.copytree(
                 template_root / "linker", linker, dirs_exist_ok=True
             )
+            flash_size = board.get("flash_size")
+            ram_size = board.get("ram_size")
+            if isinstance(flash_size, int) and isinstance(ram_size, int):
+                for linker_file in linker.glob("*.ld"):
+                    linker_text = linker_file.read_text(encoding="utf-8")
+                    linker_text = re.sub(
+                        r"(FLASH\s+\(rx\).*?LENGTH\s*=\s*)\S+",
+                        rf"\g<1>{flash_size}",
+                        linker_text,
+                    )
+                    linker_text = re.sub(
+                        r"(RAM\s+\(xrw\).*?LENGTH\s*=\s*)\S+",
+                        rf"\g<1>{ram_size}",
+                        linker_text,
+                    )
+                    linker_file.write_text(
+                        linker_text, encoding="utf-8", newline="\n"
+                    )
             subprocess.run(
                 [
                     "git",

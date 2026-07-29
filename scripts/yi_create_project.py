@@ -35,6 +35,18 @@ _REQUIRED_TARGET_FIELDS = (
     "template",
     "description",
 )
+_OPTIONAL_BOARD_STRING_FIELDS = (
+    "part",
+    "keil_device",
+    "cube_cpn",
+    "cube_name",
+    "cube_package",
+    "cube_user_name",
+)
+_OPTIONAL_BOARD_SIZE_FIELDS = (
+    "flash_size",
+    "ram_size",
+)
 _REQUIRED_BOARD_FIELDS = (
     "id",
     "name",
@@ -383,7 +395,6 @@ def load_supported_targets(repo_root: Path) -> list[dict[str, str]]:
                     f"target registry entry {index} missing {field}"
                 )
             target[field] = value
-
         _validate_name(target["vendor"], "vendor id")
         _validate_name(target["series"], "chip series")
         _validate_name(target["model"], "chip model")
@@ -428,6 +439,22 @@ def load_supported_boards(repo_root: Path) -> list[dict[str, str]]:
                     f"board manifest missing {field}: {manifest_path}"
                 )
             board[field] = value
+        for field in _OPTIONAL_BOARD_STRING_FIELDS:
+            value = raw_board.get(field)
+            if value is not None:
+                if not isinstance(value, str) or not value:
+                    raise ProjectCreationError(
+                        f"board manifest invalid {field}: {manifest_path}"
+                    )
+                board[field] = value
+        for field in _OPTIONAL_BOARD_SIZE_FIELDS:
+            value = raw_board.get(field)
+            if value is not None:
+                if not isinstance(value, int) or value <= 0:
+                    raise ProjectCreationError(
+                        f"board manifest invalid {field}: {manifest_path}"
+                    )
+                board[field] = value
 
         _validate_name(board["id"], "board id")
         _validate_name(board["vendor"], "vendor id")
@@ -676,6 +703,9 @@ def create_project(
         raise ProjectCreationError(f"template not found: {template}")
     if not board_dts.is_file():
         raise ProjectCreationError(f"board not found: {board_dts}")
+    board_entry = resolve_board(
+        load_supported_boards(resolved_board_root), target, board
+    )
     if destination.exists():
         raise ProjectCreationError(f"destination already exists: {destination}")
 
@@ -712,6 +742,42 @@ def create_project(
             template / "MDK-ARM" / f"{template_name}.uvprojx"
         ).read_text(encoding="utf-8")
         project_text = project_template.replace(template_name, name)
+        if board_entry.get("keil_device"):
+            project_text = re.sub(
+                r"<Device>STM32F103[A-Z0-9]+</Device>",
+                f"<Device>{board_entry['keil_device']}</Device>",
+                project_text,
+                count=1,
+            )
+        flash_size = board_entry.get("flash_size")
+        ram_size = board_entry.get("ram_size")
+        if isinstance(flash_size, int) and isinstance(ram_size, int):
+            flash_end = 0x08000000 + flash_size - 1
+            ram_end = 0x20000000 + ram_size - 1
+            project_text = re.sub(
+                r"<Cpu>.*?</Cpu>",
+                (
+                    f"<Cpu>IRAM(0x20000000-0x{ram_end:X}) "
+                    f"IROM(0x8000000-0x{flash_end:X})  CLOCK(8000000) "
+                    'CPUTYPE("Cortex-M3") TZ</Cpu>'
+                ),
+                project_text,
+                count=1,
+            )
+            project_text = re.sub(
+                r"(<IRAM>.*?<Size>)0x[0-9a-fA-F]+(</Size>)",
+                rf"\g<1>0x{ram_size:X}\g<2>",
+                project_text,
+                count=1,
+                flags=re.DOTALL,
+            )
+            project_text = re.sub(
+                r"(<IROM>.*?<Size>)0x[0-9a-fA-F]+(</Size>)",
+                rf"\g<1>0x{flash_size:X}\g<2>",
+                project_text,
+                count=1,
+                flags=re.DOTALL,
+            )
 
         # Generated files are application-local so parallel projects do not
         # overwrite each other's DeviceTree output.
@@ -742,6 +808,22 @@ def create_project(
         ioc_text = (template / f"{template_name}.ioc").read_text(
             encoding="utf-8"
         ).replace(template_name, name)
+        if board_entry:
+            ioc_replacements = {
+                "Mcu.CPN": board_entry.get("cube_cpn"),
+                "Mcu.Name": board_entry.get("cube_name"),
+                "Mcu.Package": board_entry.get("cube_package"),
+                "Mcu.UserName": board_entry.get("cube_user_name"),
+                "ProjectManager.DeviceId": board_entry.get("cube_user_name"),
+            }
+            for key, value in ioc_replacements.items():
+                if value:
+                    ioc_text = re.sub(
+                        rf"^{re.escape(key)}=.*$",
+                        f"{key}={value}",
+                        ioc_text,
+                        flags=re.MULTILINE,
+                    )
         (destination / f"{name}.ioc").write_text(
             ioc_text, encoding="utf-8", newline="\n"
         )

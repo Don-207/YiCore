@@ -70,6 +70,8 @@ _CLOCK_ID_MAP = {
     "gpioc": "YI_STM32_CLOCK_GPIOC",
     "gpiod": "YI_STM32_CLOCK_GPIOD",
     "gpioe": "YI_STM32_CLOCK_GPIOE",
+    "gpiof": "YI_STM32_CLOCK_GPIOF",
+    "gpiog": "YI_STM32_CLOCK_GPIOG",
     "usart1": "YI_STM32_CLOCK_USART1",
     "usart2": "YI_STM32_CLOCK_USART2",
     "usart3": "YI_STM32_CLOCK_USART3",
@@ -1266,6 +1268,8 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str,
         raise BindingError(f"no code generator for drivers: {', '.join(unsupported)}")
 
     headers = sorted({item.binding.header for item in ordered})
+    if any(item.binding.driver == "gpio" for item in ordered):
+        headers.append("stm32f1xx.h")
     includes = "\n".join(f'#include "{header}"' for header in headers)
     bodies = "\n\n".join(_GENERATORS[item.binding.driver](item) for item in ordered)
     c_source = f"""/*

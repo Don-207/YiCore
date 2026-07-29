@@ -35,6 +35,16 @@ static int yi_clock_set(yi_stm32_clock_id_t id, bool enabled)
         if(enabled) { __HAL_RCC_GPIOE_CLK_ENABLE(); } else { __HAL_RCC_GPIOE_CLK_DISABLE(); }
         break;
 #endif
+#if defined(GPIOF)
+    case YI_STM32_CLOCK_GPIOF:
+        if(enabled) { __HAL_RCC_GPIOF_CLK_ENABLE(); } else { __HAL_RCC_GPIOF_CLK_DISABLE(); }
+        break;
+#endif
+#if defined(GPIOG)
+    case YI_STM32_CLOCK_GPIOG:
+        if(enabled) { __HAL_RCC_GPIOG_CLK_ENABLE(); } else { __HAL_RCC_GPIOG_CLK_DISABLE(); }
+        break;
+#endif
     case YI_STM32_CLOCK_USART1:
         if(enabled) { __HAL_RCC_USART1_CLK_ENABLE(); } else { __HAL_RCC_USART1_CLK_DISABLE(); }
         break;
@@ -166,6 +176,8 @@ uint32_t yi_clock_get_rate(yi_device_t *dev)
     case YI_STM32_CLOCK_GPIOC:
     case YI_STM32_CLOCK_GPIOD:
     case YI_STM32_CLOCK_GPIOE:
+    case YI_STM32_CLOCK_GPIOF:
+    case YI_STM32_CLOCK_GPIOG:
         /**
          * @brief Perform the HAL RCC GetHCLKFreq operation.
          */

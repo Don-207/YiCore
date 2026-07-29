@@ -139,9 +139,9 @@ target_compile_options("yi-product-${YI_PRODUCT_IMAGE}.elf" PRIVATE
     -Wall -Wextra)
 target_link_options("yi-product-${YI_PRODUCT_IMAGE}.elf" PRIVATE
     -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
-    -T"${YI_PRODUCT_ROOT}/firmware/linker/gcc/stm32f103xe-standalone.ld"
+    -T${YI_PRODUCT_ROOT}/firmware/linker/gcc/stm32f103xe-standalone.ld
     -Wl,--gc-sections
-    -Wl,-Map="${CMAKE_BINARY_DIR}/yi-product-${YI_PRODUCT_IMAGE}.map"
+    -Wl,-Map=${CMAKE_BINARY_DIR}/yi-product-${YI_PRODUCT_IMAGE}.map
     --specs=nosys.specs)
 
 add_custom_command(TARGET "yi-product-${YI_PRODUCT_IMAGE}.elf" POST_BUILD

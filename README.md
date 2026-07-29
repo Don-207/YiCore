@@ -4,8 +4,9 @@ YiCore is a lightweight DeviceTree-based embedded device framework for MCUs,
 bootloaders, and bare-metal applications.
 
 It separates application code from board configuration and vendor HAL details.
-The current reference port targets STM32F103xE and keeps compatibility with
-STM32CubeMX and Keil MDK-ARM.
+The current reference port targets the STM32F103xE high-density SoC group and
+keeps compatibility with STM32CubeMX and Keil MDK-ARM. Exact orderable parts,
+packages, and memory sizes belong to board manifests.
 
 ## Features
 
@@ -109,6 +110,11 @@ git submodule update --init --recursive
 .\YiCore\yi.cmd product create --board product-name-stm32f103
 ```
 
+Following Zephyr's hardware layering, `stm32f103xe` identifies the shared SoC
+and CMSIS compatibility group. A board using STM32F103ZCT6 keeps
+`"model": "stm32f103xe"` and records its exact `"part"`, package, Flash, and
+RAM in `board.json`.
+
 The board is generated below the product root at
 `boards/product-name-stm32f103`. The product command then creates shared
 `firmware/common`, the default `firmware/images/application`, flat Keil and
@@ -124,8 +130,9 @@ Add optional images from the product root:
 
 Adding the bootloader initializes the pinned MCUboot dependency. Both commands
 refuse to overwrite an existing image. Keil metadata stays flat under
-`firmware/projects/keil`; GCC uses one CMake entry selected with
-`YI_PRODUCT_IMAGE=application|bootloader|test`.
+`firmware/projects/keil`. From the product root,
+`.\YiCore\yi.cmd build` builds the GCC application; use
+`--image bootloader|test` for optional images.
 
 After creation, edit the new directory under `boards/` to match the physical
 PCB before running `yi product create`. The creator refuses to overwrite an
