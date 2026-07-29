@@ -12,6 +12,7 @@ import argparse
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from yi_create_app import AppCreationError, create_app
@@ -23,6 +24,8 @@ from yi_create_project import (
     load_supported_targets,
     resolve_board,
     resolve_target,
+    select_board_interactive,
+    select_target_interactive,
 )
 from yi_manifest import (
     ManifestError,
@@ -189,13 +192,13 @@ def _create_parser() -> argparse.ArgumentParser:
     board_create = board_commands.add_parser(
         "create", help="create a product-local board"
     )
-    board_create.add_argument("board_id")
+    board_create.add_argument("board_id", nargs="?")
     board_create.add_argument("--display-name")
     board_create.add_argument("--description")
     board_create.add_argument("--vendor")
     board_create.add_argument("--series")
     board_create.add_argument("--model")
-    board_create.add_argument("--from-board", required=True)
+    board_create.add_argument("--from-board")
     board_create.add_argument(
         "--output-root",
         type=Path,
@@ -336,20 +339,57 @@ def create_board_for_product(yicore_root: Path, args: argparse.Namespace) -> Pat
 
     targets = load_supported_targets(yicore_root)
     boards = load_supported_boards(yicore_root)
-    source_board = resolve_board(boards, board_id=args.from_board)
-    target = resolve_target(
-        targets,
-        args.vendor or source_board["vendor"],
-        args.series or source_board["series"],
-        args.model or source_board["model"],
-    )
+    interactive = args.board_id is None or args.from_board is None
+    if interactive and not sys.stdin.isatty():
+        raise YiCliError(
+            "board create requires board_id and --from-board when stdin "
+            "is not interactive"
+        )
+
+    if args.from_board is not None:
+        source_board = resolve_board(boards, board_id=args.from_board)
+        target = resolve_target(
+            targets,
+            args.vendor or source_board["vendor"],
+            args.series or source_board["series"],
+            args.model or source_board["model"],
+        )
+        resolve_board(boards, target, source_board["id"])
+    else:
+        target = (
+            resolve_target(
+                targets, args.vendor, args.series, args.model
+            )
+            if any((args.vendor, args.series, args.model))
+            else select_target_interactive(targets)
+        )
+        source_board = select_board_interactive(boards, target)
+
+    board_id = args.board_id
+    if board_id is None:
+        board_id = input("New board id: ").strip()
+        if not board_id:
+            raise YiCliError("board id must not be empty")
+
+    display_name = args.display_name
+    if display_name is None and interactive:
+        answer = input(
+            f"Display name [{board_id.replace('-', ' ').title()}]: "
+        ).strip()
+        display_name = answer or None
+
+    description = args.description
+    if description is None and interactive:
+        answer = input("Description [automatic]: ").strip()
+        description = answer or None
+
     destination = create_board(
         yicore_root,
-        args.board_id,
+        board_id,
         target,
         source_board,
-        args.display_name,
-        args.description,
+        display_name,
+        description,
         args.output_root,
     )
     board_dts = destination / "board.dts"

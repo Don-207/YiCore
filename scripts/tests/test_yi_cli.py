@@ -19,6 +19,7 @@ from yi_cli import (  # noqa: E402
     YiCliError,
     _create_parser,
     build_app,
+    create_board_for_product,
     list_boards,
     sdk_list,
     sdk_verify,
@@ -65,6 +66,83 @@ class YiCliTests(unittest.TestCase):
         self.assertEqual(product.product_root, Path.cwd())
         self.assertEqual(image.image_command, "add")
         self.assertEqual(image.image, "bootloader")
+
+    def test_board_create_parser_accepts_interactive_mode(self):
+        """Board creation may omit values that an interactive terminal asks."""
+
+        args = _create_parser().parse_args(["board", "create"])
+
+        self.assertIsNone(args.board_id)
+        self.assertIsNone(args.from_board)
+
+    def test_board_create_interactive_prompts_for_missing_values(self):
+        """Prompt mode selects a target and reference board before creation."""
+
+        parser = _create_parser()
+        with tempfile.TemporaryDirectory() as temporary:
+            output_root = Path(temporary) / "boards"
+            args = parser.parse_args(
+                [
+                    "board",
+                    "create",
+                    "--output-root",
+                    str(output_root),
+                ]
+            )
+            answers = [
+                "st",
+                "stm32f103xe",
+                "fire-mini-stm32f103",
+                "prompt-board",
+                "",
+                "",
+            ]
+            with (
+                patch("yi_cli.sys.stdin.isatty", return_value=True),
+                patch("builtins.input", side_effect=answers),
+            ):
+                result = create_board_for_product(
+                    SCRIPTS_DIR.parent, args
+                )
+
+        self.assertEqual(result.name, "prompt-board")
+        self.assertEqual(result.parent, output_root)
+
+    def test_board_create_noninteractive_requires_key_arguments(self):
+        """Automation fails clearly instead of waiting for hidden prompts."""
+
+        args = _create_parser().parse_args(["board", "create"])
+        with (
+            patch("yi_cli.sys.stdin.isatty", return_value=False),
+            self.assertRaisesRegex(YiCliError, "requires board_id"),
+        ):
+            create_board_for_product(SCRIPTS_DIR.parent, args)
+
+    def test_board_create_parameter_mode_does_not_prompt(self):
+        """Complete command-line arguments preserve automation behavior."""
+
+        parser = _create_parser()
+        with tempfile.TemporaryDirectory() as temporary:
+            args = parser.parse_args(
+                [
+                    "board",
+                    "create",
+                    "parameter-board",
+                    "--from-board",
+                    "fire-mini-stm32f103",
+                    "--output-root",
+                    str(Path(temporary) / "boards"),
+                ]
+            )
+            with patch(
+                "builtins.input",
+                side_effect=AssertionError("unexpected prompt"),
+            ):
+                result = create_board_for_product(
+                    SCRIPTS_DIR.parent, args
+                )
+
+        self.assertEqual(result.name, "parameter-board")
 
     def test_build_invokes_configure_then_compile(self):
         """A valid app produces CMake configure and build commands."""
