@@ -74,6 +74,17 @@ class PlatformRegistryTests(unittest.TestCase):
             platform["backend"], "soc/gigadevice/gd32f30x"
         )
 
+    def test_hpm5300_is_reserved_for_riscv(self):
+        """HPM5300 has an explicit RISC-V boundary before build enablement."""
+
+        platform = next(
+            item for item in self.platforms
+            if item["id"] == "hpmicro-hpm5300"
+        )
+        self.assertEqual(platform["status"], "reserved")
+        self.assertEqual(platform["arch"], "riscv")
+        self.assertEqual(platform["backend"], "soc/hpmicro/hpm5300")
+
 
 if __name__ == "__main__":
     unittest.main()

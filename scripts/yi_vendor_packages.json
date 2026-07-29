@@ -29,5 +29,19 @@
       "GD32F30x_standard_peripheral/Include/gd32f30x_usart.h",
       "GD32F30x_standard_peripheral/Include/gd32f30x_dma.h"
     ]
+  },
+  {
+    "id": "hpmicro-hpm5300",
+    "vendor": "hpmicro",
+    "family": "hpm5300",
+    "package": "HPM SDK",
+    "version": "88b01b43900d8c30844a1e5cdd3f3b7aff6db40e",
+    "source": "https://github.com/hpmicro/hpm_sdk",
+    "path": "modules/hal/hpmicro/hpm_sdk",
+    "status": "pending",
+    "required": [
+      "soc/HPM5300/HPM5301/CMakeLists.txt",
+      "boards/hpm5301evklite/hpm5301evklite.yaml"
+    ]
   }
 ]

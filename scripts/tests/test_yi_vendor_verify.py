@@ -48,6 +48,22 @@ class VendorPackageTests(unittest.TestCase):
         self.assertEqual(gd_package["status"], "pending")
         self.assertEqual(gd_package["version"], "3.0.3")
 
+    def test_pending_hpmicro_package_uses_external_module(self):
+        """HPM SDK is registered at the workspace module boundary."""
+
+        packages = load_packages(
+            SCRIPTS_DIR / "yi_vendor_packages.json"
+        )
+        hpm_package = next(
+            package
+            for package in packages
+            if package["family"] == "hpm5300"
+        )
+        self.assertEqual(hpm_package["status"], "pending")
+        self.assertEqual(
+            hpm_package["path"], "modules/hal/hpmicro/hpm_sdk"
+        )
+
     def test_ready_package_reports_missing_files(self):
         """A ready declaration must fail verification when files are absent."""
 

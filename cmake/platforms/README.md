@@ -21,3 +21,5 @@ Reserved:
 
 - `gigadevice-gd32f30x.cmake`: added only after the official package, exact
   target memory layout, startup source and first board are validated.
+- `hpmicro-hpm5300.cmake`: added after the pinned HPM SDK can be validated
+  against HPM5301EVKLite startup, ISA/ABI flags and flash memory layout.

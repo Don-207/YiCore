@@ -16,5 +16,14 @@
     "backend": "soc/gigadevice/gd32f30x",
     "vendor_package": "gigadevice-gd32f30x",
     "status": "reserved"
+  },
+  {
+    "id": "hpmicro-hpm5300",
+    "arch": "riscv",
+    "vendor": "hpmicro",
+    "family": "hpm5300",
+    "backend": "soc/hpmicro/hpm5300",
+    "vendor_package": "hpmicro-hpm5300",
+    "status": "reserved"
   }
 ]
