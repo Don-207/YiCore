@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #define YI_BUILD_INFO_MAGIC 0x59494249U
-#define YI_BUILD_INFO_FORMAT_VERSION 1U
+#define YI_BUILD_INFO_FORMAT_VERSION 2U
 
 typedef struct
 {
@@ -26,7 +26,11 @@ typedef struct
     char image[16]; /**< Image value. */
     char version[32]; /**< Version value. */
     char build_date[11]; /**< Build date value. */
-    char build_time[9]; /**< Build time value. */} yi_build_info_t;
+    char build_time[9]; /**< Build time value. */
+    char project_name[16]; /**< Stable product/project display name. */
+    uint16_t project_id; /**< Stable numeric product compatibility identifier. */
+    uint16_t reserved; /**< Reserved for future format extensions; must be zero. */
+} yi_build_info_t;
 
 extern const yi_build_info_t yi_build_info;
 
