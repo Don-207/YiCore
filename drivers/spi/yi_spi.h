@@ -16,6 +16,7 @@ typedef struct
     uint32_t frequency; /**< Frequency value. */
     yi_device_t *cs_gpio; /**< Cs gpio value. */
     uint8_t mode; /**< Mode value. */
+    bool lsb_first; /**< True to shift the least-significant bit first. */
     bool cs_active_high; /**< Cs active high value. */} yi_spi_transfer_config_t;
 
 typedef struct

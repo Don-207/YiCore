@@ -25,6 +25,7 @@ int yi_spi_transceive(yi_device_t *dev,
                       uint16_t length, uint32_t timeout_ms)
 {
     const yi_spi_api_t *api;
+    const yi_gpio_api_t *gpio_api = NULL;
     yi_gpio_value_t cs_active;
     int result;
 
@@ -36,6 +37,14 @@ int yi_spi_transceive(yi_device_t *dev,
     {
         return -1;
     }
+    if(config->cs_gpio != NULL)
+    {
+        gpio_api = (const yi_gpio_api_t *)config->cs_gpio->api;
+        if((gpio_api == NULL) || (gpio_api->set == NULL))
+        {
+            return -1;
+        }
+    }
 
     api = (const yi_spi_api_t *)dev->api;
     if(api->transceive == NULL) { return -1; }
@@ -43,10 +52,10 @@ int yi_spi_transceive(yi_device_t *dev,
     cs_active = config->cs_active_high ? YI_GPIO_HIGH : YI_GPIO_LOW;
     if(config->cs_gpio != NULL)
     {
-        if((yi_gpio_set(config->cs_gpio,
-                        cs_active == YI_GPIO_HIGH
-                        ? YI_GPIO_LOW : YI_GPIO_HIGH) != 0) ||
-           (yi_gpio_set(config->cs_gpio, cs_active) != 0))
+        if((gpio_api->set(config->cs_gpio,
+                          cs_active == YI_GPIO_HIGH
+                          ? YI_GPIO_LOW : YI_GPIO_HIGH) != 0) ||
+           (gpio_api->set(config->cs_gpio, cs_active) != 0))
         {
             return -1;
         }
@@ -54,9 +63,9 @@ int yi_spi_transceive(yi_device_t *dev,
 
     result = api->transceive(dev, config, tx, rx, length, timeout_ms);
     if((config->cs_gpio != NULL) &&
-       (yi_gpio_set(config->cs_gpio,
-                    cs_active == YI_GPIO_HIGH
-                    ? YI_GPIO_LOW : YI_GPIO_HIGH) != 0))
+       (gpio_api->set(config->cs_gpio,
+                      cs_active == YI_GPIO_HIGH
+                      ? YI_GPIO_LOW : YI_GPIO_HIGH) != 0))
     {
         result = -1;
     }

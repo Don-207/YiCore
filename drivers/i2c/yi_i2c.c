@@ -10,6 +10,24 @@
 #include "yi_i2c.h"
 
 /**
+ * @brief Configure the I2C bus clock frequency.
+ * @param dev Device instance.
+ * @param frequency Requested bus frequency in hertz.
+ * @return Zero on success or a negative driver error.
+ */
+int yi_i2c_configure(yi_device_t *dev, uint32_t frequency)
+{
+    const yi_i2c_api_t *api;
+
+    if(!yi_device_is_ready(dev) || (dev->api == NULL) || (frequency == 0U))
+    {
+        return -1;
+    }
+    api = (const yi_i2c_api_t *)dev->api;
+    return (api->configure != NULL) ? api->configure(dev, frequency) : -1;
+}
+
+/**
  * @brief Transfer the module.
  * @param dev Device instance.
  * @param address Address value.

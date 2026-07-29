@@ -255,4 +255,7 @@ finish:
     return result;
 }
 
-const yi_i2c_api_t yi_soft_i2c_api = { .transfer = yi_soft_i2c_transfer };
+const yi_i2c_api_t yi_soft_i2c_api = {
+    .configure = NULL,
+    .transfer = yi_soft_i2c_transfer
+};

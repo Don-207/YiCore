@@ -88,4 +88,7 @@ void yi_i2c_stm32_event_irq_handler(yi_device_t *dev)
 void yi_i2c_stm32_error_irq_handler(yi_device_t *dev)
 { if((dev != NULL) && (dev->data != NULL)) HAL_I2C_ER_IRQHandler(&((yi_i2c_stm32_data_t *)dev->data)->hi2c); }
 
-const yi_i2c_api_t yi_i2c_stm32_api = { .transfer = yi_i2c_stm32_transfer };
+const yi_i2c_api_t yi_i2c_stm32_api = {
+    .configure = NULL,
+    .transfer = yi_i2c_stm32_transfer
+};

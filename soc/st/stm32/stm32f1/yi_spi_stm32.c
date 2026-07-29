@@ -146,7 +146,8 @@ static int yi_spi_stm32_transceive(yi_device_t *dev,
         return -1;
     }
     if((data->frequency != config->frequency) ||
-       (data->mode != config->mode))
+       (data->mode != config->mode) ||
+       (data->lsb_first != config->lsb_first))
     {
         prescaler = yi_spi_stm32_prescaler(
             yi_stm32_periph_clock_rate(&cfg->clock), config->frequency);
@@ -161,12 +162,15 @@ static int yi_spi_stm32_transceive(yi_device_t *dev,
         data->hspi.Init.CLKPhase =
             ((config->mode & 1U) != 0U)
             ? SPI_PHASE_2EDGE : SPI_PHASE_1EDGE;
+        data->hspi.Init.FirstBit =
+            config->lsb_first ? SPI_FIRSTBIT_LSB : SPI_FIRSTBIT_MSB;
         if(HAL_SPI_Init(&data->hspi) != HAL_OK)
         {
             return -1;
         }
         data->frequency = config->frequency;
         data->mode = config->mode;
+        data->lsb_first = config->lsb_first;
     }
 
     if((tx != NULL) && (rx != NULL))

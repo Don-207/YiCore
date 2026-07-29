@@ -29,7 +29,9 @@ typedef struct
 {
     SPI_HandleTypeDef hspi; /**< Hspi value. */
     uint32_t frequency; /**< Frequency value. */
-    uint8_t mode; /**< Mode value. */} yi_spi_stm32_data_t;
+    uint8_t mode; /**< Mode value. */
+    bool lsb_first; /**< True when least-significant-bit first is active. */
+} yi_spi_stm32_data_t;
 
 /**
  * @brief Initialize the module.

@@ -16,6 +16,15 @@
 #define YI_I2C_MSG_RESTART (1U << 1)
 #define YI_I2C_MSG_STOP    (1U << 2)
 
+/** Stable YiCore I2C driver result values. */
+typedef enum yi_i2c_result {
+    YI_I2C_RESULT_OK = 0,
+    YI_I2C_RESULT_INVALID = -1,
+    YI_I2C_RESULT_NACK = -2,
+    YI_I2C_RESULT_TIMEOUT = -3,
+    YI_I2C_RESULT_BUS_ERROR = -4
+} yi_i2c_result_t;
+
 typedef struct
 {
     uint8_t *buffer; /**< Buffer value. */
@@ -24,10 +33,19 @@ typedef struct
 
 typedef struct
 {
+    int (*configure)(yi_device_t *dev, uint32_t frequency);
     int (*transfer)(yi_device_t *dev, uint8_t address,
                     yi_i2c_msg_t *messages, uint8_t message_count,
                     uint32_t timeout_ms);
 } yi_i2c_api_t;
+
+/**
+ * @brief Configure the I2C bus clock frequency.
+ * @param dev Device instance.
+ * @param frequency Requested bus frequency in hertz.
+ * @return Zero on success or a negative driver error.
+ */
+int yi_i2c_configure(yi_device_t *dev, uint32_t frequency);
 
 /**
  * @brief Transfer the module.

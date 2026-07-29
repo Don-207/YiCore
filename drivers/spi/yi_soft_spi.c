@@ -79,6 +79,7 @@ int yi_soft_spi_init(const void *config)
  */
 static uint8_t yi_soft_spi_byte(const yi_soft_spi_config_t *cfg,
                                 uint8_t mode,
+                                bool lsb_first,
                                 uint32_t half_period_us,
                                 uint8_t output)
 {
@@ -90,18 +91,22 @@ static uint8_t yi_soft_spi_byte(const yi_soft_spi_config_t *cfg,
 
     for(uint8_t bit = 0U; bit < 8U; bit++)
     {
-        if(!second_edge) { yi_soft_spi_mosi(cfg, output & 0x80U); }
+        uint8_t output_mask = lsb_first ? 0x01U : 0x80U;
+        if(!second_edge) { yi_soft_spi_mosi(cfg, output & output_mask); }
         yi_soft_spi_delay(half_period_us);
         yi_soft_spi_clock(cfg, active);
-        if(second_edge) { yi_soft_spi_mosi(cfg, output & 0x80U); }
+        if(second_edge) { yi_soft_spi_mosi(cfg, output & output_mask); }
+        else if(lsb_first) { input |= (uint8_t)(yi_soft_spi_miso(cfg) << bit); }
         else { input = (uint8_t)((input << 1) | yi_soft_spi_miso(cfg)); }
         yi_soft_spi_delay(half_period_us);
         yi_soft_spi_clock(cfg, idle);
         if(second_edge)
         {
-            input = (uint8_t)((input << 1) | yi_soft_spi_miso(cfg));
+            if(lsb_first) { input |= (uint8_t)(yi_soft_spi_miso(cfg) << bit); }
+            else { input = (uint8_t)((input << 1) | yi_soft_spi_miso(cfg)); }
         }
-        output <<= 1;
+        if(lsb_first) { output >>= 1; }
+        else { output <<= 1; }
     }
     return input;
 }
@@ -141,7 +146,7 @@ static int yi_soft_spi_transceive(yi_device_t *dev,
     for(uint16_t index = 0U; index < length; index++)
     {
         uint8_t value = yi_soft_spi_byte(
-            cfg, config->mode, half_period_us,
+            cfg, config->mode, config->lsb_first, half_period_us,
             tx != NULL ? tx[index] : 0xFFU);
         if(rx != NULL) { rx[index] = value; }
         if((uint32_t)(yi_system_uptime_ms() - started) >= timeout_ms)
