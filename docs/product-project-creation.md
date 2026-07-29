@@ -103,6 +103,22 @@ boards/product-name-stm32f103/
 .\YiCore\yi.cmd boards
 ```
 
+YiCore 按 Zephyr 的硬件分层区分 SoC 兼容组和具体料号。例如 STM32F103ZCT6
+使用 `stm32f103xe` SoC/CMSIS 兼容组，具体料号、封装和内存属于产品板卡：
+
+```json
+{
+  "model": "stm32f103xe",
+  "part": "stm32f103zct6",
+  "keil_device": "STM32F103ZC",
+  "cube_package": "LQFP144",
+  "flash_size": 262144,
+  "ram_size": 49152
+}
+```
+
+板卡还必须根据原理图配置时钟、GPIO、复用引脚和外设节点。
+
 ## 4. 生成默认 application 工程
 
 在产品根目录执行以下命令进入板卡选择提示：
@@ -201,42 +217,23 @@ firmware/projects/keil/ProductName-test.uvprojx
 
 ## 7. 使用 GCC 构建
 
-GCC 使用同一个 CMake 入口，通过 `YI_PRODUCT_IMAGE` 选择镜像。
-
-构建 application：
+在产品根目录运行统一命令即可构建 application：
 
 ```powershell
-cmake -S .\firmware\projects\gcc `
-  -B .\build\application `
-  -G Ninja `
-  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
-  -DYI_PRODUCT_IMAGE=application
-
-cmake --build .\build\application
+.\YiCore\yi.cmd build
 ```
 
-构建 bootloader：
+默认构建目录为 `build/application`。需要删除该镜像的旧构建目录并重新配置时：
 
 ```powershell
-cmake -S .\firmware\projects\gcc `
-  -B .\build\bootloader `
-  -G Ninja `
-  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
-  -DYI_PRODUCT_IMAGE=bootloader
-
-cmake --build .\build\bootloader
+.\YiCore\yi.cmd build -p always
 ```
 
-构建 test：
+构建已添加的可选镜像：
 
 ```powershell
-cmake -S .\firmware\projects\gcc `
-  -B .\build\test `
-  -G Ninja `
-  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
-  -DYI_PRODUCT_IMAGE=test
-
-cmake --build .\build\test
+.\YiCore\yi.cmd build --image bootloader
+.\YiCore\yi.cmd build --image test
 ```
 
 构建成功后，对应构建目录中会生成 `.elf`、`.hex`、`.bin` 和 `.map` 文件。

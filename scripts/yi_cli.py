@@ -178,6 +178,85 @@ def build_app(
     return resolved_build
 
 
+def build_product(
+    product_root: Path,
+    image: str = "application",
+    build_dir: Path | None = None,
+    pristine: str = "auto",
+    generator: str = "Ninja",
+) -> Path:
+    """Configure and build one image from a standard YiCore product.
+
+    Args:
+        product_root: Product repository containing firmware/projects/gcc.
+        image: Firmware image name: application, bootloader, or test.
+        build_dir: Optional out-of-tree build directory.
+        pristine: One of auto, always, or never.
+        generator: CMake generator name.
+    Returns:
+        Absolute build directory containing the selected image artifacts.
+    Side effects:
+        May remove the selected build directory and invokes CMake twice.
+    Raises:
+        YiCliError: Product layout, image, generator, or build is invalid.
+    """
+
+    product_root = product_root.resolve()
+    if image not in {"application", "bootloader", "test"}:
+        raise YiCliError(f"invalid product image: {image}")
+    if pristine not in {"auto", "always", "never"}:
+        raise YiCliError(f"invalid pristine mode: {pristine}")
+
+    source_dir = product_root / "firmware" / "projects" / "gcc"
+    toolchain = source_dir / "arm-none-eabi.cmake"
+    image_root = product_root / "firmware" / "images" / image
+    if not (source_dir / "CMakeLists.txt").is_file():
+        raise YiCliError(f"not a YiCore product: {product_root}")
+    if not toolchain.is_file():
+        raise YiCliError(f"product GCC toolchain not found: {toolchain}")
+    if not image_root.is_dir():
+        raise YiCliError(
+            f"product image {image!r} does not exist; "
+            f"run 'yi image add {image}' first"
+        )
+
+    resolved_build = (
+        build_dir.resolve()
+        if build_dir is not None
+        else product_root / "build" / image
+    )
+    if pristine == "always" and resolved_build.exists():
+        shutil.rmtree(resolved_build)
+
+    configure = [
+        "cmake",
+        "-S",
+        str(source_dir),
+        "-B",
+        str(resolved_build),
+        "-G",
+        generator,
+        f"-DCMAKE_TOOLCHAIN_FILE={toolchain}",
+        f"-DYI_PRODUCT_IMAGE={image}",
+    ]
+    if generator == "Ninja":
+        ninja = _find_ninja()
+        if ninja is None:
+            raise YiCliError(
+                "Ninja not found; install it or select another generator"
+            )
+        configure.append(f"-DCMAKE_MAKE_PROGRAM={ninja}")
+
+    try:
+        subprocess.run(configure, check=True)
+        subprocess.run(
+            ["cmake", "--build", str(resolved_build)], check=True
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise YiCliError(f"product {image} build failed") from error
+    return resolved_build
+
+
 def _create_parser() -> argparse.ArgumentParser:
     """Create the root parser and its Zephyr-style subcommands."""
 
@@ -308,10 +387,15 @@ def _create_parser() -> argparse.ArgumentParser:
     )
 
     build_parser = commands.add_parser(
-        "build", help="configure and build an application"
+        "build", help="configure and build a product or thin application"
     )
-    build_parser.add_argument("source_dir", type=Path)
-    build_parser.add_argument("-b", "--board", required=True)
+    build_parser.add_argument("source_dir", type=Path, nargs="?")
+    build_parser.add_argument("-b", "--board")
+    build_parser.add_argument(
+        "--image",
+        choices=("application", "bootloader", "test"),
+        default="application",
+    )
     build_parser.add_argument("-d", "--build-dir", type=Path)
     build_parser.add_argument(
         "-p",
@@ -564,15 +648,36 @@ def main() -> int:
         elif args.command == "app":
             result = create_app(args.name, args.output_root)
         elif args.command == "build":
-            result = build_app(
-                yicore_root,
-                args.source_dir,
-                args.board,
-                args.build_dir,
-                args.pristine,
-                args.toolchain,
-                args.generator,
+            source_dir = args.source_dir or Path.cwd()
+            product_cmake = (
+                source_dir.resolve()
+                / "firmware"
+                / "projects"
+                / "gcc"
+                / "CMakeLists.txt"
             )
+            if args.source_dir is None or product_cmake.is_file():
+                result = build_product(
+                    source_dir,
+                    args.image,
+                    args.build_dir,
+                    args.pristine,
+                    args.generator,
+                )
+            else:
+                if args.board is None:
+                    raise YiCliError(
+                        "thin application build requires --board"
+                    )
+                result = build_app(
+                    yicore_root,
+                    source_dir,
+                    args.board,
+                    args.build_dir,
+                    args.pristine,
+                    args.toolchain,
+                    args.generator,
+                )
     except (
         AppCreationError,
         BoardCreationError,

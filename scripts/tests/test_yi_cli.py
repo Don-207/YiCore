@@ -19,6 +19,7 @@ from yi_cli import (  # noqa: E402
     YiCliError,
     _create_parser,
     build_app,
+    build_product,
     create_board_for_product,
     create_product_in_place,
     list_boards,
@@ -42,6 +43,15 @@ class YiCliTests(unittest.TestCase):
         self.assertEqual(args.board, "board-a")
         self.assertEqual(args.pristine, "always")
         self.assertEqual(args.source_dir, Path("app"))
+
+    def test_build_parser_defaults_to_product_application(self):
+        """An argument-free build targets the current product application."""
+
+        args = _create_parser().parse_args(["build"])
+
+        self.assertIsNone(args.source_dir)
+        self.assertIsNone(args.board)
+        self.assertEqual(args.image, "application")
 
     def test_product_creation_commands_use_nested_zephyr_style(self):
         """Board, product, and image creation are exposed only below yi."""
@@ -252,6 +262,42 @@ class YiCliTests(unittest.TestCase):
                 YiCliError, "not a YiCore application"
             ):
                 build_app(root, root / "missing", "board-a")
+
+    def test_product_build_invokes_short_cmake_workflow(self):
+        """A product build derives all paths and selects its image."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            product = Path(temporary)
+            source = product / "firmware" / "projects" / "gcc"
+            image = product / "firmware" / "images" / "test"
+            source.mkdir(parents=True)
+            image.mkdir(parents=True)
+            (source / "CMakeLists.txt").write_text(
+                "# product\n", encoding="utf-8"
+            )
+            (source / "arm-none-eabi.cmake").write_text(
+                "# toolchain\n", encoding="utf-8"
+            )
+            ninja = product / "ninja.exe"
+            ninja.write_text("", encoding="utf-8")
+
+            with (
+                patch("yi_cli._find_ninja", return_value=ninja),
+                patch("yi_cli.subprocess.run") as run,
+            ):
+                result = build_product(product, image="test")
+
+            expected_build = product / "build" / "test"
+            self.assertEqual(result, expected_build)
+            self.assertEqual(run.call_count, 2)
+            configure = run.call_args_list[0].args[0]
+            self.assertIn(f"-DYI_PRODUCT_IMAGE=test", configure)
+            self.assertIn(f"-DCMAKE_TOOLCHAIN_FILE={source / 'arm-none-eabi.cmake'}",
+                          configure)
+            self.assertEqual(
+                run.call_args_list[1].args[0],
+                ["cmake", "--build", str(expected_build)],
+            )
 
     def test_boards_lists_only_platforms_with_build_adapters(self):
         """Reserved families are excluded from buildable board discovery."""

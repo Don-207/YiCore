@@ -291,6 +291,75 @@ class ProjectCreationTests(unittest.TestCase):
                 boards, other_target, "fire-mini-stm32f103"
             )
 
+    def test_exact_part_metadata_is_owned_by_board(self):
+        target = resolve_target(
+            load_supported_targets(self.yicore), model="stm32f103xe"
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            product_root = Path(temporary)
+            board_dir = product_root / "boards" / "zc-board"
+            board_dir.mkdir(parents=True)
+            (board_dir / "board.dts").write_text(
+                '/include/ "'
+                + (self.yicore / "boards/fire-mini-stm32f103/board.dts")
+                .as_posix()
+                + '"\n',
+                encoding="utf-8",
+            )
+            (board_dir / "board.json").write_text(
+                """{
+  "id": "zc-board",
+  "name": "ZC Board",
+  "vendor": "st",
+  "series": "stm32f1",
+  "model": "stm32f103xe",
+  "part": "stm32f103zct6",
+  "keil_device": "STM32F103ZC",
+  "cube_cpn": "STM32F103ZCT6",
+  "cube_name": "STM32F103Z(C-D-E)Tx",
+  "cube_package": "LQFP144",
+  "cube_user_name": "STM32F103ZCTx",
+  "flash_size": 262144,
+  "ram_size": 49152,
+  "description": "Test exact-part board"
+}
+""",
+                encoding="utf-8",
+            )
+            project = create_project(
+                self.yicore,
+                "zc-product",
+                board="zc-board",
+                output_root=product_root / "output",
+                target=target,
+                board_root=product_root,
+            )
+
+            project_text = (
+                project / "MDK-ARM" / "zc-product.uvprojx"
+            ).read_text(encoding="utf-8")
+            ioc_text = (project / "zc-product.ioc").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("<Device>STM32F103ZC</Device>", project_text)
+            self.assertIn(
+                "IRAM(0x20000000-0x2000BFFF)", project_text
+            )
+            self.assertIn("IROM(0x8000000-0x803FFFF)", project_text)
+            self.assertIn("<IRAM>", project_text)
+            self.assertIn("<Size>0xC000</Size>", project_text)
+            self.assertIn("<Size>0x40000</Size>", project_text)
+            self.assertIn("Mcu.CPN=STM32F103ZCT6", ioc_text)
+            self.assertIn("Mcu.Package=LQFP144", ioc_text)
+            self.assertIn("Mcu.UserName=STM32F103ZCTx", ioc_text)
+            board = resolve_board(
+                load_supported_boards(product_root), target, "zc-board"
+            )
+            self.assertEqual(board["model"], "stm32f103xe")
+            self.assertEqual(board["part"], "stm32f103zct6")
+            self.assertEqual(board["flash_size"], 262144)
+
     def test_interactive_target_selection_prompts_vendor_then_model(self):
         targets = load_supported_targets(self.yicore)
 
