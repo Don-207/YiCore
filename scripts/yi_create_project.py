@@ -614,15 +614,32 @@ def create_project(
     board: str = "fire-mini-stm32f103",
     output_root: Path | None = None,
     target: dict[str, str] | None = None,
+    board_root: Path | None = None,
 ) -> Path:
-    """Create one project and return its absolute directory path."""
+    """Create one project and return its absolute directory path.
+
+    Args:
+        repo_root: YiCore root providing templates and framework sources.
+        name: Project identifier.
+        board: Selected board identifier.
+        output_root: Optional parent directory for the generated project.
+        target: Resolved MCU target metadata.
+        board_root: Optional product root providing a local boards directory.
+    Returns:
+        Absolute generated project directory.
+    Side effects:
+        Creates and populates the project directory.
+    """
 
     repo_root = repo_root.resolve()
     name = _validate_name(name, "project name")
     board = _validate_name(board, "board name")
     template_name = target["template"] if target is not None else _TEMPLATE_NAME
     template = repo_root / "examples" / template_name
-    board_dts = repo_root / "boards" / board / "board.dts"
+    resolved_board_root = (
+        board_root.resolve() if board_root is not None else repo_root
+    )
+    board_dts = resolved_board_root / "boards" / board / "board.dts"
     destination_root = (
         output_root.resolve()
         if output_root is not None
@@ -814,4 +831,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit("use 'yi app create' or 'yi product create' instead")

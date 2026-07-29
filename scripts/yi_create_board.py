@@ -8,22 +8,13 @@ Version: 1.0.0
 
 from __future__ import annotations
 
-import argparse
 import json
 import shutil
-import sys
 from pathlib import Path
 
 from yi_create_project import (
-    ProjectCreationError,
     _board_matches_target,
     _validate_name,
-    load_supported_boards,
-    load_supported_targets,
-    resolve_board,
-    resolve_target,
-    select_board_interactive,
-    select_target_interactive,
 )
 
 
@@ -100,86 +91,5 @@ def create_board(
     return destination
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Create a YiCore board from a compatible reference board"
-    )
-    parser.add_argument(
-        "board_id",
-        nargs="?",
-        help="new board directory id, for example product-a-stm32f103",
-    )
-    parser.add_argument("--display-name", help="human-readable board name")
-    parser.add_argument("--description", help="board description")
-    parser.add_argument("--vendor", help="vendor id")
-    parser.add_argument("--series", help="MCU series")
-    parser.add_argument("--model", help="MCU model")
-    parser.add_argument(
-        "--from-board",
-        help="compatible reference board id; selected interactively if omitted",
-    )
-    parser.add_argument(
-        "--output-root",
-        type=Path,
-        help="parent directory for the board (default: boards/)",
-    )
-    args = parser.parse_args()
-    repo_root = Path(__file__).resolve().parent.parent
-
-    try:
-        if args.board_id is None:
-            if not sys.stdin.isatty():
-                parser.error("the following arguments are required: board_id")
-            args.board_id = input("Board id: ").strip()
-
-        targets = load_supported_targets(repo_root)
-        boards = load_supported_boards(repo_root)
-        target = None
-        source_board = None
-
-        if args.vendor or args.series or args.model:
-            target = resolve_target(
-                targets, args.vendor, args.series, args.model
-            )
-        elif args.from_board:
-            source_board = resolve_board(
-                boards, board_id=args.from_board
-            )
-            target = resolve_target(
-                targets,
-                source_board["vendor"],
-                source_board["series"],
-                source_board["model"],
-            )
-        else:
-            target = (
-                select_target_interactive(targets)
-                if sys.stdin.isatty()
-                else resolve_target(targets)
-            )
-
-        if source_board is None:
-            source_board = (
-                resolve_board(boards, target, args.from_board)
-                if args.from_board or not sys.stdin.isatty()
-                else select_board_interactive(boards, target)
-            )
-
-        destination = create_board(
-            repo_root,
-            args.board_id,
-            target,
-            source_board,
-            args.display_name,
-            args.description,
-            args.output_root,
-        )
-    except (OSError, BoardCreationError, ProjectCreationError) as error:
-        parser.error(str(error))
-
-    print(destination)
-    return 0
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit("use 'yi board create' instead")

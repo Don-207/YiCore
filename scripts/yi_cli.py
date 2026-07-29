@@ -3,7 +3,7 @@
 
 Author: Don
 Date: 2026-07-28
-Version: 1.0.0
+Version: 2.0.0
 """
 
 from __future__ import annotations
@@ -15,6 +15,15 @@ import subprocess
 from pathlib import Path
 
 from yi_create_app import AppCreationError, create_app
+from yi_create_board import BoardCreationError, create_board
+from yi_create_product import add_image, create_application_in_place
+from yi_create_project import (
+    ProjectCreationError,
+    load_supported_boards,
+    load_supported_targets,
+    resolve_board,
+    resolve_target,
+)
 from yi_manifest import (
     ManifestError,
     freeze_manifest,
@@ -173,6 +182,52 @@ def _create_parser() -> argparse.ArgumentParser:
 
     commands.add_parser("boards", help="list supported build boards")
 
+    board_parser = commands.add_parser("board", help="board operations")
+    board_commands = board_parser.add_subparsers(
+        dest="board_command", required=True
+    )
+    board_create = board_commands.add_parser(
+        "create", help="create a product-local board"
+    )
+    board_create.add_argument("board_id")
+    board_create.add_argument("--display-name")
+    board_create.add_argument("--description")
+    board_create.add_argument("--vendor")
+    board_create.add_argument("--series")
+    board_create.add_argument("--model")
+    board_create.add_argument("--from-board", required=True)
+    board_create.add_argument(
+        "--output-root",
+        type=Path,
+        default=Path.cwd() / "boards",
+    )
+
+    product_parser = commands.add_parser(
+        "product", help="product operations"
+    )
+    product_commands = product_parser.add_subparsers(
+        dest="product_command", required=True
+    )
+    product_create = product_commands.add_parser(
+        "create", help="create the application layout in a product root"
+    )
+    product_create.add_argument("--board", required=True)
+    product_create.add_argument(
+        "--product-root", type=Path, default=Path.cwd()
+    )
+
+    image_parser = commands.add_parser("image", help="firmware image operations")
+    image_commands = image_parser.add_subparsers(
+        dest="image_command", required=True
+    )
+    image_add = image_commands.add_parser(
+        "add", help="add an optional product image"
+    )
+    image_add.add_argument("image", choices=("bootloader", "test"))
+    image_add.add_argument(
+        "--product-root", type=Path, default=Path.cwd()
+    )
+
     sdk_parser = commands.add_parser("sdk", help="vendor SDK operations")
     sdk_commands = sdk_parser.add_subparsers(
         dest="sdk_command", required=True
@@ -267,6 +322,79 @@ def _create_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def create_board_for_product(yicore_root: Path, args: argparse.Namespace) -> Path:
+    """Create a product-local board through the unified command.
+
+    Args:
+        yicore_root: YiCore repository root containing reference boards.
+        args: Parsed board-create arguments.
+    Returns:
+        Newly created board directory.
+    Side effects:
+        Copies and customizes a reference board below the output root.
+    """
+
+    targets = load_supported_targets(yicore_root)
+    boards = load_supported_boards(yicore_root)
+    source_board = resolve_board(boards, board_id=args.from_board)
+    target = resolve_target(
+        targets,
+        args.vendor or source_board["vendor"],
+        args.series or source_board["series"],
+        args.model or source_board["model"],
+    )
+    destination = create_board(
+        yicore_root,
+        args.board_id,
+        target,
+        source_board,
+        args.display_name,
+        args.description,
+        args.output_root,
+    )
+    board_dts = destination / "board.dts"
+    board_dts.write_text(
+        board_dts.read_text(encoding="utf-8").replace(
+            "../../dts/", "../../YiCore/dts/"
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+    return destination
+
+
+def create_product_in_place(
+    yicore_root: Path, product_root: Path, board_id: str
+) -> Path:
+    """Create the standard firmware layout in an existing product root.
+
+    Args:
+        yicore_root: YiCore repository root.
+        product_root: Existing independent product repository.
+        board_id: Product-local board identifier.
+    Returns:
+        Absolute product root.
+    Side effects:
+        Generates application, build, linker, and project files.
+    """
+
+    product_root = product_root.resolve()
+    if not (product_root / "YiCore" / "scripts" / "yi_cli.py").is_file():
+        raise YiCliError(
+            f"YiCore submodule not found below product root: {product_root}"
+        )
+    board_root = product_root
+    boards = load_supported_boards(board_root)
+    board = resolve_board(boards, board_id=board_id)
+    targets = load_supported_targets(yicore_root)
+    target = resolve_target(
+        targets, board["vendor"], board["series"], board["model"]
+    )
+    return create_application_in_place(
+        yicore_root, product_root, board, target, board_root
+    )
+
+
 def list_boards(yicore_root: Path) -> list[str]:
     """List board identifiers that have a ready platform adapter.
 
@@ -343,6 +471,14 @@ def main() -> int:
             for summary in list_boards(yicore_root):
                 print(summary)
             return 0
+        if args.command == "board":
+            result = create_board_for_product(yicore_root, args)
+        elif args.command == "product":
+            result = create_product_in_place(
+                yicore_root, args.product_root, args.board
+            )
+        elif args.command == "image":
+            result = add_image(args.product_root, args.image)
         if args.command == "sdk":
             if args.sdk_command == "list":
                 for summary in sdk_list(yicore_root):
@@ -378,9 +514,9 @@ def main() -> int:
             write_manifest(document, args.output.resolve())
             print(args.output.resolve())
             return 0
-        if args.command == "app":
+        elif args.command == "app":
             result = create_app(args.name, args.output_root)
-        else:
+        elif args.command == "build":
             result = build_app(
                 yicore_root,
                 args.source_dir,
@@ -390,7 +526,15 @@ def main() -> int:
                 args.toolchain,
                 args.generator,
             )
-    except (AppCreationError, ManifestError, YiCliError) as error:
+    except (
+        AppCreationError,
+        BoardCreationError,
+        ManifestError,
+        ProjectCreationError,
+        YiCliError,
+        OSError,
+        ValueError,
+    ) as error:
         parser.error(str(error))
     print(result)
     return 0

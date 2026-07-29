@@ -92,53 +92,48 @@ Open
 `examples/stm32f103-dts-demo/MDK-ARM/stm32f103-dts-demo.uvprojx` in Keil.
 The project regenerates the DeviceTree sources before each build.
 
-Create a standalone product with the application image only:
+Create an independent product repository, add YiCore, then run every creation
+operation through the unified Zephyr-style command:
 
 ```powershell
-.\create-app ProductName --board fire-mini-stm32f103
+mkdir ProductName
+cd ProductName
+git init -b main
+git submodule add https://github.com/Don-207/YiCore.git YiCore
+git submodule update --init --recursive
+
+.\YiCore\yi.cmd board create product-name-stm32f103 `
+  --model stm32f103xe `
+  --from-board fire-mini-stm32f103
+
+.\YiCore\yi.cmd product create --board product-name-stm32f103
 ```
 
-The default output is `<current-directory>/ProductName`. The generated product
-contains shared `firmware/common`, one `firmware/images/application`, flat Keil
-and GCC project directories, linker descriptions, a product-local board copy,
-and a pinned local YiCore checkout. It does not create bootloader or test
-images by default.
+The board is generated below the product root at
+`boards/product-name-stm32f103`. The product command then creates shared
+`firmware/common`, the default `firmware/images/application`, flat Keil and
+GCC project directories, and linker descriptions. It does not create
+bootloader or test images by default.
 
 Add optional images from the product root:
 
 ```powershell
-YiCore\create-boot --product-root .
-YiCore\create-test --product-root .
+.\YiCore\yi.cmd image add bootloader
+.\YiCore\yi.cmd image add test
 ```
 
-`create-boot` initializes the pinned MCUboot dependency. Both commands refuse
-to overwrite an existing image. Keil metadata stays flat under
+Adding the bootloader initializes the pinned MCUboot dependency. Both commands
+refuse to overwrite an existing image. Keil metadata stays flat under
 `firmware/projects/keil`; GCC uses one CMake entry selected with
 `YI_PRODUCT_IMAGE=application|bootloader|test`.
-Create a new board interactively:
-
-```powershell
-.\create-board
-```
-
-The creator asks for a new board id, MCU target, and compatible reference
-board. It copies the reference board and writes a board-local `board.json`
-manifest. A non-interactive example is:
-
-```powershell
-.\create-board product-a-stm32f103 `
-  --model stm32f103xe `
-  --from-board fire-mini-stm32f103 `
-  --display-name "Product A STM32F103" `
-  --description "Product A controller board"
-```
 
 After creation, edit the new directory under `boards/` to match the physical
-PCB, then pass its id to `create-app --board`. The creator refuses to
-overwrite an existing board.
+PCB before running `yi product create`. The creator refuses to overwrite an
+existing board.
 
 ## Documentation
 
+- [Product project creation workflow](docs/product-project-creation.md)
 - [Architecture roadmap](docs/architecture-roadmap.md)
 - [DeviceTree guide](docs/devicetree.md)
 - [STM32F103 example](examples/stm32f103-dts-demo/README.md)
@@ -174,12 +169,13 @@ The application contains no startup, linker, board, SoC or vendor-library
 copies. Configure with `-DBOARD=<board-id>` and `-DYICORE_ROOT=<path>`.
 
 The STM32F103xE GCC adapter is available for
-`-DBOARD=fire-mini-stm32f103`. The previous standalone product generator
-remains available as `create-product.cmd` for production Keil projects and
-multi-image product layouts.
+`-DBOARD=fire-mini-stm32f103`. On Windows run `yi.cmd` when the repository
+directory is not on `PATH`.
 
-On Windows run `yi.cmd` when the repository directory is not on `PATH`.
-`create-app.cmd` remains as a compatibility alias for application creation.
+The legacy `create-app.cmd`, `create-board.cmd`, `create-product.cmd`,
+`create-boot.cmd`, and `create-test.cmd` entry points have been removed.
+There are no compatibility aliases; use the corresponding nested `yi`
+commands.
 
 `yi build` prefers external workspace modules at `modules/hal/st` and
 `modules/lib/cmsis`. If they are absent it uses the compatible packages below

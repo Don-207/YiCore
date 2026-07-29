@@ -8,22 +8,16 @@ Version: 1.0.0
 
 from __future__ import annotations
 
-import argparse
 import shutil
 import subprocess
-import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from yi_create_project import (
     ProjectCreationError,
-    create_project,
-    load_supported_boards,
-    load_supported_targets,
-    resolve_board,
-    resolve_target,
     _relative_path,
+    create_project,
 )
 from yi_build_info_gen import generate as generate_build_info
 from yi_dts_gen import generate
@@ -216,6 +210,7 @@ def create_product(
             board["id"],
             staging_root,
             target,
+            board_root,
         )
         destination.mkdir(parents=True)
         try:
@@ -429,56 +424,5 @@ def create_application_in_place(
     return product_root
 
 
-def main() -> int:
-    """Parse the selected product command and perform it."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("app", "boot", "test"))
-    parser.add_argument("name", nargs="?")
-    parser.add_argument("--board")
-    parser.add_argument("--product-root", type=Path, default=Path.cwd())
-    args = parser.parse_args()
-    repo_root = Path(__file__).resolve().parent.parent
-
-    try:
-        if args.command == "app":
-            targets = load_supported_targets(repo_root)
-            product_boards = args.product_root / "boards"
-            board_registry_root = (
-                args.product_root
-                if list(product_boards.glob("*/board.json"))
-                else repo_root
-            )
-            boards = load_supported_boards(board_registry_root)
-            board = resolve_board(boards, board_id=args.board) if args.board else boards[0]
-            target = resolve_target(
-                targets, board["vendor"], board["series"], board["model"]
-            )
-            if args.name:
-                result = create_product(
-                    repo_root,
-                    args.name,
-                    board,
-                    target,
-                    args.product_root,
-                    board_registry_root,
-                )
-            else:
-                result = create_application_in_place(
-                    repo_root,
-                    args.product_root,
-                    board,
-                    target,
-                    board_registry_root,
-                )
-        else:
-            image = "bootloader" if args.command == "boot" else "test"
-            result = add_image(args.product_root, image)
-    except (OSError, ProjectCreationError, ValueError) as error:
-        parser.error(str(error))
-
-    print(result)
-    return 0
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit("use 'yi product create' or 'yi image add' instead")

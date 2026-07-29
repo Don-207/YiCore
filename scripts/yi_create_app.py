@@ -8,7 +8,6 @@ Version: 1.0.0
 
 from __future__ import annotations
 
-import argparse
 import re
 import shutil
 from pathlib import Path
@@ -163,27 +162,5 @@ def create_app(name: str, output_root: Path) -> Path:
     return destination
 
 
-def main() -> int:
-    """Parse the application creation command."""
-
-    parser = argparse.ArgumentParser(
-        description="Create a thin, board-independent YiCore application"
-    )
-    parser.add_argument("name", help="application name")
-    parser.add_argument(
-        "--output-root",
-        type=Path,
-        default=Path.cwd() / "applications",
-        help="application parent directory (default: ./applications)",
-    )
-    args = parser.parse_args()
-    try:
-        destination = create_app(args.name, args.output_root)
-    except (OSError, AppCreationError) as error:
-        parser.error(str(error))
-    print(destination)
-    return 0
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit("use 'yi app create' instead")

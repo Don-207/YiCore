@@ -1,0 +1,285 @@
+<!--
+File: product-project-creation.md
+Description: YiCore independent product project creation and build workflow.
+Author: Don
+Date: 2026-07-29
+Version: 1.0.0
+-->
+
+# YiCore 新建产品工程流程
+
+本文说明如何使用统一的 `yi` 命令创建一个独立的 YiCore 产品仓库。新流程不再使用
+`create-app.cmd`、`create-board.cmd`、`create-product.cmd`、
+`create-boot.cmd` 或 `create-test.cmd`。
+
+## 1. 环境准备
+
+Windows 开发环境需要：
+
+- Git；
+- Python 3；
+- Keil MDK（使用 Keil 工程时）；
+- CMake、Ninja 和 Arm GNU Toolchain（使用 GCC 工程时）。
+
+可先确认基础工具：
+
+```powershell
+git --version
+python --version
+cmake --version
+ninja --version
+arm-none-eabi-gcc --version
+```
+
+## 2. 创建独立产品仓库
+
+以下示例创建名为 `ProductName` 的产品。建议产品目录使用有意义且稳定的名称，因为
+生成的 Keil 工程名会使用该目录名。
+
+```powershell
+mkdir ProductName
+cd ProductName
+git init -b main
+
+git submodule add https://github.com/Don-207/YiCore.git YiCore
+git submodule update --init --recursive
+```
+
+此时目录至少包含：
+
+```text
+ProductName/
+├── .git/
+├── .gitmodules
+└── YiCore/
+```
+
+## 3. 创建产品本地板级配置
+
+从兼容的参考板复制一份产品专用板级配置：
+
+```powershell
+.\YiCore\yi.cmd board create product-name-stm32f103 `
+  --model stm32f103xe `
+  --from-board fire-mini-stm32f103 `
+  --display-name "Product Name STM32F103" `
+  --description "Product Name controller board"
+```
+
+默认输出位置为当前产品根目录下的：
+
+```text
+boards/product-name-stm32f103/
+```
+
+其中 `board.json` 用于描述板卡标识和 MCU 型号，`board.dts` 及相关 DTSI 文件用于描述
+板级硬件。
+
+创建完成后，必须按实际 PCB 检查并修改以下内容：
+
+- 时钟源和系统时钟；
+- GPIO 引脚及电气模式；
+- UART、SPI、I2C、CAN 等外设引脚；
+- 中断和 DMA 配置；
+- Flash 容量、RAM 容量及链接布局；
+- 板载 LED、按键、传感器和外部存储器。
+
+板级 ID 必须唯一。目标目录已存在时，创建命令会拒绝覆盖。
+
+可用以下命令查看 YiCore 已支持的参考板：
+
+```powershell
+.\YiCore\yi.cmd boards
+```
+
+## 4. 生成默认 application 工程
+
+在产品根目录执行：
+
+```powershell
+.\YiCore\yi.cmd product create --board product-name-stm32f103
+```
+
+该命令在当前仓库中原地创建 application，不会再创建一层同名产品目录。生成后的主要
+结构如下：
+
+```text
+ProductName/
+├── boards/
+│   └── product-name-stm32f103/
+├── firmware/
+│   ├── common/
+│   │   ├── Core/
+│   │   └── cubemx/
+│   ├── images/
+│   │   └── application/
+│   │       ├── generated/
+│   │       ├── VERSION
+│   │       ├── app.dts
+│   │       ├── app-devices.dtsi
+│   │       ├── app-gpios.dtsi
+│   │       ├── app-pinctrl.dtsi
+│   │       └── main.c
+│   ├── linker/
+│   │   └── gcc/
+│   └── projects/
+│       ├── gcc/
+│       │   ├── CMakeLists.txt
+│       │   └── arm-none-eabi.cmake
+│       └── keil/
+│           └── ProductName.uvprojx
+└── YiCore/
+```
+
+其中：
+
+- `firmware/common` 保存多个镜像共享的 STM32/CubeMX 文件；
+- `firmware/images/application` 保存 application 独有的入口、版本和设备树；
+- `firmware/projects/keil` 保存扁平化的 Keil 工程；
+- `firmware/projects/gcc` 是 application、bootloader 和 test 共用的 GCC 入口；
+- `boards` 保存产品自己的板级配置；
+- `YiCore` 继续作为独立 Git 子模块维护。
+
+如果 application 已经存在，命令会拒绝覆盖。
+
+## 5. 添加可选固件镜像
+
+产品默认只生成 application。需要 bootloader 或板级测试镜像时，在产品根目录显式
+添加：
+
+```powershell
+.\YiCore\yi.cmd image add bootloader
+.\YiCore\yi.cmd image add test
+```
+
+添加 bootloader 时会初始化 YiCore 固定版本的 MCUboot 子模块。每个新镜像会得到独立
+的 `main.c`、`VERSION`、设备树和生成目录，同时生成对应的 Keil 工程：
+
+```text
+firmware/projects/keil/ProductName-bootloader.uvprojx
+firmware/projects/keil/ProductName-test.uvprojx
+```
+
+镜像目录已经存在时，命令会拒绝覆盖。
+
+## 6. 使用 Keil 构建
+
+根据需要打开对应工程：
+
+```text
+firmware/projects/keil/ProductName.uvprojx
+firmware/projects/keil/ProductName-bootloader.uvprojx
+firmware/projects/keil/ProductName-test.uvprojx
+```
+
+构建前会根据当前镜像的 `app.dts` 和 `VERSION` 重新生成设备树及构建信息。首次构建前
+应检查：
+
+- Keil Device Family Pack 是否安装；
+- 编译器版本是否与工程配置兼容；
+- 调试器类型和接口是否正确；
+- Flash 下载算法是否匹配目标 MCU；
+- scatter 文件和实际 Flash 分区是否一致。
+
+## 7. 使用 GCC 构建
+
+GCC 使用同一个 CMake 入口，通过 `YI_PRODUCT_IMAGE` 选择镜像。
+
+构建 application：
+
+```powershell
+cmake -S .\firmware\projects\gcc `
+  -B .\build\application `
+  -G Ninja `
+  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
+  -DYI_PRODUCT_IMAGE=application
+
+cmake --build .\build\application
+```
+
+构建 bootloader：
+
+```powershell
+cmake -S .\firmware\projects\gcc `
+  -B .\build\bootloader `
+  -G Ninja `
+  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
+  -DYI_PRODUCT_IMAGE=bootloader
+
+cmake --build .\build\bootloader
+```
+
+构建 test：
+
+```powershell
+cmake -S .\firmware\projects\gcc `
+  -B .\build\test `
+  -G Ninja `
+  -DCMAKE_TOOLCHAIN_FILE=.\firmware\projects\gcc\arm-none-eabi.cmake `
+  -DYI_PRODUCT_IMAGE=test
+
+cmake --build .\build\test
+```
+
+构建成功后，对应构建目录中会生成 `.elf`、`.hex`、`.bin` 和 `.map` 文件。
+
+## 8. 首次提交建议
+
+完成板级修改并确认至少一个工具链能够构建后，再提交产品仓库：
+
+```powershell
+git status
+git add .gitmodules boards firmware YiCore
+git commit -m "feat: initialize ProductName firmware"
+```
+
+`YiCore` 在产品仓库中记录的是固定提交，不应把 YiCore 内部文件直接提交到产品仓库。
+更新 YiCore 后应重新构建全部镜像，并在产品仓库中提交新的子模块指针。
+
+## 9. 推荐验证顺序
+
+1. 检查 `boards/<board-id>/board.json` 中的 MCU 型号；
+2. 检查 `board.dts`、引脚、时钟和存储布局；
+3. 先构建 application；
+4. 查看 `.map` 文件，确认 Flash/RAM 没有溢出；
+5. 烧录并检查复位、时钟、调试串口和基础 GPIO；
+6. 再添加并验证 bootloader；
+7. 最后添加 test 镜像完成外设自检。
+
+执行硬件验证时，至少观察复位脚、系统时钟、调试串口和一个已知 GPIO。若启动失败，
+优先检查复位原因、Fault 寄存器、向量表地址、链接地址和时钟配置。
+
+## 10. 常见问题
+
+### 找不到 YiCore 子模块
+
+确认命令从产品根目录执行，并初始化所有子模块：
+
+```powershell
+git submodule update --init --recursive
+```
+
+### 找不到产品板卡
+
+确认板卡位于：
+
+```text
+boards/<board-id>/board.json
+```
+
+并且 `board.json` 中的 `id` 与目录名完全一致。
+
+### 目标目录或镜像已存在
+
+创建命令默认禁止覆盖，以避免损坏已有工程。请检查命令是否在正确目录执行；不要通过
+删除已有目录来绕过保护，除非已经确认其中没有需要保留的修改。
+
+### 切换镜像后仍使用旧配置
+
+不同镜像应使用不同构建目录。必要时删除对应的 `build/<image>`，然后重新执行 CMake
+配置。
+
+### 更新 YiCore 后提交历史发生变化
+
+如果 YiCore 上游进行过历史重写，旧克隆不应直接普通拉取。建议重新克隆 YiCore
+子模块，或在确认没有 YiCore 内部修改后，将子模块重置到产品仓库记录的新提交。

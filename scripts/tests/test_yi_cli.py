@@ -2,7 +2,7 @@
 
 Author: Don
 Date: 2026-07-28
-Version: 1.0.0
+Version: 2.0.0
 """
 
 import sys
@@ -40,6 +40,31 @@ class YiCliTests(unittest.TestCase):
         self.assertEqual(args.board, "board-a")
         self.assertEqual(args.pristine, "always")
         self.assertEqual(args.source_dir, Path("app"))
+
+    def test_product_creation_commands_use_nested_zephyr_style(self):
+        """Board, product, and image creation are exposed only below yi."""
+
+        parser = _create_parser()
+        board = parser.parse_args(
+            [
+                "board",
+                "create",
+                "product-a",
+                "--from-board",
+                "fire-mini-stm32f103",
+            ]
+        )
+        product = parser.parse_args(
+            ["product", "create", "--board", "product-a"]
+        )
+        image = parser.parse_args(["image", "add", "bootloader"])
+
+        self.assertEqual(board.board_command, "create")
+        self.assertEqual(board.output_root, Path.cwd() / "boards")
+        self.assertEqual(product.product_command, "create")
+        self.assertEqual(product.product_root, Path.cwd())
+        self.assertEqual(image.image_command, "add")
+        self.assertEqual(image.image, "bootloader")
 
     def test_build_invokes_configure_then_compile(self):
         """A valid app produces CMake configure and build commands."""
