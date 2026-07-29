@@ -15,10 +15,17 @@ extern yi_device_t * const Image$$yi_device$$Limit[];
 #define YI_DEVICE_SECTION_BEGIN Image$$yi_device$$Base
 #define YI_DEVICE_SECTION_END   Image$$yi_device$$Limit
 #elif defined(__GNUC__)
+#if defined(YI_DEVICE_USE_AUTO_SECTION)
+extern yi_device_t * const __start_yi_device[];
+extern yi_device_t * const __stop_yi_device[];
+#define YI_DEVICE_SECTION_BEGIN __start_yi_device
+#define YI_DEVICE_SECTION_END   __stop_yi_device
+#else
 extern yi_device_t * const __yi_device_start[];
 extern yi_device_t * const __yi_device_end[];
 #define YI_DEVICE_SECTION_BEGIN __yi_device_start
 #define YI_DEVICE_SECTION_END   __yi_device_end
+#endif
 #else
 #error "Unsupported compiler: yi_device supports ARMCLANG and GCC"
 #endif

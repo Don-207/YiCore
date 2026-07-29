@@ -98,6 +98,12 @@ yi_device_t *yi_device_get(const char *name);
 /*
  * 自动注册设备
  */
+#if defined(YI_DEVICE_USE_AUTO_SECTION)
+#define YI_DEVICE_SECTION_ATTRIBUTE __attribute__((used, section("yi_device")))
+#else
+#define YI_DEVICE_SECTION_ATTRIBUTE __attribute__((used, section(".yi_device")))
+#endif
+
 #define YI_DEVICE_DEFINE_WITH_API(_name, _level, _priority, _init, _config, _data, _api) \
                                                                      \
 static yi_device_t _name =                                           \
@@ -112,7 +118,7 @@ static yi_device_t _name =                                           \
     .state = YI_DEVICE_STATE_UNINITIALIZED                          \
 };                                                                   \
                                                                      \
-__attribute__((used, section(".yi_device")))                         \
+YI_DEVICE_SECTION_ATTRIBUTE                                          \
 static yi_device_t * const _name##_ptr = &_name;
 
 #define YI_DEVICE_DEFINE(_name, _init, _config)                       \
