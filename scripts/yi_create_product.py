@@ -139,28 +139,6 @@ directory before changing oscillator, flash, console, or pin assignments.
 """
 
 
-def _hpm5301_manifest(repo_root: Path) -> str:
-    """Return a reproducible external HPMicro module manifest."""
-
-    sdk_revision = (
-        "88b01b43900d8c30844a1e5cdd3f3b7aff6db40e"
-    )
-    return f"""# File: yi-manifest.yml
-# Function: Pin external HPM5301 workspace modules.
-# Author: Don
-# Date: 2026-07-29
-# Version: 1.0.0
-
-manifest:
-  version: "1.0"
-  projects:
-    - name: YiHAL-HPMicro
-      url: https://github.com/Don-207/YiHAL-HPMicro.git
-      revision: 5d8e4881ef930506ecc4eabb54ccf66513ff12c8
-      path: modules/hal/hpmicro
-"""
-
-
 def _create_hpm5301_product(
     repo_root: Path,
     name: str,
@@ -199,11 +177,6 @@ def _create_hpm5301_product(
         )
         (destination / "README.md").write_text(
             _hpm5301_product_readme(name, board["id"]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (destination / "yi-manifest.yml").write_text(
-            _hpm5301_manifest(repo_root),
             encoding="utf-8",
             newline="\n",
         )
@@ -404,21 +377,6 @@ def add_image(product_root: Path, image: str) -> Path:
     return destination
 
 
-def _stm32f103_manifest() -> str:
-    """Return an empty product manifest that inherits YiCore modules."""
-
-    return """# File: yi-manifest.yml
-# Function: Declare product-specific external modules.
-# Author: Don
-# Date: 2026-07-30
-# Version: 1.0.0
-
-manifest:
-  version: "1.0"
-  projects: []
-"""
-
-
 def _west_manifest(
     product_directory: str,
     groups: list[str],
@@ -510,11 +468,6 @@ def create_product(
             linker = destination / "firmware" / "linker" / "gcc"
             for directory in (common, application, keil, gcc, linker):
                 directory.mkdir(parents=True, exist_ok=True)
-            (destination / "yi-manifest.yml").write_text(
-                _stm32f103_manifest(),
-                encoding="utf-8",
-                newline="\n",
-            )
             (destination / "west.yml").write_text(
                 _west_manifest(
                     destination.name,
@@ -701,10 +654,6 @@ def create_application_in_place(
             product_root / "firmware",
             dirs_exist_ok=True,
         )
-        generated_manifest = generated / "yi-manifest.yml"
-        product_manifest = product_root / "yi-manifest.yml"
-        if generated_manifest.is_file() and not product_manifest.exists():
-            shutil.copy2(generated_manifest, product_manifest)
         generated_west = generated / "west.yml"
         product_west = product_root / "west.yml"
         if generated_west.is_file() and not product_west.exists():

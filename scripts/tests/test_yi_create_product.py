@@ -114,16 +114,12 @@ class ProductCreationTests(unittest.TestCase):
             main_source = (
                 product / "firmware/images/application/main.c"
             ).read_text(encoding="utf-8")
-            manifest = (
-                product / "yi-manifest.yml"
-            ).read_text(encoding="utf-8")
             west = (product / "west.yml").read_text(encoding="utf-8")
 
             self.assertIn("find_package(hpm-sdk REQUIRED", cmake)
             self.assertIn('BOARD "hpm5301evklite"', cmake)
             self.assertIn("yi_riscv_irq.c", cmake)
             self.assertIn("board_init()", main_source)
-            self.assertIn("YiHAL-HPMicro", manifest)
             self.assertIn("+hal-hpmicro", west)
             self.assertIn("-hal-st", west)
             self.assertIn("name: YiCore", west)

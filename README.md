@@ -177,8 +177,8 @@ yi app create MyApp
 yi boards
 yi sdk list
 yi sdk verify
-yi update -m yi-manifest.yml
-yi manifest freeze -m yi-manifest.yml
+yi update
+yi manifest freeze
 yi build -b fire-mini-stm32f103 applications/MyApp
 yi build -p always -b fire-mini-stm32f103 applications/MyApp
 ```
@@ -212,13 +212,10 @@ checkout and its compatible CMSIS package. LwRB and SEGGER RTT live below
 `modules/`, while MCUboot lives below `bootloader/mcuboot`. Run `yi update`
 after cloning a workspace; YiCore does not carry fallback dependency copies.
 
-YiCore declares its standard dependencies in `yi-modules.yml`. A product
-`yi-manifest.yml` contains only private projects or intentional overrides;
-it may also be absent or contain `projects: []`. `yi update` merges both
-layers and refuses to switch a checkout with uncommitted changes.
-`yi manifest freeze` records the fully resolved project set and checked-out
-commit SHAs in `yi-manifest.lock.yml`. Projects such as MCUboot can set
-`submodules: false` when nested repositories are not part of the build.
+YiCore declares standard dependencies in `yi-modules.yml`, which each
+product imports from its `west.yml`. `yi update` delegates to `west update`.
+`yi manifest freeze` records active checked-out commit SHAs in
+`west.lock.yml`.
 
 Install CLI dependencies with:
 

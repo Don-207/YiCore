@@ -28,13 +28,6 @@ from yi_create_project import (
     select_board_interactive,
     select_target_interactive,
 )
-from yi_manifest import (
-    ManifestError,
-    freeze_manifest,
-    load_workspace_manifest,
-    update_workspace,
-    write_manifest,
-)
 from yi_vendor_verify import load_packages, verify_packages
 
 
@@ -374,23 +367,12 @@ def _create_parser() -> argparse.ArgumentParser:
     )
 
     update_parser = commands.add_parser(
-        "update", help="update workspace projects from a manifest"
-    )
-    update_parser.add_argument(
-        "-m",
-        "--manifest",
-        type=Path,
-        default=Path.cwd() / "yi-manifest.yml",
+        "update", help="update active west workspace projects"
     )
     update_parser.add_argument(
         "--workspace",
         type=Path,
-        help="workspace root (default: manifest parent)",
-    )
-    update_parser.add_argument(
-        "--all",
-        action="store_true",
-        help="legacy manifest mode: also update optional projects",
+        help="product root containing west.yml (default: current directory)",
     )
     update_parser.add_argument(
         "--group-filter",
@@ -409,21 +391,15 @@ def _create_parser() -> argparse.ArgumentParser:
         "freeze", help="write checked-out revisions as commit SHAs"
     )
     freeze_parser.add_argument(
-        "-m",
-        "--manifest",
-        type=Path,
-        default=Path.cwd() / "yi-manifest.yml",
-    )
-    freeze_parser.add_argument(
         "--workspace",
         type=Path,
-        help="workspace root (default: manifest parent)",
+        help="product root containing west.yml (default: current directory)",
     )
     freeze_parser.add_argument(
         "-o",
         "--output",
         type=Path,
-        default=Path.cwd() / "yi-manifest.lock.yml",
+        default=Path.cwd() / "west.lock.yml",
     )
 
     app_parser = commands.add_parser("app", help="application operations")
@@ -675,52 +651,36 @@ def main() -> int:
             print("vendor SDK verification passed")
             return 0
         if args.command == "update":
-            manifest_path = args.manifest.resolve()
             workspace = (
                 args.workspace.resolve()
                 if args.workspace is not None
-                else manifest_path.parent
+                else Path.cwd().resolve()
             )
-            if (workspace / "west.yml").is_file():
-                west_arguments = ["update"]
-                if args.group_filter:
-                    west_arguments.extend(
-                        ["--group-filter", ",".join(args.group_filter)]
-                    )
-                _run_west(workspace, west_arguments)
-            else:
-                manifest = load_workspace_manifest(
-                    yicore_root / "yi-modules.yml",
-                    manifest_path,
+            if not (workspace / "west.yml").is_file():
+                raise YiCliError(f"west.yml not found: {workspace}")
+            west_arguments = ["update"]
+            if args.group_filter:
+                west_arguments.extend(
+                    ["--group-filter", ",".join(args.group_filter)]
                 )
-                for project_name in update_workspace(
-                    workspace, manifest, args.all
-                ):
-                    print(f"updated {project_name}")
+            _run_west(workspace, west_arguments)
             return 0
         if args.command == "manifest":
-            manifest_path = args.manifest.resolve()
             workspace = (
                 args.workspace.resolve()
                 if args.workspace is not None
-                else manifest_path.parent
+                else Path.cwd().resolve()
             )
-            if (workspace / "west.yml").is_file():
-                result = _run_west(
-                    workspace,
-                    ["manifest", "--freeze", "--active-only"],
-                    capture_output=True,
-                )
-                args.output.resolve().write_text(
-                    result.stdout, encoding="utf-8", newline="\n"
-                )
-            else:
-                manifest = load_workspace_manifest(
-                    yicore_root / "yi-modules.yml",
-                    manifest_path,
-                )
-                document = freeze_manifest(workspace, manifest)
-                write_manifest(document, args.output.resolve())
+            if not (workspace / "west.yml").is_file():
+                raise YiCliError(f"west.yml not found: {workspace}")
+            result = _run_west(
+                workspace,
+                ["manifest", "--freeze", "--active-only"],
+                capture_output=True,
+            )
+            args.output.resolve().write_text(
+                result.stdout, encoding="utf-8", newline="\n"
+            )
             print(args.output.resolve())
             return 0
         elif args.command == "app":
@@ -759,7 +719,6 @@ def main() -> int:
     except (
         AppCreationError,
         BoardCreationError,
-        ManifestError,
         ProjectCreationError,
         YiCliError,
         OSError,

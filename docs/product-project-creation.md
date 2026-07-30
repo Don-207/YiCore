@@ -212,7 +212,7 @@ firmware/images/application/main.c
 firmware/projects/gcc/CMakeLists.txt
 ```
 
-同时生成 `yi-manifest.yml`，其中固定 YiHAL-HPMicro 版本。执行以下命令会下载该模块并
+同时生成 `west.yml`，其中固定 YiCore 并启用 YiHAL-HPMicro 组。执行以下命令会下载该模块并
 递归初始化其中固定版本的官方 `hpm_sdk`：
 
 ```powershell
