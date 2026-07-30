@@ -69,7 +69,94 @@ def load_manifest(path: Path) -> dict[str, Any]:
             raise ManifestError(
                 f"project {project['name']} optional must be boolean"
             )
+        if "submodules" in project and not isinstance(
+            project["submodules"], bool
+        ):
+            raise ManifestError(
+                f"project {project['name']} submodules must be boolean"
+            )
     return manifest
+
+
+def merge_manifests(
+    framework: dict[str, Any],
+    product: dict[str, Any],
+) -> dict[str, Any]:
+    """Merge framework modules with product-owned dependency overrides.
+
+    Args:
+        framework: Validated YiCore standard module manifest.
+        product: Validated product-specific module manifest.
+    Returns:
+        Resolved manifest with stable framework ordering.
+    Raises:
+        ManifestError: An override changes its standard path or paths collide.
+    """
+
+    merged_projects = [
+        dict(project) for project in framework.get("projects", [])
+    ]
+    project_indexes = {
+        project["name"]: index
+        for index, project in enumerate(merged_projects)
+    }
+    for project in product.get("projects", []):
+        existing_index = project_indexes.get(project["name"])
+        if existing_index is not None:
+            existing = merged_projects[existing_index]
+            if existing["path"] != project["path"]:
+                raise ManifestError(
+                    f"project {project['name']} override must keep path "
+                    f"{existing['path']}"
+                )
+            merged_projects[existing_index] = dict(project)
+        else:
+            project_indexes[project["name"]] = len(merged_projects)
+            merged_projects.append(dict(project))
+
+    path_owners: dict[str, str] = {}
+    for project in merged_projects:
+        normalized_path = Path(project["path"]).as_posix().lower()
+        owner = path_owners.get(normalized_path)
+        if owner is not None:
+            raise ManifestError(
+                f"projects {owner} and {project['name']} use the same path: "
+                f"{project['path']}"
+            )
+        path_owners[normalized_path] = project["name"]
+
+    return {
+        "version": product.get(
+            "version", framework.get("version", "1.0")
+        ),
+        "projects": merged_projects,
+    }
+
+
+def load_workspace_manifest(
+    framework_path: Path,
+    product_path: Path,
+) -> dict[str, Any]:
+    """Load YiCore modules and merge an optional product manifest.
+
+    Args:
+        framework_path: YiCore-owned standard module manifest.
+        product_path: Product-owned optional dependency manifest.
+    Returns:
+        Resolved workspace manifest used by update and freeze.
+    Raises:
+        ManifestError: Either manifest is invalid or their projects conflict.
+    """
+
+    framework = load_manifest(framework_path)
+    if product_path.is_file():
+        product = load_manifest(product_path)
+    else:
+        product = {
+            "version": framework.get("version", "1.0"),
+            "projects": [],
+        }
+    return merge_manifests(framework, product)
 
 
 def _git_output(arguments: list[str], cwd: Path) -> str:
@@ -151,9 +238,18 @@ def update_workspace(
                     f"refusing to update dirty project: {project['name']}"
                 )
             commands = (
-                ["remote", "set-url", "origin", project["url"]],
-                ["fetch", "--tags", "origin", project["revision"]],
-                ["checkout", "--detach", "FETCH_HEAD"],
+                [
+                    "-C", str(destination),
+                    "remote", "set-url", "origin", project["url"],
+                ],
+                [
+                    "-C", str(destination),
+                    "fetch", "--tags", "origin", project["revision"],
+                ],
+                [
+                    "-C", str(destination),
+                    "checkout", "--detach", "FETCH_HEAD",
+                ],
             )
         else:
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -180,7 +276,8 @@ def update_workspace(
                 raise ManifestError(
                     f"failed to update project: {project['name']}"
                 ) from error
-        _update_submodules(destination, project["name"])
+        if project.get("submodules", True):
+            _update_submodules(destination, project["name"])
         updated.append(project["name"])
     return updated
 

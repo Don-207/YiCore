@@ -114,6 +114,8 @@ def verify_packages(
         if package["status"] != "ready" and not include_pending:
             continue
         package_root = repo_root / package["path"]
+        if package.get("scope") == "workspace":
+            package_root = repo_root.parent / package["path"]
         for relative in package["required"]:
             if not (package_root / relative).is_file():
                 failures.append(f"{package['id']}: missing {relative}")

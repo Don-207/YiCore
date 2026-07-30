@@ -54,9 +54,9 @@ function(yi_platform_application)
 
     set(
         YI_HAL_ST_ROOT
-        "${YICORE_ROOT}/vendor/st"
+        "${YICORE_ROOT}/../modules/hal/st"
         CACHE PATH
-        "Root of the ST vendor module"
+        "Root of the external YiHAL-ST module"
     )
     set(
         YI_CMSIS_ROOT
@@ -64,10 +64,50 @@ function(yi_platform_application)
         CACHE PATH
         "Root of CMSIS Core headers"
     )
+    set(
+        YI_LWRB_ROOT
+        "${YICORE_ROOT}/../modules/lib/lwrb"
+        CACHE PATH
+        "Root of the external LwRB module"
+    )
+    set(
+        YI_SEGGER_RTT_ROOT
+        "${YICORE_ROOT}/../modules/debug/segger-rtt"
+        CACHE PATH
+        "Root of the external SEGGER RTT module"
+    )
     set(_hal_root
         "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver")
     set(_device_root
         "${YI_HAL_ST_ROOT}/cmsis/Device/ST/STM32F1xx")
+    if(NOT EXISTS "${_hal_root}/Inc/stm32f1xx_hal.h")
+        message(
+            FATAL_ERROR
+            "YiHAL-ST is missing at ${YI_HAL_ST_ROOT}; "
+            "run 'yi update' from the workspace root"
+        )
+    endif()
+    if(NOT EXISTS "${YI_CMSIS_ROOT}/Include/core_cm3.h")
+        message(
+            FATAL_ERROR
+            "CMSIS is missing below ${YI_CMSIS_ROOT}; "
+            "run 'yi update' from the workspace root"
+        )
+    endif()
+    if(NOT EXISTS "${YI_LWRB_ROOT}/lwrb/src/include/lwrb/lwrb.h")
+        message(
+            FATAL_ERROR
+            "LwRB is missing at ${YI_LWRB_ROOT}; "
+            "run 'yi update' from the workspace root"
+        )
+    endif()
+    if(NOT EXISTS "${YI_SEGGER_RTT_ROOT}/RTT/SEGGER_RTT.h")
+        message(
+            FATAL_ERROR
+            "SEGGER RTT is missing at ${YI_SEGGER_RTT_ROOT}; "
+            "run 'yi update' from the workspace root"
+        )
+    endif()
     set(_soc_root "${YICORE_ROOT}/soc/st/stm32/stm32f1")
     set(_target "${YI_PLATFORM_NAME}.elf")
     set(_sources
@@ -124,8 +164,8 @@ function(yi_platform_application)
         "${YICORE_ROOT}/subsys/timer/yi_soft_timer.c"
         "${YICORE_ROOT}/ports/rtt/yi_rtt.c"
         "${YICORE_ROOT}/ports/newlib/yi_newlib_syscalls.c"
-        "${YICORE_ROOT}/third_party/RTT/SEGGER_RTT.c"
-        "${YICORE_ROOT}/third_party/lwrb/lwrb/src/lwrb/lwrb.c"
+        "${YI_SEGGER_RTT_ROOT}/RTT/SEGGER_RTT.c"
+        "${YI_LWRB_ROOT}/lwrb/src/lwrb/lwrb.c"
         "${_generated_dir}/yi_generated.c"
         "${_generated_dir}/yi_build_info.c"
     )
@@ -162,8 +202,9 @@ function(yi_platform_application)
         "${YICORE_ROOT}/subsys/timer"
         "${YICORE_ROOT}/ports/rtt"
         "${YICORE_ROOT}/ports/newlib"
-        "${YICORE_ROOT}/third_party/RTT"
-        "${YICORE_ROOT}/third_party/lwrb/lwrb/src/include"
+        "${YI_SEGGER_RTT_ROOT}/RTT"
+        "${YI_SEGGER_RTT_ROOT}/Config"
+        "${YI_LWRB_ROOT}/lwrb/src/include"
     )
     target_include_directories("${_target}" PRIVATE ${_include_dirs})
     target_compile_options(

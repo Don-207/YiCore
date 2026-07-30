@@ -1,27 +1,13 @@
+# File: yi-manifest.example.yml
+# Function: Demonstrate a product-owned manifest layered over YiCore modules.
+# Author: Don
+# Date: 2026-07-30
+# Version: 1.0.0
+
 manifest:
   version: "1.0"
-  projects:
-    - name: YiCore
-      url: https://github.com/Don-207/YiCore.git
-      revision: REPLACE_WITH_FULL_COMMIT_SHA
-      path: YiCore
+  projects: []
 
-    # Enable after the external SDK repositories are created.
-    # Optional projects are skipped unless `yi update --all` is used.
-    # - name: YiHAL-ST
-    #   url: https://github.com/Don-207/YiHAL-ST.git
-    #   revision: <full-commit-sha>
-    #   path: modules/hal/st
-    #   optional: true
-    #
-    # - name: YiHAL-GD
-    #   url: https://github.com/Don-207/YiHAL-GD.git
-    #   revision: <full-commit-sha>
-    #   path: modules/hal/gigadevice
-    #   optional: true
-    #
-    # - name: YiHAL-HPMicro
-    #   url: https://github.com/Don-207/YiHAL-HPMicro.git
-    #   revision: <full-commit-sha>
-    #   path: modules/hal/hpmicro
-    #   optional: true
+# Standard HAL, library, debug, and bootloader dependencies are declared in
+# YiCore/yi-modules.yml. Add only product-private projects here. A product may
+# override a standard project's URL or revision by repeating its name and path.

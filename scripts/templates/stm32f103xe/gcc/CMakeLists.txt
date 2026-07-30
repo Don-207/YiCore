@@ -18,6 +18,15 @@ endif()
 
 get_filename_component(YI_PRODUCT_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
 set(YICORE_ROOT "${YI_PRODUCT_ROOT}/YiCore")
+set(YI_HAL_ST_ROOT "${YI_PRODUCT_ROOT}/modules/hal/st" CACHE PATH
+    "Root of the external YiHAL-ST module")
+set(YI_CMSIS_ROOT "${YI_HAL_ST_ROOT}/cmsis" CACHE PATH
+    "Root of CMSIS supplied by YiHAL-ST")
+set(YI_LWRB_ROOT "${YI_PRODUCT_ROOT}/modules/lib/lwrb" CACHE PATH
+    "Root of the external LwRB module")
+set(YI_SEGGER_RTT_ROOT
+    "${YI_PRODUCT_ROOT}/modules/debug/segger-rtt" CACHE PATH
+    "Root of the external SEGGER RTT module")
 set(COMMON_ROOT "${YI_PRODUCT_ROOT}/firmware/common")
 set(IMAGE_ROOT "${YI_PRODUCT_ROOT}/firmware/images/${YI_PRODUCT_IMAGE}")
 set(GENERATED_ROOT "${IMAGE_ROOT}/generated")
@@ -45,24 +54,24 @@ set(YI_PRODUCT_SOURCES
     "${COMMON_ROOT}/Core/Src/stm32f1xx_it.c"
     "${COMMON_ROOT}/Core/Src/stm32f1xx_hal_msp.c"
     "${COMMON_ROOT}/Core/Src/system_stm32f1xx.c"
-    "${YICORE_ROOT}/vendor/st/cmsis/Device/ST/STM32F1xx/Source/Templates/gcc/startup_stm32f103xe.s"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_can.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_cortex.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_dma.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_exti.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash_ex.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio_ex.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_i2c.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_pwr.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc_ex.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_spi.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim_ex.c"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_uart.c"
+    "${YI_CMSIS_ROOT}/Device/ST/STM32F1xx/Source/Templates/gcc/startup_stm32f103xe.s"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_can.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_cortex.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_dma.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_exti.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash_ex.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio_ex.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_i2c.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_pwr.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc_ex.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_spi.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim_ex.c"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_uart.c"
     "${YICORE_ROOT}/core/yi_device.c"
     "${YICORE_ROOT}/core/yi_build_info.c"
     "${YICORE_ROOT}/drivers/led/yi_led.c"
@@ -92,8 +101,8 @@ set(YI_PRODUCT_SOURCES
     "${YICORE_ROOT}/subsys/log/yi_log.c"
     "${YICORE_ROOT}/subsys/timer/yi_soft_timer.c"
     "${YICORE_ROOT}/ports/rtt/yi_rtt.c"
-    "${YICORE_ROOT}/third_party/RTT/SEGGER_RTT.c"
-    "${YICORE_ROOT}/third_party/lwrb/lwrb/src/lwrb/lwrb.c"
+    "${YI_SEGGER_RTT_ROOT}/RTT/SEGGER_RTT.c"
+    "${YI_LWRB_ROOT}/lwrb/src/lwrb/lwrb.c"
     "${GENERATED_ROOT}/yi_generated.c"
     "${GENERATED_ROOT}/yi_build_info.c"
 )
@@ -105,10 +114,10 @@ target_include_directories("yi-product-${YI_PRODUCT_IMAGE}.elf" PRIVATE
     "${COMMON_ROOT}/Core/Inc"
     "${IMAGE_ROOT}/App"
     "${GENERATED_ROOT}"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Inc"
-    "${YICORE_ROOT}/vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy"
-    "${YICORE_ROOT}/vendor/st/cmsis/Device/ST/STM32F1xx/Include"
-    "${YICORE_ROOT}/vendor/st/cmsis/Include"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Inc"
+    "${YI_HAL_ST_ROOT}/stm32cube/stm32f1xx_hal_driver/Inc/Legacy"
+    "${YI_CMSIS_ROOT}/Device/ST/STM32F1xx/Include"
+    "${YI_CMSIS_ROOT}/Include"
     "${YICORE_ROOT}/core"
     "${YICORE_ROOT}/drivers/led"
     "${YICORE_ROOT}/drivers/uart"
@@ -129,8 +138,9 @@ target_include_directories("yi-product-${YI_PRODUCT_IMAGE}.elf" PRIVATE
     "${YICORE_ROOT}/subsys/timer"
     "${YICORE_ROOT}/ports/rtt"
     "${YICORE_ROOT}/soc/st/stm32/stm32f1"
-    "${YICORE_ROOT}/third_party/RTT"
-    "${YICORE_ROOT}/third_party/lwrb/lwrb/src/include"
+    "${YI_SEGGER_RTT_ROOT}/RTT"
+    "${YI_SEGGER_RTT_ROOT}/Config"
+    "${YI_LWRB_ROOT}/lwrb/src/include"
 )
 
 target_compile_options("yi-product-${YI_PRODUCT_IMAGE}.elf" PRIVATE
