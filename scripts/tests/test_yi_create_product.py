@@ -60,6 +60,13 @@ class ProductCreationTests(unittest.TestCase):
             west = (product / "west.yml").read_text(encoding="utf-8")
             self.assertIn("+hal-st", west)
             self.assertIn("-bootloader", west)
+            self.assertIn("name: YiCore", west)
+            self.assertIn("import:", west)
+            self.assertFalse((product / ".gitmodules").exists())
+            self.assertIn(
+                "/YiCore/",
+                (product / ".gitignore").read_text(encoding="utf-8"),
+            )
 
             add_image(product, "bootloader")
             add_image(product, "test")
@@ -119,6 +126,8 @@ class ProductCreationTests(unittest.TestCase):
             self.assertIn("YiHAL-HPMicro", manifest)
             self.assertIn("+hal-hpmicro", west)
             self.assertIn("-hal-st", west)
+            self.assertIn("name: YiCore", west)
+            self.assertFalse((product / ".gitmodules").exists())
             self.assertFalse(
                 (product / "firmware/projects/keil").exists()
             )

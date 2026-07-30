@@ -560,7 +560,7 @@ def create_product_in_place(
     product_root = product_root.resolve()
     if not (product_root / "YiCore" / "scripts" / "yi_cli.py").is_file():
         raise YiCliError(
-            f"YiCore submodule not found below product root: {product_root}"
+            f"YiCore west project not found below product root: {product_root}"
         )
     if board_id is None and not sys.stdin.isatty():
         raise YiCliError(

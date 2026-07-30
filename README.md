@@ -45,7 +45,7 @@ application -> core/subsys/drivers -> soc backend -> workspace module -> hardwar
 ## Product repositories
 
 Independent products should live in separate repositories and pin YiCore as a
-Git submodule. Product firmware, PCB descriptions, host tools, captures, and
+west project. Product firmware, PCB descriptions, host tools, captures, and
 release binaries stay with the product; reusable drivers and framework changes
 stay in YiCore.
 
@@ -54,12 +54,12 @@ product/
   applications/<product>/
   boards/<product-board>/
   Tools/<product-tool>/
-  YiCore/                    Git submodule pinned to a tested commit
+  YiCore/                    west project pinned to a tested commit
 ```
 
 This prevents a YiCore update from changing released products automatically.
-Each product advances its `YiCore` submodule pointer only after its own build
-and hardware validation. YiECG is the first product split this way:
+Each product advances the YiCore revision in `west.yml` only after its own
+build and hardware validation. YiECG is the first product split this way:
 `https://github.com/Don-207/YiECG`.
 
 Files below `vendor/` retain their upstream licenses and should not be edited
@@ -100,8 +100,7 @@ operation through the unified Zephyr-style command:
 mkdir ProductName
 cd ProductName
 git init -b main
-git submodule add https://github.com/Don-207/YiCore.git YiCore
-git submodule update --init --recursive
+git clone https://github.com/Don-207/YiCore.git YiCore
 python -m pip install west
 
 .\YiCore\yi.cmd board create product-name-stm32f103 `
@@ -112,7 +111,8 @@ python -m pip install west
 .\YiCore\yi.cmd update
 ```
 
-The generated `west.yml` selects module groups for the product. `yi update`
+The generated `west.yml` pins YiCore and selects module groups for the product.
+`YiCore/` is ignored by the product repository and managed by west. `yi update`
 initializes the local west workspace when needed and delegates repository
 updates to west. Use `yi update --group-filter=+bootloader,-debug` for a
 one-time override. YiCore owns repository URLs and revisions in

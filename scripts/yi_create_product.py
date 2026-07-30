@@ -217,6 +217,7 @@ def _create_hpm5301_product(
                     "-debug",
                     "-bootloader",
                 ],
+                _current_yicore_revision(repo_root),
             ),
             encoding="utf-8",
             newline="\n",
@@ -236,11 +237,8 @@ def _create_hpm5301_product(
             ],
             check=True,
         )
-        (destination / ".gitmodules").write_text(
-            '[submodule "YiCore"]\n'
-            "\tpath = YiCore\n"
-            "\turl = https://github.com/Don-207/YiCore.git\n"
-            "\tshallow = true\n",
+        (destination / ".gitignore").write_text(
+            _west_gitignore(),
             encoding="utf-8",
             newline="\n",
         )
@@ -421,7 +419,11 @@ manifest:
 """
 
 
-def _west_manifest(product_directory: str, groups: list[str]) -> str:
+def _west_manifest(
+    product_directory: str,
+    groups: list[str],
+    yicore_revision: str,
+) -> str:
     """Return a west manifest selecting modules for one generated product."""
 
     filters = "\n".join(f"    - {group}" for group in groups)
@@ -435,12 +437,40 @@ manifest:
   version: "1.2"
   group-filter:
 {filters}
+  projects:
+    - name: YiCore
+      url: https://github.com/Don-207/YiCore.git
+      revision: {yicore_revision}
+      path: YiCore
+      import:
+        file: yi-modules.yml
+        path-prefix: {product_directory}
   self:
-    path: .
-    import:
-      file: YiCore/yi-modules.yml
-      path-prefix: {product_directory}
+    path: {product_directory}
 """
+
+
+def _current_yicore_revision(repo_root: Path) -> str:
+    """Return the exact YiCore commit pinned by a generated west manifest."""
+
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    ).stdout.strip()
+
+
+def _west_gitignore() -> str:
+    """Return ignore rules for repositories materialized by west."""
+
+    return (
+        "/YiCore/\n"
+        "/modules/\n"
+        "/bootloader/\n"
+        "/build/\n"
+    )
 
 
 def create_product(
@@ -495,6 +525,7 @@ def create_product(
                         "+debug",
                         "-bootloader",
                     ],
+                    _current_yicore_revision(repo_root),
                 ),
                 encoding="utf-8",
                 newline="\n",
@@ -625,11 +656,8 @@ def create_product(
                 ],
                 check=True,
             )
-            (destination / ".gitmodules").write_text(
-                '[submodule "YiCore"]\n'
-                "\tpath = YiCore\n"
-                "\turl = https://github.com/Don-207/YiCore.git\n"
-                "\tshallow = true\n",
+            (destination / ".gitignore").write_text(
+                _west_gitignore(),
                 encoding="utf-8",
                 newline="\n",
             )

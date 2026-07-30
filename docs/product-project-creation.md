@@ -50,8 +50,8 @@ mkdir ProductName
 cd ProductName
 git init -b main
 
-git submodule add https://github.com/Don-207/YiCore.git YiCore
-git submodule update --init --recursive
+git clone https://github.com/Don-207/YiCore.git YiCore
+python -m pip install west
 ```
 
 此时目录至少包含：
@@ -59,7 +59,6 @@ git submodule update --init --recursive
 ```text
 ProductName/
 ├── .git/
-├── .gitmodules
 └── YiCore/
 ```
 
@@ -324,12 +323,13 @@ git commit -m "feat: initialize ProductName firmware"
 
 ## 10. 常见问题
 
-### 找不到 YiCore 子模块
+### 找不到 YiCore west 项目
 
-确认命令从产品根目录执行，并初始化所有子模块：
+首次创建时可临时克隆 YiCore；生成 `west.yml` 后由 west 统一管理：
 
 ```powershell
-git submodule update --init --recursive
+git clone https://github.com/Don-207/YiCore.git YiCore
+.\YiCore\yi.cmd update
 ```
 
 ### 找不到产品板卡
