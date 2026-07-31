@@ -29,8 +29,6 @@ dts/          Bindings and SoC-level DeviceTree descriptions
 soc/          Vendor/family MCU backends implemented by YiCore
 subsys/       Console, logging, timer, and other subsystems
 ports/        Architecture-independent debug and transport backends
-vendor/       Unmodified vendor CMSIS and STM32Cube dependencies
-third_party/  Other vendored components such as SEGGER RTT
 scripts/      DeviceTree generator and unit tests
 linker/       GCC and Arm linker fragments
 docs/         Architecture and DeviceTree documentation
@@ -41,13 +39,13 @@ applications/ Framework-owned utility images such as the reference bootloader
 The dependency direction is:
 
 ```text
-application -> core/subsys/drivers -> soc backend -> vendor library -> hardware
+application -> core/subsys/drivers -> soc backend -> workspace module -> hardware
 ```
 
 ## Product repositories
 
 Independent products should live in separate repositories and pin YiCore as a
-Git submodule. Product firmware, PCB descriptions, host tools, captures, and
+west project. Product firmware, PCB descriptions, host tools, captures, and
 release binaries stay with the product; reusable drivers and framework changes
 stay in YiCore.
 
@@ -56,12 +54,12 @@ product/
   applications/<product>/
   boards/<product-board>/
   Tools/<product-tool>/
-  YiCore/                    Git submodule pinned to a tested commit
+  YiCore/                    west project pinned to a tested commit
 ```
 
 This prevents a YiCore update from changing released products automatically.
-Each product advances its `YiCore` submodule pointer only after its own build
-and hardware validation. YiECG is the first product split this way:
+Each product advances the YiCore revision in `west.yml` only after its own
+build and hardware validation. YiECG is the first product split this way:
 `https://github.com/Don-207/YiECG`.
 
 Files below `vendor/` retain their upstream licenses and should not be edited
@@ -102,15 +100,23 @@ operation through the unified Zephyr-style command:
 mkdir ProductName
 cd ProductName
 git init -b main
-git submodule add https://github.com/Don-207/YiCore.git YiCore
-git submodule update --init --recursive
+git clone https://github.com/Don-207/YiCore.git YiCore
+python -m pip install west
 
 .\YiCore\yi.cmd board create product-name-stm32f103 `
   --model stm32f103xe `
   --from-board fire-mini-stm32f103
 
 .\YiCore\yi.cmd product create --board product-name-stm32f103
+.\YiCore\yi.cmd update
 ```
+
+The generated `west.yml` pins YiCore and selects module groups for the product.
+`YiCore/` is ignored by the product repository and managed by west. `yi update`
+initializes the local west workspace when needed and delegates repository
+updates to west. Use `yi update --group-filter=+bootloader,-debug` for a
+one-time override. YiCore owns repository URLs and revisions in
+`YiCore/yi-modules.yml`; product authors only select groups.
 
 Following Zephyr's hardware layering, `stm32f103xe` identifies the shared SoC
 and CMSIS compatibility group. A board using STM32F103ZCT6 keeps
@@ -171,8 +177,8 @@ yi app create MyApp
 yi boards
 yi sdk list
 yi sdk verify
-yi update -m yi-manifest.yml
-yi manifest freeze -m yi-manifest.yml
+yi update
+yi manifest freeze
 yi build -b fire-mini-stm32f103 applications/MyApp
 yi build -p always -b fire-mini-stm32f103 applications/MyApp
 ```
@@ -200,15 +206,16 @@ The legacy `create-app.cmd`, `create-board.cmd`, `create-product.cmd`,
 There are no compatibility aliases; use the corresponding nested `yi`
 commands.
 
-`yi build` prefers external workspace modules at `modules/hal/st` and
-`modules/lib/cmsis`. If they are absent it uses the compatible packages below
-`YiCore/vendor/`, allowing SDK repositories to be extracted without breaking
-existing products.
+`yi build` requires vendor HAL packages as external workspace modules.
+STM32 projects use `modules/hal/st`, which contains the pinned YiHAL-ST
+checkout and its compatible CMSIS package. LwRB and SEGGER RTT live below
+`modules/`, while MCUboot lives below `bootloader/mcuboot`. Run `yi update`
+after cloning a workspace; YiCore does not carry fallback dependency copies.
 
-The optional multi-repository manifest format is demonstrated by
-`yi-manifest.example.yml`. `yi update` refuses to switch a repository with
-uncommitted changes. `yi manifest freeze` records checked-out full commit SHAs
-in `yi-manifest.lock.yml`.
+YiCore declares standard dependencies in `yi-modules.yml`, which each
+product imports from its `west.yml`. `yi update` delegates to `west update`.
+`yi manifest freeze` records active checked-out commit SHAs in
+`west.lock.yml`.
 
 Install CLI dependencies with:
 

@@ -139,28 +139,6 @@ directory before changing oscillator, flash, console, or pin assignments.
 """
 
 
-def _hpm5301_manifest(repo_root: Path) -> str:
-    """Return a reproducible external HPMicro module manifest."""
-
-    sdk_revision = (
-        "88b01b43900d8c30844a1e5cdd3f3b7aff6db40e"
-    )
-    return f"""# File: yi-manifest.yml
-# Function: Pin external HPM5301 workspace modules.
-# Author: Don
-# Date: 2026-07-29
-# Version: 1.0.0
-
-manifest:
-  version: "1.0"
-  projects:
-    - name: YiHAL-HPMicro
-      url: https://github.com/Don-207/YiHAL-HPMicro.git
-      revision: 5d8e4881ef930506ecc4eabb54ccf66513ff12c8
-      path: modules/hal/hpmicro
-"""
-
-
 def _create_hpm5301_product(
     repo_root: Path,
     name: str,
@@ -202,8 +180,18 @@ def _create_hpm5301_product(
             encoding="utf-8",
             newline="\n",
         )
-        (destination / "yi-manifest.yml").write_text(
-            _hpm5301_manifest(repo_root),
+        (destination / "west.yml").write_text(
+            _west_manifest(
+                destination.name,
+                [
+                    "-hal-st",
+                    "+hal-hpmicro",
+                    "-serial",
+                    "-debug",
+                    "-bootloader",
+                ],
+                _current_yicore_revision(repo_root),
+            ),
             encoding="utf-8",
             newline="\n",
         )
@@ -222,11 +210,8 @@ def _create_hpm5301_product(
             ],
             check=True,
         )
-        (destination / ".gitmodules").write_text(
-            '[submodule "YiCore"]\n'
-            "\tpath = YiCore\n"
-            "\turl = https://github.com/Don-207/YiCore.git\n"
-            "\tshallow = true\n",
+        (destination / ".gitignore").write_text(
+            _west_gitignore(),
             encoding="utf-8",
             newline="\n",
         )
@@ -294,6 +279,12 @@ def add_image(product_root: Path, image: str) -> Path:
 
     application = firmware / "images" / "application"
     destination.mkdir(parents=True)
+    west_manifest = product_root / "west.yml"
+    original_west = (
+        west_manifest.read_text(encoding="utf-8")
+        if west_manifest.is_file()
+        else None
+    )
     try:
         (destination / "main.c").write_text(
             _image_main(image), encoding="utf-8", newline="\n"
@@ -367,40 +358,77 @@ def add_image(product_root: Path, image: str) -> Path:
             encoding="utf-8",
             newline="\n",
         )
+        if image == "bootloader" and original_west is not None:
+            west_manifest.write_text(
+                original_west.replace(
+                    "    - -bootloader", "    - +bootloader"
+                ),
+                encoding="utf-8",
+                newline="\n",
+            )
 
-        if image == "bootloader":
-            mcuboot = yicore / "third_party" / "mcuboot"
-            if not (mcuboot / "scripts" / "imgtool.py").is_file():
-                source = (
-                    Path(__file__).resolve().parent.parent
-                    / "third_party"
-                    / "mcuboot"
-                )
-                subprocess.run(
-                    [
-                        "git", "-C", str(yicore), "submodule", "init",
-                        "third_party/mcuboot",
-                    ],
-                    check=True,
-                )
-                subprocess.run(
-                    [
-                        "git", "clone", "--local", "--no-hardlinks",
-                        str(source), str(mcuboot),
-                    ],
-                    check=True,
-                )
-                subprocess.run(
-                    [
-                        "git", "-C", str(mcuboot), "remote", "set-url",
-                        "origin", "https://github.com/mcu-tools/mcuboot.git",
-                    ],
-                    check=True,
-                )
     except Exception:
         shutil.rmtree(destination)
+        if original_west is not None:
+            west_manifest.write_text(
+                original_west, encoding="utf-8", newline="\n"
+            )
         raise
     return destination
+
+
+def _west_manifest(
+    product_directory: str,
+    groups: list[str],
+    yicore_revision: str,
+) -> str:
+    """Return a west manifest selecting modules for one generated product."""
+
+    filters = "\n".join(f"    - {group}" for group in groups)
+    return f"""# File: west.yml
+# Function: Select product workspace modules managed by west.
+# Author: Don
+# Date: 2026-07-30
+# Version: 1.0.0
+
+manifest:
+  version: "1.2"
+  group-filter:
+{filters}
+  projects:
+    - name: YiCore
+      url: https://github.com/Don-207/YiCore.git
+      revision: {yicore_revision}
+      path: YiCore
+      import:
+        file: yi-modules.yml
+        path-prefix: {product_directory}
+  self:
+    path: {product_directory}
+"""
+
+
+def _current_yicore_revision(repo_root: Path) -> str:
+    """Return the exact YiCore commit pinned by a generated west manifest."""
+
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    ).stdout.strip()
+
+
+def _west_gitignore() -> str:
+    """Return ignore rules for repositories materialized by west."""
+
+    return (
+        "/YiCore/\n"
+        "/modules/\n"
+        "/bootloader/\n"
+        "/build/\n"
+    )
 
 
 def create_product(
@@ -440,6 +468,21 @@ def create_product(
             linker = destination / "firmware" / "linker" / "gcc"
             for directory in (common, application, keil, gcc, linker):
                 directory.mkdir(parents=True, exist_ok=True)
+            (destination / "west.yml").write_text(
+                _west_manifest(
+                    destination.name,
+                    [
+                        "+hal-st",
+                        "-hal-hpmicro",
+                        "+serial",
+                        "+debug",
+                        "-bootloader",
+                    ],
+                    _current_yicore_revision(repo_root),
+                ),
+                encoding="utf-8",
+                newline="\n",
+            )
 
             shutil.move(str(legacy / "Core"), str(common / "Core"))
             shutil.move(
@@ -559,50 +602,6 @@ def create_product(
                     "git",
                     "-C",
                     str(destination / "YiCore"),
-                    "submodule",
-                    "init",
-                    "third_party/lwrb",
-                ],
-                check=True,
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "clone",
-                    "--local",
-                    "--no-hardlinks",
-                    str(repo_root / "third_party" / "lwrb"),
-                    str(
-                        destination
-                        / "YiCore"
-                        / "third_party"
-                        / "lwrb"
-                    ),
-                ],
-                check=True,
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(
-                        destination
-                        / "YiCore"
-                        / "third_party"
-                        / "lwrb"
-                    ),
-                    "remote",
-                    "set-url",
-                    "origin",
-                    "https://github.com/MaJerle/lwrb.git",
-                ],
-                check=True,
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(destination / "YiCore"),
                     "remote",
                     "set-url",
                     "origin",
@@ -610,11 +609,8 @@ def create_product(
                 ],
                 check=True,
             )
-            (destination / ".gitmodules").write_text(
-                '[submodule "YiCore"]\n'
-                "\tpath = YiCore\n"
-                "\turl = https://github.com/Don-207/YiCore.git\n"
-                "\tshallow = true\n",
+            (destination / ".gitignore").write_text(
+                _west_gitignore(),
                 encoding="utf-8",
                 newline="\n",
             )
@@ -658,10 +654,10 @@ def create_application_in_place(
             product_root / "firmware",
             dirs_exist_ok=True,
         )
-        generated_manifest = generated / "yi-manifest.yml"
-        product_manifest = product_root / "yi-manifest.yml"
-        if generated_manifest.is_file() and not product_manifest.exists():
-            shutil.copy2(generated_manifest, product_manifest)
+        generated_west = generated / "west.yml"
+        product_west = product_root / "west.yml"
+        if generated_west.is_file() and not product_west.exists():
+            shutil.copy2(generated_west, product_west)
     return product_root
 
 

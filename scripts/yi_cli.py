@@ -28,13 +28,6 @@ from yi_create_project import (
     select_board_interactive,
     select_target_interactive,
 )
-from yi_manifest import (
-    ManifestError,
-    freeze_manifest,
-    load_manifest,
-    update_workspace,
-    write_manifest,
-)
 from yi_vendor_verify import load_packages, verify_packages
 
 
@@ -88,6 +81,53 @@ def _find_ninja() -> Path | None:
         Path(r"C:\Program Files\CMake\bin\ninja.exe"),
     )
     return next((path for path in candidates if path.is_file()), None)
+
+
+def _run_west(
+    workspace: Path,
+    arguments: list[str],
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    """Run west from its Python module, initializing a local workspace first.
+
+    Args:
+        workspace: Product repository containing west.yml.
+        arguments: West arguments after the executable name.
+        capture_output: Capture standard output for manifest generation.
+    Returns:
+        Completed west process.
+    Side effects:
+        May create west metadata beside the product and update repositories.
+    Raises:
+        YiCliError: west is unavailable, initialization fails, or west fails.
+    """
+
+    west = [sys.executable, "-m", "west"]
+    try:
+        topdir = subprocess.run(
+            [*west, "topdir"],
+            cwd=workspace,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        if topdir.returncode != 0:
+            subprocess.run(
+                [*west, "init", "-l", "."],
+                cwd=workspace,
+                check=True,
+            )
+        return subprocess.run(
+            [*west, *arguments],
+            cwd=workspace,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE if capture_output else None,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise YiCliError(
+            "west failed; install it with 'python -m pip install west'"
+        ) from error
 
 
 def build_app(
@@ -238,6 +278,7 @@ def build_product(
         generator,
         f"-DCMAKE_TOOLCHAIN_FILE={toolchain}",
         f"-DYI_PRODUCT_IMAGE={image}",
+        f"-DYIECG_IMAGE={image}",
     ]
     if generator == "Ninja":
         ninja = _find_ninja()
@@ -326,23 +367,18 @@ def _create_parser() -> argparse.ArgumentParser:
     )
 
     update_parser = commands.add_parser(
-        "update", help="update workspace projects from a manifest"
-    )
-    update_parser.add_argument(
-        "-m",
-        "--manifest",
-        type=Path,
-        default=Path.cwd() / "yi-manifest.yml",
+        "update", help="update active west workspace projects"
     )
     update_parser.add_argument(
         "--workspace",
         type=Path,
-        help="workspace root (default: manifest parent)",
+        help="product root containing west.yml (default: current directory)",
     )
     update_parser.add_argument(
-        "--all",
-        action="store_true",
-        help="also update optional projects",
+        "--group-filter",
+        action="append",
+        default=[],
+        help="temporary west groups, for example +bootloader,-debug",
     )
 
     manifest_parser = commands.add_parser(
@@ -355,21 +391,15 @@ def _create_parser() -> argparse.ArgumentParser:
         "freeze", help="write checked-out revisions as commit SHAs"
     )
     freeze_parser.add_argument(
-        "-m",
-        "--manifest",
-        type=Path,
-        default=Path.cwd() / "yi-manifest.yml",
-    )
-    freeze_parser.add_argument(
         "--workspace",
         type=Path,
-        help="workspace root (default: manifest parent)",
+        help="product root containing west.yml (default: current directory)",
     )
     freeze_parser.add_argument(
         "-o",
         "--output",
         type=Path,
-        default=Path.cwd() / "yi-manifest.lock.yml",
+        default=Path.cwd() / "west.lock.yml",
     )
 
     app_parser = commands.add_parser("app", help="application operations")
@@ -506,7 +536,7 @@ def create_product_in_place(
     product_root = product_root.resolve()
     if not (product_root / "YiCore" / "scripts" / "yi_cli.py").is_file():
         raise YiCliError(
-            f"YiCore submodule not found below product root: {product_root}"
+            f"YiCore west project not found below product root: {product_root}"
         )
     if board_id is None and not sys.stdin.isatty():
         raise YiCliError(
@@ -621,28 +651,36 @@ def main() -> int:
             print("vendor SDK verification passed")
             return 0
         if args.command == "update":
-            manifest_path = args.manifest.resolve()
             workspace = (
                 args.workspace.resolve()
                 if args.workspace is not None
-                else manifest_path.parent
+                else Path.cwd().resolve()
             )
-            manifest = load_manifest(manifest_path)
-            for project_name in update_workspace(
-                workspace, manifest, args.all
-            ):
-                print(f"updated {project_name}")
+            if not (workspace / "west.yml").is_file():
+                raise YiCliError(f"west.yml not found: {workspace}")
+            west_arguments = ["update"]
+            if args.group_filter:
+                west_arguments.extend(
+                    ["--group-filter", ",".join(args.group_filter)]
+                )
+            _run_west(workspace, west_arguments)
             return 0
         if args.command == "manifest":
-            manifest_path = args.manifest.resolve()
             workspace = (
                 args.workspace.resolve()
                 if args.workspace is not None
-                else manifest_path.parent
+                else Path.cwd().resolve()
             )
-            manifest = load_manifest(manifest_path)
-            document = freeze_manifest(workspace, manifest)
-            write_manifest(document, args.output.resolve())
+            if not (workspace / "west.yml").is_file():
+                raise YiCliError(f"west.yml not found: {workspace}")
+            result = _run_west(
+                workspace,
+                ["manifest", "--freeze", "--active-only"],
+                capture_output=True,
+            )
+            args.output.resolve().write_text(
+                result.stdout, encoding="utf-8", newline="\n"
+            )
             print(args.output.resolve())
             return 0
         elif args.command == "app":
@@ -681,7 +719,6 @@ def main() -> int:
     except (
         AppCreationError,
         BoardCreationError,
-        ManifestError,
         ProjectCreationError,
         YiCliError,
         OSError,

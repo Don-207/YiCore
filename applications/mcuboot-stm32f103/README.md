@@ -49,7 +49,7 @@ application uses its own `VERSION` file and generated metadata record.
 Create the unsigned MCUboot image with its SHA-256 integrity TLV:
 
 ```powershell
-python third_party\mcuboot\scripts\imgtool.py sign `
+python ..\bootloader\mcuboot\scripts\imgtool.py sign `
   --header-size 0x200 `
   --align 2 `
   --slot-size 0x18000 `

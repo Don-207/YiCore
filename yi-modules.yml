@@ -1,0 +1,48 @@
+# File: yi-modules.yml
+# Function: Declare standard external modules required by YiCore workspaces.
+# Author: Don
+# Date: 2026-07-30
+# Version: 1.0.0
+
+manifest:
+  version: "1.2"
+  projects:
+    - name: YiHAL-ST
+      url: https://github.com/Don-207/YiHAL-ST.git
+      revision: 321117a5282e7217c71e4d9b1c49d863c5cbd6c3
+      path: modules/hal/st
+      submodules: false
+      groups:
+        - hal-st
+
+    - name: lwrb
+      url: https://github.com/MaJerle/lwrb.git
+      revision: 77b2bdbecf60cd80e449f5c61bde72ec195efac4
+      path: modules/lib/lwrb
+      submodules: false
+      groups:
+        - serial
+
+    - name: segger-rtt
+      url: https://github.com/SEGGERMicro/RTT.git
+      revision: 4d8feab3150f86f37a9d323ddc88d6cdf5673072
+      path: modules/debug/segger-rtt
+      submodules: false
+      groups:
+        - debug
+
+    - name: mcuboot
+      url: https://github.com/mcu-tools/mcuboot.git
+      revision: 6d3b3d2c38ab20c242e5b9abb04d050086383eb2
+      path: bootloader/mcuboot
+      submodules: false
+      groups:
+        - bootloader
+
+    - name: YiHAL-HPMicro
+      url: https://github.com/Don-207/YiHAL-HPMicro.git
+      revision: 5d8e4881ef930506ecc4eabb54ccf66513ff12c8
+      path: modules/hal/hpmicro
+      submodules: true
+      groups:
+        - hal-hpmicro
