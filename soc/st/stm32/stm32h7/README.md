@@ -17,8 +17,8 @@ Implemented:
 - LDO supply and HSI PLL system clock at 400 MHz;
 - instruction/data cache enablement;
 - DWT time services and SysTick runtime;
-- GCC Flash/AXI-SRAM linker layout.
+- GCC Flash/AXI-SRAM linker layout;
+- bootstrap DeviceTree and GCC build adapter.
 
 Still required before changing the platform status to `ready`: MPU policy,
-pinmux, GPIO, UART, SPI, I2C, timer, internal flash, DeviceTree and GCC build
-adapter.
+pinmux, GPIO, UART, SPI, I2C, timer and internal flash.

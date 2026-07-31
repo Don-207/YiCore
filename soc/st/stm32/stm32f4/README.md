@@ -16,7 +16,8 @@ Implemented:
 - HAL configuration baseline;
 - HSI PLL system clock at 168 MHz;
 - DWT time services and SysTick runtime;
-- GCC Flash/main-SRAM linker layout.
+- GCC Flash/main-SRAM linker layout;
+- bootstrap DeviceTree and GCC build adapter.
 
 Still required before changing the platform status to `ready`: pinmux, GPIO,
-UART, SPI, I2C, timer, internal flash, DeviceTree and GCC build adapter.
+UART, SPI, I2C, timer and internal flash.

@@ -7,6 +7,8 @@
  */
 
 / {
+    /include/ "../../dts/arm/st/stm32h743xx/soc.dtsi"
+
     model = "Yi STM32H743";
     compatible = "yi,stm32h743";
 
