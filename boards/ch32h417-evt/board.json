@@ -1,0 +1,12 @@
+{
+  "id": "ch32h417-evt",
+  "name": "CH32H417 Evaluation Board",
+  "vendor": "wch",
+  "series": "ch32h4xx",
+  "model": "ch32h417",
+  "part": "CH32H417QEU",
+  "core": "v3f",
+  "flash_size": 65536,
+  "ram_size": 524288,
+  "description": "Official CH32H417QEU evaluation board V3F target"
+}

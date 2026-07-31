@@ -43,5 +43,14 @@
     "backend": "soc/hpmicro/hpm5300",
     "vendor_package": "hpmicro-hpm5300",
     "status": "reserved"
+  },
+  {
+    "id": "wch-ch32h4xx",
+    "arch": "riscv",
+    "vendor": "wch",
+    "family": "ch32h4xx",
+    "backend": "soc/wch/ch32h4xx",
+    "vendor_package": "wch-ch32h4xx",
+    "status": "ready"
   }
 ]

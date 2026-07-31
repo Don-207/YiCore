@@ -1,0 +1,18 @@
+/*
+ * File: board.dts
+ * Description: Describe the CH32H417 evaluation board V3F bring-up routing.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    /include/ "../../dts/riscv/wch/ch32h417/soc.dtsi"
+
+    heartbeat-led {
+        port = "GPIOB";
+        pin = <1>;
+        active-high;
+        status = "available";
+    };
+};

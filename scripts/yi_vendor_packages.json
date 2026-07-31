@@ -77,5 +77,28 @@
       "soc/HPM5300/HPM5301/CMakeLists.txt",
       "boards/hpm5301evklite/hpm5301evklite.yaml"
     ]
+  },
+  {
+    "id": "wch-ch32h4xx",
+    "vendor": "wch",
+    "family": "ch32h4xx",
+    "package": "WCH CH32H417 EVT",
+    "version": "1a8132b1813ecda1ade48fb07fd85e2b286e8337",
+    "source": "https://gitee.com/Don-207/YiHAL-WCH",
+    "path": "modules/hal/wch",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "Core/core_riscv.h",
+      "Peripheral/inc/ch32h417.h",
+      "Peripheral/src/ch32h417_gpio.c",
+      "Startup/startup_ch32h417_v3f.S",
+      "Ld/V3F/Link_v3f.ld",
+      "System/system_ch32h417.c",
+      "System/ch32h417_conf.h",
+      "Metadata/CH32H417-targetProcessor.json",
+      "Metadata/CH32H417-flash.json",
+      "SVD/CH32H417xx.svd"
+    ]
   }
 ]

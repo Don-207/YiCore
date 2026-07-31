@@ -46,3 +46,11 @@ manifest:
       submodules: true
       groups:
         - hal-hpmicro
+
+    - name: YiHAL-WCH
+      url: https://gitee.com/Don-207/YiHAL-WCH.git
+      revision: 1a8132b1813ecda1ade48fb07fd85e2b286e8337
+      path: modules/hal/wch
+      submodules: false
+      groups:
+        - hal-wch
