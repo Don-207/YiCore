@@ -33,6 +33,9 @@ yi_application(
         "${CMAKE_CURRENT_LIST_DIR}/src/main.c"
         "${CMAKE_CURRENT_LIST_DIR}/src/yidap_ch32h417_backend.c"
         "${CMAKE_CURRENT_LIST_DIR}/src/yidap_ch32h417_usb.c"
+        "${CMAKE_CURRENT_LIST_DIR}/src/yidap_ch32h417_peripherals.c"
+        "${CMAKE_CURRENT_LIST_DIR}/src/yidap_ch32h417_vendor.c"
+        "${CMAKE_CURRENT_LIST_DIR}/src/yidap_ch32h417_fpga.c"
         "${YICORE_ROOT}/subsys/dap/yi_dap.c"
         "${CHERRYDAP_ROOT}/dap_main.c"
         "${CHERRYDAP_ROOT}/DAP/Source/DAP.c"
@@ -42,6 +45,8 @@ yi_application(
         "${CHERRYDAP_ROOT}/CherryUSB/core/usbd_core.c"
         "${CHERRYDAP_ROOT}/CherryUSB/class/cdc/usbd_cdc_acm.c"
         "${CHERRYDAP_ROOT}/CherryUSB/port/ch32/usb_dc_usbfs.c"
+        "${YICORE_ROOT}/../modules/hal/wch/Peripheral/src/ch32h417_i2c.c"
+        "${YICORE_ROOT}/../modules/hal/wch/Peripheral/src/ch32h417_spi.c"
     INCLUDE_DIRS
         "${CMAKE_CURRENT_LIST_DIR}/src"
         "${YICORE_ROOT}/subsys/dap"

@@ -86,6 +86,23 @@ class YiDapTests(unittest.TestCase):
         self.assertIn("#define YIDAP_PIN_RESET GPIO_Pin_8", config)
         self.assertIn("#define DAP_PACKET_SIZE 64U", config)
 
+    def test_ch32h417_exposes_peripheral_and_fpga_vendor_commands(self):
+        """CH32H417 keeps debug, USB, peripheral and FPGA pins independent."""
+
+        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
+        peripheral = (app_root / "src" / "yidap_ch32h417_peripherals.c").read_text(encoding="utf-8")
+        vendor = (app_root / "src" / "yidap_ch32h417_vendor.c").read_text(encoding="utf-8")
+        for source in ("yidap_ch32h417_peripherals.c", "yidap_ch32h417_vendor.c", "yidap_ch32h417_fpga.c"):
+            self.assertIn(source, cmake)
+        self.assertIn("I2C2", peripheral)
+        self.assertIn("SPI3", peripheral)
+        self.assertIn("GPIO_PinSource14", peripheral)
+        self.assertIn("GPIO_PinSource13", peripheral)
+        self.assertIn("GPIO_PinSource15", peripheral)
+        self.assertIn("ID_DAP_Vendor7", vendor)
+        self.assertIn("YIDAP_VENDOR_MAX_DATA 48U", vendor)
+
 
 if __name__ == "__main__":
     unittest.main()

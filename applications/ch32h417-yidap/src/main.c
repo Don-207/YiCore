@@ -9,6 +9,7 @@
 #include "yi_dap.h"
 #include "yi_system.h"
 #include "yidap_ch32h417_backend.h"
+#include "yidap_ch32h417_peripherals.h"
 
 /**
  * @brief Initialize the V3F platform and continuously service CMSIS-DAP work.
@@ -20,6 +21,7 @@ int main(void)
     int result;
 
     (void)yi_system_init();
+    yidap_peripherals_init();
     result = yi_dap_init(yidap_ch32h417_backend_get_config());
     if (result != 0) {
         return result;
