@@ -32,6 +32,38 @@
     ]
   },
   {
+    "id": "st-stm32f4",
+    "vendor": "st",
+    "family": "stm32f4",
+    "package": "STM32CubeF4",
+    "version": "992138c8f7b5a091b48f30ebfdaee1f4dac8049b",
+    "source": "https://gitee.com/Don-207/YiHAL-ST",
+    "path": "modules/hal/st",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "cmsis/Include/core_cm4.h",
+      "cmsis/Device/ST/STM32F4xx/Include/stm32f407xx.h",
+      "stm32cube/stm32f4xx_hal_driver/Inc/stm32f4xx_hal.h"
+    ]
+  },
+  {
+    "id": "st-stm32h7",
+    "vendor": "st",
+    "family": "stm32h7",
+    "package": "STM32CubeH7",
+    "version": "992138c8f7b5a091b48f30ebfdaee1f4dac8049b",
+    "source": "https://gitee.com/Don-207/YiHAL-ST",
+    "path": "modules/hal/st",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "cmsis/Include/core_cm7.h",
+      "cmsis/Device/ST/STM32H7xx/Include/stm32h743xx.h",
+      "stm32cube/stm32h7xx_hal_driver/Inc/stm32h7xx_hal.h"
+    ]
+  },
+  {
     "id": "hpmicro-hpm5300",
     "vendor": "hpmicro",
     "family": "hpm5300",

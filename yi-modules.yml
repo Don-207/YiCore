@@ -9,9 +9,9 @@ manifest:
   projects:
     - name: YiHAL-ST
       url: https://gitee.com/Don-207/YiHAL-ST.git
-      revision: 321117a5282e7217c71e4d9b1c49d863c5cbd6c3
+      revision: 992138c8f7b5a091b48f30ebfdaee1f4dac8049b
       path: modules/hal/st
-      submodules: false
+      submodules: true
       groups:
         - hal-st
 
