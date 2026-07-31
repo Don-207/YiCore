@@ -12,18 +12,24 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/** YiDAP initialization and foreground-processing configuration. */
+/** Backend operations implemented by the selected CMSIS-DAP engine adapter. */
 typedef struct {
-    uint8_t usb_bus_id; /**< CherryUSB device-controller bus identifier. */
-    uintptr_t usb_register_base; /**< Device-controller register base address. */
-    bool enable_cdc_uart; /**< Process the optional USB CDC-to-UART bridge. */
+    int (*init)(void *context); /**< Initialize backend protocol and transport state. */
+    void (*process)(void *context); /**< Process one non-blocking backend iteration. */
+} yi_dap_backend_api_t;
+
+/** YiDAP backend selection and opaque product context. */
+typedef struct {
+    const yi_dap_backend_api_t *backend_api; /**< Selected backend operations. */
+    void *backend_context; /**< Product-owned context passed to backend operations. */
 } yi_dap_config_t;
 
 /**
  * @brief Initialize the selected CMSIS-DAP engine and USB device controller.
  * @param config Immutable product configuration retained by value.
- * @return Zero on success, -1 for invalid configuration, or -2 if initialized.
- * @note Thread context only; initializes USB endpoints and DAP protocol state.
+ * @return Zero on success, -1 for invalid configuration, -2 if initialized,
+ * or the backend initialization error.
+ * @note Thread context only; delegates transport and protocol setup to backend.
  */
 int yi_dap_init(const yi_dap_config_t *config);
 

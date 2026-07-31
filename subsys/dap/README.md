@@ -1,9 +1,10 @@
 # YiDAP
 
 YiDAP provides a stable lifecycle boundary between YiLink products and a
-CMSIS-DAP protocol engine. The initial backend adapts CherryDAP without
-copying its USB descriptors, command processor, or timing-sensitive SWD/JTAG
-implementation into YiCore.
+CMSIS-DAP protocol engine. YiCore owns only the lifecycle and opaque backend
+contract; products adapt CherryDAP or another engine without exposing its USB
+headers, descriptors, command processor, or timing-sensitive SWD/JTAG code to
+the common subsystem.
 
 Products remain responsible for `DAP_config.h`, USB endpoint configuration,
 GPIO/SPI pin timing, CDC UART callbacks, and CMSIS-DAP vendor commands. This

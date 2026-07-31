@@ -8,9 +8,7 @@
 
 #include "yi_dap.h"
 
-#include <limits.h>
-
-#include "dap_main.h"
+#include <stddef.h>
 
 /** Retained product configuration used by foreground processing. */
 static yi_dap_config_t yi_dap_config;
@@ -26,20 +24,24 @@ static bool yi_dap_initialized;
  */
 int yi_dap_init(const yi_dap_config_t *config)
 {
-    if ((config == NULL) ||
-        (config->usb_register_base == (uintptr_t)0U) ||
-        (config->usb_register_base > (uintptr_t)UINT32_MAX)) {
+    /** Backend-specific initialization result propagated to the product. */
+    int result;
+
+    if ((config == NULL) || (config->backend_api == NULL) ||
+        (config->backend_api->init == NULL) ||
+        (config->backend_api->process == NULL)) {
         return -1;
     }
     if (yi_dap_initialized) {
         return -2;
     }
 
+    result = config->backend_api->init(config->backend_context);
+    if (result != 0) {
+        return result;
+    }
+
     yi_dap_config = *config;
-    chry_dap_init(
-        yi_dap_config.usb_bus_id,
-        (uint32_t)yi_dap_config.usb_register_base
-    );
     yi_dap_initialized = true;
     return 0;
 }
@@ -55,10 +57,7 @@ void yi_dap_process(void)
         return;
     }
 
-    chry_dap_handle();
-    if (yi_dap_config.enable_cdc_uart) {
-        chry_dap_usb2uart_handle();
-    }
+    yi_dap_config.backend_api->process(yi_dap_config.backend_context);
 }
 
 /**

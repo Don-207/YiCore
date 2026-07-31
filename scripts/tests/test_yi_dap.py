@@ -19,16 +19,15 @@ class YiDapTests(unittest.TestCase):
         cls.repo_root = Path(__file__).resolve().parents[2]
         cls.yilink_root = cls.repo_root.parent / "YiLink"
 
-    def test_facade_wraps_cherrydap_lifecycle(self):
-        """YiDAP owns initialization and foreground CherryDAP calls."""
+    def test_facade_is_backend_neutral(self):
+        """YiDAP delegates through operations without CherryDAP dependencies."""
 
         source = (
             self.repo_root / "subsys" / "dap" / "yi_dap.c"
         ).read_text(encoding="utf-8")
-        self.assertIn("chry_dap_init", source)
-        self.assertIn("chry_dap_handle", source)
-        self.assertIn("chry_dap_usb2uart_handle", source)
-        self.assertIn("enable_cdc_uart", source)
+        self.assertIn("backend_api->init", source)
+        self.assertIn("backend_api->process", source)
+        self.assertNotIn("chry_dap_", source)
 
     def test_product_uses_only_yidap_lifecycle(self):
         """YiLink application code does not bypass the facade lifecycle."""
