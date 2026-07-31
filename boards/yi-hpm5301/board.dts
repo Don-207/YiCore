@@ -1,0 +1,36 @@
+/*
+ * File: board.dts
+ * Description: Describe the Yi HPM5301 board and fixed peripheral routing.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    /include/ "../../dts/riscv/hpmicro/hpm5301/soc.dtsi"
+
+    chosen {
+        yi,console = "uart2";
+    };
+
+    led0 {
+        port = "GPIOB";
+        pin = <12>;
+        active-low;
+        status = "available";
+    };
+
+    i2c0-routing {
+        scl = "PA02";
+        sda = "PA03";
+        status = "available";
+    };
+
+    spi1-routing {
+        cs = "PA26";
+        sclk = "PA27";
+        miso = "PA28";
+        mosi = "PA29";
+        status = "available";
+    };
+};

@@ -6,10 +6,24 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+
 if(NOT DEFINED ENV{HPM_SDK_BASE})
     message(
         FATAL_ERROR
         "Set HPM_SDK_BASE to YiHAL-HPMicro/hpm_sdk before configuring"
+    )
+endif()
+
+if(NOT DEFINED BOARD OR BOARD STREQUAL "")
+    set(BOARD "hpm5301evklite" CACHE STRING "Selected HPM5301 board")
+endif()
+if(BOARD STREQUAL "yi-hpm5301")
+    set(
+        BOARD_SEARCH_PATH
+        "${YICORE_ROOT}/boards"
+        CACHE PATH
+        "YiCore custom HPM board root"
     )
 endif()
 
@@ -32,8 +46,6 @@ set(RV_ABI "ilp32" CACHE STRING "HPM5301 integer ABI")
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
 project(yicore_hpm5301_bringup LANGUAGES C ASM)
-
-get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 
 sdk_app_src(
     src/main.c
