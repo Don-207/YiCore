@@ -1,0 +1,16 @@
+/*
+ * File: board.dts
+ * Description: Reserve the Yi STM32H743 board identity and memory contract.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    model = "Yi STM32H743";
+    compatible = "yi,stm32h743";
+
+    chosen {
+        yi,part = "stm32h743zit6";
+    };
+};
