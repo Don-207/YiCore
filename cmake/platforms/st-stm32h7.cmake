@@ -7,6 +7,7 @@
 set(YI_ST_DEVICE_DIRECTORY STM32H7xx)
 set(YI_ST_DEVICE_HEADER stm32h743xx.h)
 set(YI_ST_DEVICE_DEFINE STM32H743xx)
+set(YI_ST_SOC_HEADER stm32h7xx.h)
 set(YI_ST_HAL_DIRECTORY stm32h7xx_hal_driver)
 set(YI_ST_HAL_HEADER stm32h7xx_hal.h)
 set(YI_ST_HAL_PREFIX stm32h7xx)

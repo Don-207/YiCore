@@ -7,6 +7,7 @@
 set(YI_ST_DEVICE_DIRECTORY STM32F4xx)
 set(YI_ST_DEVICE_HEADER stm32f407xx.h)
 set(YI_ST_DEVICE_DEFINE STM32F407xx)
+set(YI_ST_SOC_HEADER stm32f4xx.h)
 set(YI_ST_HAL_DIRECTORY stm32f4xx_hal_driver)
 set(YI_ST_HAL_HEADER stm32f4xx_hal.h)
 set(YI_ST_HAL_PREFIX stm32f4xx)

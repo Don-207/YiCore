@@ -34,6 +34,7 @@ function(yi_stm32_bootstrap_application)
             --dts "${_resolved_dts}"
             --bindings "${YICORE_ROOT}/dts/bindings"
             --output "${_generated_dir}"
+            --soc-header "${YI_ST_SOC_HEADER}"
         COMMAND_ERROR_IS_FATAL ANY
     )
     execute_process(
@@ -79,7 +80,10 @@ function(yi_stm32_bootstrap_application)
         "${_hal_root}/Src/${YI_ST_HAL_PREFIX}_hal_rcc_ex.c"
         "${YICORE_ROOT}/core/yi_device.c"
         "${YICORE_ROOT}/core/yi_build_info.c"
+        "${YICORE_ROOT}/drivers/led/yi_led.c"
         "${YICORE_ROOT}/ports/newlib/yi_newlib_syscalls.c"
+        "${YICORE_ROOT}/soc/st/stm32/yi_clock_stm32.c"
+        "${YICORE_ROOT}/soc/st/stm32/yi_gpio_stm32.c"
         "${YI_ST_SOC_ROOT}/${YI_ST_SYSTEM_IMPL}"
         "${YI_ST_SOC_ROOT}/${YI_ST_RUNTIME_IMPL}"
         "${_generated_dir}/yi_generated.c"
@@ -97,6 +101,9 @@ function(yi_stm32_bootstrap_application)
         "${_device_root}/Include"
         "${_cmsis_root}/Include"
         "${YICORE_ROOT}/core"
+        "${YICORE_ROOT}/drivers/clock"
+        "${YICORE_ROOT}/drivers/gpio"
+        "${YICORE_ROOT}/drivers/led"
     )
     target_compile_options(
         "${_target}" PRIVATE

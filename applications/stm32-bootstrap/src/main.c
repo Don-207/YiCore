@@ -7,6 +7,8 @@
  */
 
 #include "yi_device.h"
+#include "yi_generated.h"
+#include "yi_led.h"
 #include "yi_system.h"
 
 /**
@@ -15,12 +17,22 @@
  */
 int main(void)
 {
+    yi_device_t *led;
+
     if((yi_system_init() != 0) || (yi_device_init_all() != 0))
+    {
+        yi_system_irq_lock();
+    }
+
+    led = YI_DT_GET(LED0);
+    if(!yi_device_is_ready(led))
     {
         yi_system_irq_lock();
     }
 
     while(1)
     {
+        (void)yi_led_toggle(led);
+        yi_system_delay_ms(500U);
     }
 }

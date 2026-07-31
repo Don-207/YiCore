@@ -1241,7 +1241,8 @@ _GENERATORS = {
 
 
 def generate_sources(nodes: list[ValidatedNode], source_name: str,
-                     bootloader_enabled: bool = False) -> tuple[str, str]:
+                     bootloader_enabled: bool = False,
+                     soc_header: str = "stm32f1xx.h") -> tuple[str, str]:
     ordered = dependency_order(nodes)
     occupied_pins: dict[tuple[str, int], str] = {}
     for item in ordered:
@@ -1269,7 +1270,7 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str,
 
     headers = sorted({item.binding.header for item in ordered})
     if any(item.binding.driver == "gpio" for item in ordered):
-        headers.append("stm32f1xx.h")
+        headers.append(soc_header)
     includes = "\n".join(f'#include "{header}"' for header in headers)
     bodies = "\n\n".join(_GENERATORS[item.binding.driver](item) for item in ordered)
     c_source = f"""/*
@@ -1362,7 +1363,8 @@ LR_IROM1 0x{address:08X} 0x{size:08X} {{
 """
 
 
-def generate(dts: Path, bindings_dir: Path, output_dir: Path) -> tuple[Path, Path]:
+def generate(dts: Path, bindings_dir: Path, output_dir: Path,
+             soc_header: str = "stm32f1xx.h") -> tuple[Path, Path]:
     tree = parse_file(dts)
     nodes = validate_tree(tree, load_bindings(bindings_dir))
     bootloader_enabled = False
@@ -1375,7 +1377,8 @@ def generate(dts: Path, bindings_dir: Path, output_dir: Path) -> tuple[Path, Pat
             )
         bootloader_enabled = status == "okay"
     c_source, h_source = generate_sources(
-        nodes, dts.name, bootloader_enabled=bootloader_enabled
+        nodes, dts.name, bootloader_enabled=bootloader_enabled,
+        soc_header=soc_header
     )
     c_path = output_dir / "yi_generated.c"
     h_path = output_dir / "yi_generated.h"
@@ -1391,9 +1394,12 @@ def main() -> int:
     parser.add_argument("--dts", type=Path, required=True)
     parser.add_argument("--bindings", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--soc-header", default="stm32f1xx.h")
     args = parser.parse_args()
     try:
-        c_path, h_path = generate(args.dts, args.bindings, args.output)
+        c_path, h_path = generate(
+            args.dts, args.bindings, args.output, args.soc_header
+        )
     except (OSError, ValueError) as exc:
         failure = (
             "/* DTS generation failed. See the pre-build log. */\n"
