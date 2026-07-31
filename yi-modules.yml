@@ -8,7 +8,7 @@ manifest:
   version: "1.2"
   projects:
     - name: YiHAL-ST
-      url: https://github.com/Don-207/YiHAL-ST.git
+      url: https://gitee.com/Don-207/YiHAL-ST.git
       revision: 321117a5282e7217c71e4d9b1c49d863c5cbd6c3
       path: modules/hal/st
       submodules: false
@@ -40,8 +40,8 @@ manifest:
         - bootloader
 
     - name: YiHAL-HPMicro
-      url: https://github.com/Don-207/YiHAL-HPMicro.git
-      revision: 5d8e4881ef930506ecc4eabb54ccf66513ff12c8
+      url: https://gitee.com/Don-207/YiHAL-HPMicro.git
+      revision: e0b30704537d67b79cf5e3e22f7e0569dea93774
       path: modules/hal/hpmicro
       submodules: true
       groups:
