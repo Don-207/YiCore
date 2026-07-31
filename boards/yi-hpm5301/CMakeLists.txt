@@ -5,6 +5,7 @@
 # Version: 1.0.0
 
 set(YILINK_HPM_REFERENCE_BOARD "${HPM_SDK_BASE}/boards/hpm5301evklite")
+set(YI_HPM5301_SOC_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../soc/hpmicro/hpm5300")
 
 sdk_inc(.)
 sdk_inc("${HPM_SDK_BASE}/boards")
@@ -14,4 +15,4 @@ sdk_inc("${YILINK_HPM_REFERENCE_BOARD}")
 sdk_src("${YILINK_HPM_REFERENCE_BOARD}/board.c")
 sdk_src("${YILINK_HPM_REFERENCE_BOARD}/clock.c")
 sdk_src("${YILINK_HPM_REFERENCE_BOARD}/pinmux.c")
-sdk_src(yi_hpm5301_board.c)
+sdk_src("${YI_HPM5301_SOC_ROOT}/yi_hpm5301_board.c")

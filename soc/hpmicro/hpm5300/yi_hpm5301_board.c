@@ -1,6 +1,6 @@
 /**
  * @file yi_hpm5301_board.c
- * @brief Implement Yi HPM5301 peripheral initialization.
+ * @brief Implement Yi HPM5301 board routing on the HPM5300 SoC backend.
  * @author Don
  * @date 2026-07-29
  * @version 1.0.0

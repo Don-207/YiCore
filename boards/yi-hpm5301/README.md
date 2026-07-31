@@ -27,3 +27,7 @@ Fixed routing:
 The I2C connector requires external pull-ups. The SPI routing is shared with
 the YiLinkPro HPM5301-to-FPGA transport. Product-specific USB, JTAG/reset and
 FPGA control signals remain in their product repositories.
+
+The HPM SDK-facing implementation is kept in
+`soc/hpmicro/hpm5300/yi_hpm5301_board.c`; this directory contains only the
+board contract and the minimal SDK discovery entry points.
