@@ -9,6 +9,7 @@
 / {
     /include/ "../../dts/arm/st/stm32f407xx/soc.dtsi"
     /include/ "board-gpios.dtsi"
+    /include/ "board-pinctrl.dtsi"
     /include/ "board-devices.dtsi"
 
     model = "Yi STM32F407";

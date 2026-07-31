@@ -370,6 +370,11 @@ def _generate_pinmux(item: ValidatedNode) -> str:
     speed = _mapped_pinmux_value(item, "speed", _PINMUX_SPEED_MAP)
     port = item.properties["port"]
     clock = item.properties["clocks"].label
+    alternate = item.properties["alternate"]
+    if not 0 <= alternate <= 15:
+        raise BindingError(
+            f"{item.node.path}: alternate must be in range 0..15"
+        )
     return f"""static const yi_pinmux_config_t {label}_cfg =
 {{
     .port = {port},
@@ -378,6 +383,7 @@ def _generate_pinmux(item: ValidatedNode) -> str:
     .pull = {pull},
     .speed = {speed},
     .function = {function},
+    .alternate = {alternate}U,
     .clock = &{clock}
 }};
 

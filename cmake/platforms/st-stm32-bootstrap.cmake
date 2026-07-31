@@ -84,6 +84,7 @@ function(yi_stm32_bootstrap_application)
         "${YICORE_ROOT}/ports/newlib/yi_newlib_syscalls.c"
         "${YICORE_ROOT}/soc/st/stm32/yi_clock_stm32.c"
         "${YICORE_ROOT}/soc/st/stm32/yi_gpio_stm32.c"
+        "${YICORE_ROOT}/soc/st/stm32/yi_pinmux_stm32.c"
         "${YI_ST_SOC_ROOT}/${YI_ST_SYSTEM_IMPL}"
         "${YI_ST_SOC_ROOT}/${YI_ST_RUNTIME_IMPL}"
         "${_generated_dir}/yi_generated.c"
@@ -104,6 +105,7 @@ function(yi_stm32_bootstrap_application)
         "${YICORE_ROOT}/drivers/clock"
         "${YICORE_ROOT}/drivers/gpio"
         "${YICORE_ROOT}/drivers/led"
+        "${YICORE_ROOT}/drivers/pinmux"
     )
     target_compile_options(
         "${_target}" PRIVATE

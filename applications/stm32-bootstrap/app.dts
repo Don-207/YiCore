@@ -9,3 +9,11 @@
 &led0 {
     status = "okay";
 };
+
+&usart1_tx_pin {
+    status = "okay";
+};
+
+&usart1_rx_pin {
+    status = "okay";
+};

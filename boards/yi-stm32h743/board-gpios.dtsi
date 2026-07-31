@@ -6,6 +6,12 @@
  * Version: 1.0.0
  */
 
+clk_gpioa: clock-gpioa {
+    compatible = "yi,stm32-clock";
+    clock-id = "gpioa";
+    status = "available";
+};
+
 clk_gpiob: clock-gpiob {
     compatible = "yi,stm32-clock";
     clock-id = "gpiob";
