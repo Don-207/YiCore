@@ -11,7 +11,7 @@ include(CMakeParseArguments)
 function(yi_application)
     set(_options)
     set(_one_value NAME DTS CONF VERSION_FILE)
-    set(_multi_value SOURCES)
+    set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_APP
         "${_options}"
@@ -57,5 +57,7 @@ function(yi_application)
     yi_platform_application(
         NAME "${YI_APP_NAME}"
         SOURCES ${YI_APP_SOURCES}
+        INCLUDE_DIRS ${YI_APP_INCLUDE_DIRS}
+        COMPILE_DEFINITIONS ${YI_APP_COMPILE_DEFINITIONS}
     )
 endfunction()

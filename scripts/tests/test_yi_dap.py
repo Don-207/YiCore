@@ -67,6 +67,25 @@ class YiDapTests(unittest.TestCase):
         self.assertIn("yi_dap_state = YI_DAP_STATE_ERROR", source)
         self.assertIn("yi_dap_state != YI_DAP_STATE_READY", source)
 
+    def test_ch32h417_product_uses_yidap_and_schematic_pin_order(self):
+        """CH32H417 binds YiDAP to USBFS and the HPM-style PA4..PA8 signals."""
+
+        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
+        main = (app_root / "src" / "main.c").read_text(encoding="utf-8")
+        config = (app_root / "src" / "DAP_config.h").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("yi_dap_init", main)
+        self.assertIn("yi_dap_process", main)
+        self.assertIn("usb_dc_usbfs.c", cmake)
+        self.assertIn("#define YIDAP_PIN_TDO GPIO_Pin_4", config)
+        self.assertIn("#define YIDAP_PIN_TDI GPIO_Pin_5", config)
+        self.assertIn("#define YIDAP_PIN_TCK GPIO_Pin_6", config)
+        self.assertIn("#define YIDAP_PIN_TMS GPIO_Pin_7", config)
+        self.assertIn("#define YIDAP_PIN_RESET GPIO_Pin_8", config)
+        self.assertIn("#define DAP_PACKET_SIZE 64U", config)
+
 
 if __name__ == "__main__":
     unittest.main()

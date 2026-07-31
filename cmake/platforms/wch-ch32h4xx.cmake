@@ -10,7 +10,7 @@ include(CMakeParseArguments)
 function(yi_platform_application)
     set(_options)
     set(_one_value NAME)
-    set(_multi_value SOURCES)
+    set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_PLATFORM "${_options}" "${_one_value}" "${_multi_value}" ${ARGN}
     )
@@ -40,6 +40,9 @@ function(yi_platform_application)
         "${YICORE_ROOT}/soc/wch/ch32h4xx/yi_ch32h417_system.c"
     )
     target_compile_definitions("${_target}" PRIVATE Core_V3F)
+    target_compile_definitions(
+        "${_target}" PRIVATE ${YI_PLATFORM_COMPILE_DEFINITIONS}
+    )
     target_include_directories(
         "${_target}" PRIVATE
         "${YI_HAL_WCH_ROOT}/Core"
@@ -48,6 +51,7 @@ function(yi_platform_application)
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
         "${YICORE_ROOT}/arch/riscv"
         "${YICORE_ROOT}/core"
+        ${YI_PLATFORM_INCLUDE_DIRS}
     )
     target_compile_options(
         "${_target}" PRIVATE
