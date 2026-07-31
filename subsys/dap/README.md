@@ -12,3 +12,7 @@ keeps hardware policy outside the reusable lifecycle wrapper.
 
 The foreground contract is deliberately non-blocking: initialize once with
 `yi_dap_init()`, then call `yi_dap_process()` continuously from the main loop.
+Products can expose initialization diagnostics through `yi_dap_get_state()`
+and `yi_dap_get_last_error()`. The normal transition is `UNINITIALIZED` to
+`INITIALIZING` to `READY`; invalid configuration or a backend failure enters
+`ERROR`. Calling `yi_dap_init()` again from `ERROR` retries initialization.

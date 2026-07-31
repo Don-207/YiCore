@@ -46,6 +46,27 @@ class YiDapTests(unittest.TestCase):
         self.assertIn("yi_dap_process", source)
         self.assertNotIn("chry_dap_", source)
 
+    def test_facade_exposes_initialization_diagnostics(self):
+        """YiDAP distinguishes progress, readiness, and initialization errors."""
+
+        header = (
+            self.repo_root / "subsys" / "dap" / "yi_dap.h"
+        ).read_text(encoding="utf-8")
+        source = (
+            self.repo_root / "subsys" / "dap" / "yi_dap.c"
+        ).read_text(encoding="utf-8")
+        for state in (
+            "YI_DAP_STATE_UNINITIALIZED",
+            "YI_DAP_STATE_INITIALIZING",
+            "YI_DAP_STATE_READY",
+            "YI_DAP_STATE_ERROR",
+        ):
+            self.assertIn(state, header)
+        self.assertIn("yi_dap_get_state", header)
+        self.assertIn("yi_dap_get_last_error", header)
+        self.assertIn("yi_dap_state = YI_DAP_STATE_ERROR", source)
+        self.assertIn("yi_dap_state != YI_DAP_STATE_READY", source)
+
 
 if __name__ == "__main__":
     unittest.main()
