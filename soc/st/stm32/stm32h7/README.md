@@ -9,7 +9,16 @@ Version: 1.0.0
 # STM32H7 backend
 
 This reserved backend targets STM32H743xx with the YiHAL-ST STM32H7 CMSIS
-Device and HAL packages. Before changing its platform status to `ready`, add
-the HAL configuration, system clock, cache/MPU policy, pinmux, GPIO, UART,
-SPI, I2C, timer, interrupt/runtime and internal-flash implementations plus a
-GCC build adapter.
+Device and HAL packages.
+
+Implemented:
+
+- HAL configuration baseline;
+- LDO supply and HSI PLL system clock at 400 MHz;
+- instruction/data cache enablement;
+- DWT time services and SysTick runtime;
+- GCC Flash/AXI-SRAM linker layout.
+
+Still required before changing the platform status to `ready`: MPU policy,
+pinmux, GPIO, UART, SPI, I2C, timer, internal flash, DeviceTree and GCC build
+adapter.

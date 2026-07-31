@@ -9,6 +9,14 @@ Version: 1.0.0
 # STM32F4 backend
 
 This reserved backend targets STM32F407xx with the YiHAL-ST STM32F4 CMSIS
-Device and HAL packages. Before changing its platform status to `ready`, add
-the HAL configuration, system clock, pinmux, GPIO, UART, SPI, I2C, timer,
-interrupt/runtime and internal-flash implementations plus a GCC build adapter.
+Device and HAL packages.
+
+Implemented:
+
+- HAL configuration baseline;
+- HSI PLL system clock at 168 MHz;
+- DWT time services and SysTick runtime;
+- GCC Flash/main-SRAM linker layout.
+
+Still required before changing the platform status to `ready`: pinmux, GPIO,
+UART, SPI, I2C, timer, internal flash, DeviceTree and GCC build adapter.
