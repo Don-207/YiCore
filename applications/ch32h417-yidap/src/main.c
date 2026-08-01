@@ -1,6 +1,6 @@
 /**
  * @file main.c
- * @brief Run YiDAP with a CherryDAP USBFS backend on CH32H417 V3F.
+ * @brief Run the independent YiDAP USBFS backend on CH32H417 V3F.
  * @author Don
  * @date 2026-08-01
  * @version 1.0.0

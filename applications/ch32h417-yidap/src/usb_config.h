@@ -21,7 +21,7 @@
 #define CONFIG_USBDEV_MAX_BUS 1
 /** USBFS provides endpoint indices zero through seven. */
 #define CONFIG_USBDEV_EP_NUM 8
-/** Use CherryDAP's advanced descriptor callback table. */
+/** Use CherryUSB's advanced descriptor callback table. */
 #define CONFIG_USBDEV_ADVANCE_DESC
 /** Control endpoint scratch space in bytes. */
 #define CONFIG_USBDEV_REQUEST_BUFFER_LEN 512

@@ -1,6 +1,6 @@
 /**
  * @file yidap_ch32h417_backend.h
- * @brief Expose the CH32H417 CherryDAP adapter to the YiDAP lifecycle.
+ * @brief Expose the native CH32H417 adapter to the YiDAP lifecycle.
  * @author Don
  * @date 2026-08-01
  * @version 1.0.0

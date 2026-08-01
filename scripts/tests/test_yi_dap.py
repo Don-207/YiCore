@@ -73,18 +73,17 @@ class YiDapTests(unittest.TestCase):
         app_root = self.repo_root / "applications" / "ch32h417-yidap"
         cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
         main = (app_root / "src" / "main.c").read_text(encoding="utf-8")
-        config = (app_root / "src" / "DAP_config.h").read_text(
+        config = (app_root / "src" / "yidap_ch32h417_port.h").read_text(
             encoding="utf-8"
         )
         self.assertIn("yi_dap_init", main)
         self.assertIn("yi_dap_process", main)
         self.assertIn("usb_dc_usbfs.c", cmake)
-        self.assertIn("#define YIDAP_PIN_TDO GPIO_Pin_4", config)
-        self.assertIn("#define YIDAP_PIN_TDI GPIO_Pin_5", config)
-        self.assertIn("#define YIDAP_PIN_TCK GPIO_Pin_6", config)
-        self.assertIn("#define YIDAP_PIN_TMS GPIO_Pin_7", config)
-        self.assertIn("#define YIDAP_PIN_RESET GPIO_Pin_8", config)
-        self.assertIn("#define DAP_PACKET_SIZE 64U", config)
+        self.assertIn("#define YIDAP_TDO GPIO_Pin_4", config)
+        self.assertIn("#define YIDAP_TDI GPIO_Pin_5", config)
+        self.assertIn("#define YIDAP_TCK GPIO_Pin_6", config)
+        self.assertIn("#define YIDAP_TMS GPIO_Pin_7", config)
+        self.assertIn("#define YIDAP_RESET GPIO_Pin_8", config)
 
     def test_ch32h417_exposes_peripheral_and_fpga_vendor_commands(self):
         """CH32H417 keeps debug, USB, peripheral and FPGA pins independent."""
@@ -100,8 +99,21 @@ class YiDapTests(unittest.TestCase):
         self.assertIn("GPIO_PinSource14", peripheral)
         self.assertIn("GPIO_PinSource13", peripheral)
         self.assertIn("GPIO_PinSource15", peripheral)
-        self.assertIn("ID_DAP_Vendor7", vendor)
+        self.assertIn("YIDAP_VENDOR_FPGA_EXCHANGE", vendor)
         self.assertIn("YIDAP_VENDOR_MAX_DATA 48U", vendor)
+
+    def test_ch32h417_does_not_compile_cherrydap_engine(self):
+        """The CH32 product owns DAP protocol code and uses only CherryUSB."""
+
+        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
+        protocol = (self.repo_root / "subsys" / "dap" / "yi_dap_protocol.c").read_text(encoding="utf-8")
+        for external_source in ("dap_main.c", "DAP/Source/DAP.c", "SW_DP.c", "JTAG_DP.c", "CherryRB"):
+            self.assertNotIn(external_source, cmake)
+        self.assertIn("yi_dap_protocol.c", cmake)
+        self.assertIn("process_transfer", protocol)
+        self.assertIn("swd_transfer", protocol)
+        self.assertIn("process_jtag_sequence", protocol)
 
 
 if __name__ == "__main__":

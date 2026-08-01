@@ -1,8 +1,9 @@
 # CH32H417 YiDAP
 
-This application runs the shared YiDAP lifecycle with CherryDAP on the
-CH32H417 V3F core. USBFS uses the dedicated PA11/PA12 pins and exposes the
-CMSIS-DAP bulk interface plus CherryDAP's CDC interface.
+This application runs the independent YiCore CMSIS-DAP v2 engine on the
+CH32H417 V3F core. USBFS uses the dedicated PA11/PA12 pins and exposes one
+64-byte CMSIS-DAP bulk interface. CherryUSB is retained only as the USB device
+controller stack; no CherryDAP protocol, SWD, JTAG, queue, or CDC code is used.
 
 Target debug routing follows the HPM5301 YiLink signal convention:
 
@@ -15,6 +16,10 @@ Target debug routing follows the HPM5301 YiLink signal convention:
 SWD and JTAG currently use direct GPIO signaling. CH32H417 SPI1 maps SCK,
 MISO, and MOSI to PA5, PA6, and PA7, which does not match the required debug
 clock/data roles, so the firmware deliberately does not enable SPI emulation.
+
+The native engine implements identification, connect/disconnect, transfer
+configuration, SWD transfer/block transfer, abort, delay, reset, SWJ pins,
+clock and sequence, raw SWD sequence, and JTAG sequence/configuration commands.
 
 The same USBFS CMSIS-DAP interface also exposes peripheral control:
 
