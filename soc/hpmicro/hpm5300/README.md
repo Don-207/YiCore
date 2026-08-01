@@ -21,7 +21,7 @@ Bring-up proceeds through startup/linker and traps, clock/timebase, polling
 UART, then GPIO/pinmux. Interrupt-driven peripherals and DMA follow only after
 the minimum image runs on hardware.
 
-The first build target is `applications/hpm5301-bringup`. It deliberately uses
+The first build target is `samples/boards/hpm5301/bringup`. It deliberately uses
 the SDK's `hpm5301evklite` board sources, startup, trap handler, boot header and
 `flash_xip.ld`. This validates the architecture boundary before YiCore replaces
 any board-facing service.

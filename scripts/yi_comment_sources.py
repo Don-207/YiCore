@@ -216,7 +216,14 @@ def _source_files(repository: Path) -> list[Path]:
         for path in (repository / root).rglob("*")
         if path.is_file() and path.suffix in SOURCE_SUFFIXES
     ]
-    application = repository / "applications" / "mcuboot-stm32f103" / "Core"
+    application = (
+        repository
+        / "samples"
+        / "subsys"
+        / "bootloader"
+        / "mcuboot-stm32f103"
+        / "Core"
+    )
     files.extend(
         path for path in application.rglob("*")
         if path.is_file() and path.suffix in {".c", ".h"} and path.name != "keys.c"

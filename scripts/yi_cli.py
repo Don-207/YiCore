@@ -413,7 +413,7 @@ def _create_parser() -> argparse.ArgumentParser:
     create_parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path.cwd() / "applications",
+        default=Path.cwd() / "projects",
     )
 
     build_parser = commands.add_parser(

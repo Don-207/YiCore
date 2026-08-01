@@ -18,7 +18,9 @@ class Ch32h417ArchitectureTests(unittest.TestCase):
         """Resolve repository paths shared by static contract checks."""
 
         cls.repo_root = Path(__file__).resolve().parents[2]
-        cls.application = cls.repo_root / "applications" / "ch32h417-bringup"
+        cls.application = (
+            cls.repo_root / "samples" / "boards" / "ch32h417" / "bringup"
+        )
 
     def test_vendor_package_is_pinned_and_complete(self):
         """The registry pins all startup, system, and GPIO vendor inputs."""

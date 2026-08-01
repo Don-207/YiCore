@@ -31,14 +31,14 @@ Before each bootloader build, regenerate its DeviceTree and build metadata:
 
 ```powershell
 python scripts\yi_dts_gen.py `
-  --dts applications\mcuboot-stm32f103\app.dts `
+  --dts samples\subsys\bootloader\mcuboot-stm32f103\app.dts `
   --bindings dts\bindings `
-  --output applications\mcuboot-stm32f103\generated
+  --output samples\subsys\bootloader\mcuboot-stm32f103\generated
 
 python scripts\yi_build_info_gen.py `
   --image bootloader `
-  --version-file applications\mcuboot-stm32f103\VERSION `
-  --output applications\mcuboot-stm32f103\generated\yi_build_info.c
+  --version-file samples\subsys\bootloader\mcuboot-stm32f103\VERSION `
+  --output samples\subsys\bootloader\mcuboot-stm32f103\generated\yi_build_info.c
 ```
 
 Compile both `core/yi_build_info.c` and the generated `yi_build_info.c`. The

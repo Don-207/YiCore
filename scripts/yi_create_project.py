@@ -695,7 +695,7 @@ def create_project(
     destination_root = (
         output_root.resolve()
         if output_root is not None
-        else repo_root / "applications"
+        else repo_root / "projects"
     )
     destination = destination_root / name
 
@@ -879,7 +879,7 @@ def main() -> int:
     parser.add_argument(
         "--output-root",
         type=Path,
-        help="parent directory for the project (default: applications/)",
+        help="parent directory for the project (default: projects/)",
     )
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parent.parent

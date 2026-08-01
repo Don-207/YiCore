@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
 set(
     CMAKE_TOOLCHAIN_FILE
     "${YICORE_ROOT}/cmake/toolchains/wch-riscv-gcc.cmake"

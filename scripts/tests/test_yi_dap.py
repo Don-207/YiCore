@@ -70,7 +70,7 @@ class YiDapTests(unittest.TestCase):
     def test_ch32h417_product_uses_yidap_and_schematic_pin_order(self):
         """CH32H417 binds YiDAP to USBFS and the HPM-style PA4..PA8 signals."""
 
-        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        app_root = self.yilink_root / "firmware" / "images" / "ch32h417-yidap"
         cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
         main = (app_root / "src" / "main.c").read_text(encoding="utf-8")
         config = (app_root / "src" / "yidap_ch32h417_port.h").read_text(
@@ -88,7 +88,7 @@ class YiDapTests(unittest.TestCase):
     def test_ch32h417_exposes_peripheral_and_fpga_vendor_commands(self):
         """CH32H417 keeps debug, USB, peripheral and FPGA pins independent."""
 
-        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        app_root = self.yilink_root / "firmware" / "images" / "ch32h417-yidap"
         cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
         peripheral = (app_root / "src" / "yidap_ch32h417_peripherals.c").read_text(encoding="utf-8")
         vendor = (app_root / "src" / "yidap_ch32h417_vendor.c").read_text(encoding="utf-8")
@@ -105,7 +105,7 @@ class YiDapTests(unittest.TestCase):
     def test_ch32h417_does_not_compile_cherrydap_engine(self):
         """The CH32 product owns DAP protocol code and uses only CherryUSB."""
 
-        app_root = self.repo_root / "applications" / "ch32h417-yidap"
+        app_root = self.yilink_root / "firmware" / "images" / "ch32h417-yidap"
         cmake = (app_root / "CMakeLists.txt").read_text(encoding="utf-8")
         protocol = (self.repo_root / "subsys" / "dap" / "yi_dap_protocol.c").read_text(encoding="utf-8")
         for external_source in ("dap_main.c", "DAP/Source/DAP.c", "SW_DP.c", "JTAG_DP.c", "CherryRB"):

@@ -1,4 +1,4 @@
-/include/ "../../boards/fire-mini-stm32f103/board.dts"
+/include/ "../../../../boards/fire-mini-stm32f103/board.dts"
 
 /* This image is the bootloader itself, so it always links at flash base. */
 &bootloader {

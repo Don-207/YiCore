@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(yicore_stm32_bootstrap LANGUAGES C ASM)
 
-get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+get_filename_component(YICORE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
 include("${YICORE_ROOT}/cmake/YiCoreApplication.cmake")
 
 yi_application(

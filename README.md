@@ -32,8 +32,8 @@ ports/        Architecture-independent debug and transport backends
 scripts/      DeviceTree generator and unit tests
 linker/       GCC and Arm linker fragments
 docs/         Architecture and DeviceTree documentation
-examples/     Buildable board/toolchain examples
-applications/ Framework-owned utility images such as the reference bootloader
+examples/     Buildable project-generation templates
+samples/      Framework and board integration samples
 ```
 
 The dependency direction is:
@@ -51,7 +51,7 @@ stay in YiCore.
 
 ```text
 product/
-  applications/<product>/
+  firmware/images/<product>/
   boards/<product-board>/
   Tools/<product-tool>/
   YiCore/                    west project pinned to a tested commit
@@ -179,14 +179,14 @@ yi sdk list
 yi sdk verify
 yi update
 yi manifest freeze
-yi build -b fire-mini-stm32f103 applications/MyApp
-yi build -p always -b fire-mini-stm32f103 applications/MyApp
+yi build -b fire-mini-stm32f103 projects/MyApp
+yi build -p always -b fire-mini-stm32f103 projects/MyApp
 ```
 
 This creates:
 
 ```text
-applications/MyApp/
+projects/MyApp/
 ├── CMakeLists.txt
 ├── app.conf
 ├── app.overlay
