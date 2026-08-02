@@ -59,6 +59,7 @@ def _main_template() -> str:
  */
 
 #include "yi_device.h"
+#include "yi_poll.h"
 #include "yi_system.h"
 
 /**
@@ -77,7 +78,9 @@ int main(void)
 
     for(;;)
     {
-        /* Add board-independent application processing here. */
+        (void)yi_poll();
+        /* Add one non-blocking application processing step here. */
+        yi_idle();
     }
 }
 """

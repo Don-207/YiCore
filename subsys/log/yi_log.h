@@ -9,6 +9,8 @@
 #ifndef YI_LOG_H
 #define YI_LOG_H
 
+#include <stdbool.h>
+
 typedef enum
 {
     YI_LOG_LEVEL_DEBUG = 0,
@@ -49,5 +51,11 @@ int yi_log_warning(const char *message);
  * @param message Message value.
  */
 int yi_log_error(const char *message);
+
+/** Flush one queued log frame from main-loop context. */
+bool yi_log_process(void);
+
+/** Register non-blocking log flushing with yi_poll(). */
+int yi_log_poll_register(void);
 
 #endif

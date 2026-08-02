@@ -96,7 +96,9 @@ static void yi_device_sort(void)
             bool item_before_previous =
                 (item->init_level < previous->init_level) ||
                 ((item->init_level == previous->init_level) &&
-                 (item->init_priority < previous->init_priority));
+                 ((item->init_priority < previous->init_priority) ||
+                  ((item->init_priority == previous->init_priority) &&
+                   (item->init_order < previous->init_order))));
 
             if(!item_before_previous)
             {

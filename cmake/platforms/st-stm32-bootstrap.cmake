@@ -79,6 +79,7 @@ function(yi_stm32_bootstrap_application)
         "${_hal_root}/Src/${YI_ST_HAL_PREFIX}_hal_rcc.c"
         "${_hal_root}/Src/${YI_ST_HAL_PREFIX}_hal_rcc_ex.c"
         "${YICORE_ROOT}/core/yi_device.c"
+        "${YICORE_ROOT}/core/yi_poll.c"
         "${YICORE_ROOT}/core/yi_build_info.c"
         "${YICORE_ROOT}/drivers/led/yi_led.c"
         "${YICORE_ROOT}/ports/newlib/yi_newlib_syscalls.c"

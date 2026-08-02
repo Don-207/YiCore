@@ -10,7 +10,7 @@ include(CMakeParseArguments)
 function(yi_platform_application)
     set(_options)
     set(_one_value NAME)
-    set(_multi_value SOURCES)
+    set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_PLATFORM
         "${_options}"
@@ -134,6 +134,7 @@ function(yi_platform_application)
         "${_hal_root}/Src/stm32f1xx_hal_tim_ex.c"
         "${_hal_root}/Src/stm32f1xx_hal_uart.c"
         "${YICORE_ROOT}/core/yi_device.c"
+        "${YICORE_ROOT}/core/yi_poll.c"
         "${YICORE_ROOT}/core/yi_build_info.c"
         "${YICORE_ROOT}/drivers/adc/yi_adc.c"
         "${YICORE_ROOT}/drivers/adc/ads7830/yi_ads7830.c"
@@ -173,6 +174,7 @@ function(yi_platform_application)
     target_compile_definitions(
         "${_target}" PRIVATE
         USE_HAL_DRIVER STM32F103xE LWRB_DISABLE_ATOMIC
+        ${YI_PLATFORM_COMPILE_DEFINITIONS}
     )
 
     set(_include_dirs
@@ -206,7 +208,9 @@ function(yi_platform_application)
         "${YI_SEGGER_RTT_ROOT}/Config"
         "${YI_LWRB_ROOT}/lwrb/src/include"
     )
-    target_include_directories("${_target}" PRIVATE ${_include_dirs})
+    target_include_directories(
+        "${_target}" PRIVATE ${_include_dirs} ${YI_PLATFORM_INCLUDE_DIRS}
+    )
     target_compile_options(
         "${_target}" PRIVATE
         -mcpu=cortex-m3 -mthumb -mfloat-abi=soft

@@ -1,0 +1,33 @@
+compatible: "yi,wch-uart"
+driver: "uart"
+header: "yi_uart_wch.h"
+define: "YI_UART_WCH_DEFINE_LEVEL"
+
+properties:
+  reg:
+    type: int
+    required: true
+  current-speed:
+    type: int
+    required: true
+  tx-port:
+    type: identifier
+    required: true
+  tx-pin:
+    type: int
+    required: true
+  rx-port:
+    type: identifier
+    required: true
+  rx-pin:
+    type: int
+    required: true
+  alternate:
+    type: int
+    required: true
+  interrupts:
+    type: identifier
+    required: true
+  irq-priority:
+    type: int
+    default: 10

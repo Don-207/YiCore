@@ -33,12 +33,32 @@ ninja --version
 arm-none-eabi-gcc --version
 ```
 
-HPM5301 的工具链变量指向工具链根目录，而不是 `bin`：
+YiCore 使用统一工具链根目录自动选择各芯片所需的编译器：
 
 ```powershell
-$env:GNURISCV_TOOLCHAIN_PATH = `
-  "D:\toolchains\rv32imac_zicsr_zifencei_multilib_b_ext-win"
-& "$env:GNURISCV_TOOLCHAIN_PATH\bin\riscv32-unknown-elf-gcc.exe" --version
+$env:YI_TOOLCHAIN_HOME = "D:\toolchains\Yi"
+```
+
+默认目录结构为：
+
+```text
+D:\toolchains\Yi
+├── arm-gnu-toolchain\15.3.rel1
+├── hpmicro-riscv-gcc\13.2.0
+└── wch-riscv-gcc\15.2.0
+```
+
+`yi build` 读取产品 `board.json` 和 YiCore `environments/` 清单，自动设置
+`ARM_GCC_ROOT`、`GNURISCV_TOOLCHAIN_PATH` 或 `WCH_RISCV_TOOLCHAIN_PATH`。
+用户不再需要逐个设置厂家环境变量。可执行文件必须位于对应版本目录的
+`bin/` 下。
+
+将变量持久化到当前用户：
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+  "YI_TOOLCHAIN_HOME", "D:\toolchains\Yi", "User"
+)
 ```
 
 ## 2. 创建产品仓库并引导 YiCore

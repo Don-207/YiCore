@@ -246,6 +246,8 @@ def validate_tree(tree: DtsTree, bindings: dict[str, Binding]) -> list[Validated
             raise BindingError(f"{node.path}: compatible must contain strings")
         binding = next((bindings[item] for item in compatibles if item in bindings), None)
         if binding is None:
+            if status == "available":
+                continue
             raise BindingError(
                 f"{node.path}: no binding for compatible {compatible_value!r}"
             )

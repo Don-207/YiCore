@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "id": "st-stm32f103xe-gcc",
+  "vendor": "st",
+  "model": "stm32f103xe",
+  "toolchain": {
+    "id": "arm-gnu-toolchain",
+    "version": "15.3.rel1",
+    "compiler_prefix": "arm-none-eabi"
+  },
+  "cmake": {
+    "adapter": "product"
+  }
+}

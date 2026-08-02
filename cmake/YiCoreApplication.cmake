@@ -53,6 +53,9 @@ function(yi_application)
     set(YI_APP_OVERLAY "${YI_APP_DTS}")
     set(YI_APP_CONF "${YI_APP_CONF}")
     set(YI_APP_VERSION_FILE "${YI_APP_VERSION_FILE}")
+    if(DEFINED YI_KCONFIG_CMAKE AND EXISTS "${YI_KCONFIG_CMAKE}")
+        include("${YI_KCONFIG_CMAKE}")
+    endif()
     include("${_platform_adapter}")
     yi_platform_application(
         NAME "${YI_APP_NAME}"
@@ -60,4 +63,18 @@ function(yi_application)
         INCLUDE_DIRS ${YI_APP_INCLUDE_DIRS}
         COMPILE_DEFINITIONS ${YI_APP_COMPILE_DEFINITIONS}
     )
+    set(_application_target "${YI_APP_NAME}.elf")
+    if(NOT TARGET "${_application_target}")
+        message(FATAL_ERROR "Platform adapter did not create ${_application_target}")
+    endif()
+    if(DEFINED YI_GENERATED_INCLUDE_DIR)
+        target_include_directories(
+            "${_application_target}" PRIVATE "${YI_GENERATED_INCLUDE_DIR}"
+        )
+    endif()
+    if(DEFINED YI_AUTOCONF_HEADER)
+        target_compile_options(
+            "${_application_target}" PRIVATE "-include${YI_AUTOCONF_HEADER}"
+        )
+    endif()
 endfunction()

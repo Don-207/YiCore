@@ -11,6 +11,13 @@
 #include "yi_led.h"
 #include "yi_system.h"
 
+enum
+{
+    yi_dt_led_active_low = DT_PROP(DT_NODELABEL(led0), active_low),
+    yi_dt_missing_default = DT_PROP_OR(
+        DT_NODELABEL(led0), missing_property, 7)
+};
+
 /**
  * @brief Initialize system and the currently empty bootstrap device table.
  * @return This function does not return during normal operation.
@@ -24,7 +31,7 @@ int main(void)
         yi_system_irq_lock();
     }
 
-    led = YI_DT_GET(LED0);
+    led = DEVICE_DT_GET(DT_NODELABEL(led0));
     if(!yi_device_is_ready(led))
     {
         yi_system_irq_lock();

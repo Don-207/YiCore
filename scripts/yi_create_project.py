@@ -321,6 +321,7 @@ def _main_source_template() -> str:
 #include "main.h"
 
 #include "yi_device.h"
+#include "yi_poll.h"
 #include "yi_system.h"
 
 /**
@@ -336,6 +337,8 @@ int main(void)
 
     while(1)
     {
+        (void)yi_poll();
+        yi_idle();
     }
 }
 

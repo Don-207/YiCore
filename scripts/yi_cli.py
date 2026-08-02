@@ -29,10 +29,149 @@ from yi_create_project import (
     select_target_interactive,
 )
 from yi_vendor_verify import load_packages, verify_packages
+from yi_kconfig import (
+    ConfigurationError,
+    discover_fragments,
+    generate_configuration,
+)
+from yi_toolchain import (
+    BuildEnvironment,
+    ToolchainResolutionError,
+    resolve_build_environment,
+)
 
 
 class YiCliError(ValueError):
     """Report an invalid YiCore command or unavailable build dependency."""
+
+
+def _load_board_manifest(board_root: Path, board_id: str) -> dict:
+    """Load one board manifest from a repository board directory.
+
+    Args:
+        board_root: Repository containing boards/<board-id>/board.json.
+        board_id: Board identifier to load.
+    Returns:
+        Parsed board manifest.
+    Raises:
+        YiCliError: The selected board manifest is absent or malformed.
+    """
+
+    manifest_path = board_root / "boards" / board_id / "board.json"
+    try:
+        return json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise YiCliError(f"invalid board manifest: {manifest_path}") from error
+
+
+def _select_product_board(product_root: Path, board_id: str | None) -> dict:
+    """Select the explicit or sole board declared by a product.
+
+    Args:
+        product_root: Product repository root.
+        board_id: Optional explicit board identifier.
+    Returns:
+        Parsed product-local board manifest.
+    Raises:
+        YiCliError: No board or multiple implicit candidates are present.
+    """
+
+    if board_id is not None:
+        return _load_board_manifest(product_root, board_id)
+    manifests = sorted((product_root / "boards").glob("*/board.json"))
+    if len(manifests) != 1:
+        raise YiCliError(
+            "product build requires --board when it does not contain exactly "
+            "one board manifest"
+        )
+    try:
+        return json.loads(manifests[0].read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise YiCliError(f"invalid board manifest: {manifests[0]}") from error
+
+
+def _workspace_yicore(product_root: Path) -> Path:
+    """Locate YiCore in either an in-product or sibling west layout."""
+
+    candidates = (product_root / "YiCore", product_root.parent / "YiCore")
+    for candidate in candidates:
+        if (candidate / "environments").is_dir():
+            return candidate.resolve()
+    raise YiCliError(f"YiCore west project not found for {product_root}")
+
+
+def _append_environment_cmake(
+    configure: list[str],
+    selected: BuildEnvironment,
+    yicore_root: Path,
+    product_toolchain: Path | None = None,
+) -> None:
+    """Append compiler-root and toolchain-file arguments for an environment.
+
+    Args:
+        configure: Mutable CMake configure command.
+        selected: Resolved chip/compiler environment.
+        yicore_root: YiCore repository root.
+        product_toolchain: Optional product-local CMake adapter.
+    Side effects:
+        Adds CMake cache arguments to configure.
+    Raises:
+        YiCliError: The selected CMake adapter is unavailable.
+    """
+
+    if selected.toolchain_id == "arm-gnu-toolchain":
+        configure.append(f"-DARM_GCC_ROOT={selected.bin_dir}")
+    if selected.cmake_adapter == "sdk":
+        return
+    if selected.cmake_adapter == "product":
+        adapter = product_toolchain
+    else:
+        adapter = yicore_root / selected.cmake_adapter
+    if adapter is None or not adapter.is_file():
+        raise YiCliError(
+            f"CMake toolchain adapter not found for "
+            f"{selected.environment_id}: {adapter}"
+        )
+    configure.append(f"-DCMAKE_TOOLCHAIN_FILE={adapter.resolve()}")
+
+
+def _append_kconfig_cmake(
+    configure: list[str],
+    yicore_root: Path,
+    build_dir: Path,
+    config_root: Path,
+    board_id: str | None,
+) -> None:
+    """Generate Kconfig outputs and expose them to the CMake build.
+
+    Args:
+        configure: Mutable CMake configure command.
+        yicore_root: YiCore repository root containing Kconfig.
+        build_dir: Selected application build directory.
+        config_root: Directory containing prj.conf and optional board fragments.
+        board_id: Optional board identifier for boards/<board>.conf.
+    Side effects:
+        Writes build/yicore configuration outputs and adds CMake arguments.
+    Raises:
+        YiCliError: Kconfig generation fails.
+    """
+
+    try:
+        outputs = generate_configuration(
+            yicore_root,
+            build_dir,
+            discover_fragments(config_root, board_id),
+        )
+    except ConfigurationError as error:
+        raise YiCliError(str(error)) from error
+    configure.extend(
+        (
+            f"-DYI_DOTCONFIG={outputs['dotconfig']}",
+            f"-DYI_AUTOCONF_HEADER={outputs['autoconf']}",
+            f"-DYI_GENERATED_INCLUDE_DIR={outputs['include']}",
+            f"-DYI_KCONFIG_CMAKE={outputs['cmake']}",
+        )
+    )
 
 
 def _default_toolchain(yicore_root: Path, board: str) -> Path:
@@ -172,11 +311,13 @@ def build_app(
     if pristine == "always" and resolved_build.exists():
         shutil.rmtree(resolved_build)
 
-    resolved_toolchain = (
-        toolchain.resolve()
-        if toolchain is not None
-        else _default_toolchain(yicore_root, board)
-    )
+    board_manifest = _load_board_manifest(yicore_root, board)
+    try:
+        selected_environment = resolve_build_environment(
+            yicore_root, board_manifest
+        )
+    except ToolchainResolutionError as error:
+        raise YiCliError(str(error)) from error
     configure = [
         "cmake",
         "-S",
@@ -187,8 +328,32 @@ def build_app(
         generator,
         f"-DYICORE_ROOT={yicore_root}",
         f"-DBOARD={board}",
-        f"-DCMAKE_TOOLCHAIN_FILE={resolved_toolchain}",
     ]
+    if toolchain is not None:
+        configure.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain.resolve()}")
+        if selected_environment.toolchain_id == "arm-gnu-toolchain":
+            configure.append(
+                f"-DARM_GCC_ROOT={selected_environment.bin_dir}"
+            )
+    else:
+        default_adapter = (
+            _default_toolchain(yicore_root, board)
+            if selected_environment.cmake_adapter == "product"
+            else None
+        )
+        _append_environment_cmake(
+            configure,
+            selected_environment,
+            yicore_root,
+            default_adapter,
+        )
+    _append_kconfig_cmake(
+        configure,
+        yicore_root,
+        resolved_build,
+        source_dir,
+        board,
+    )
     workspace_root = yicore_root.parent
     external_st = workspace_root / "modules" / "hal" / "st"
     external_cmsis = workspace_root / "modules" / "lib" / "cmsis"
@@ -209,9 +374,15 @@ def build_app(
         configure.append(f"-DCMAKE_MAKE_PROGRAM={ninja}")
 
     try:
-        subprocess.run(configure, check=True)
         subprocess.run(
-            ["cmake", "--build", str(resolved_build)], check=True
+            configure,
+            check=True,
+            env=selected_environment.process_environment,
+        )
+        subprocess.run(
+            ["cmake", "--build", str(resolved_build)],
+            check=True,
+            env=selected_environment.process_environment,
         )
     except (OSError, subprocess.CalledProcessError) as error:
         raise YiCliError("application build failed") from error
@@ -224,6 +395,7 @@ def build_product(
     build_dir: Path | None = None,
     pristine: str = "auto",
     generator: str = "Ninja",
+    board: str | None = None,
 ) -> Path:
     """Configure and build one image from a standard YiCore product.
 
@@ -233,6 +405,7 @@ def build_product(
         build_dir: Optional out-of-tree build directory.
         pristine: One of auto, always, or never.
         generator: CMake generator name.
+        board: Optional product-local board identifier.
     Returns:
         Absolute build directory containing the selected image artifacts.
     Side effects:
@@ -248,12 +421,9 @@ def build_product(
         raise YiCliError(f"invalid pristine mode: {pristine}")
 
     source_dir = product_root / "firmware" / "projects" / "gcc"
-    toolchain = source_dir / "arm-none-eabi.cmake"
     image_root = product_root / "firmware" / "images" / image
     if not (source_dir / "CMakeLists.txt").is_file():
         raise YiCliError(f"not a YiCore product: {product_root}")
-    if not toolchain.is_file():
-        raise YiCliError(f"product GCC toolchain not found: {toolchain}")
     if not image_root.is_dir():
         raise YiCliError(
             f"product image {image!r} does not exist; "
@@ -268,6 +438,14 @@ def build_product(
     if pristine == "always" and resolved_build.exists():
         shutil.rmtree(resolved_build)
 
+    yicore_root = _workspace_yicore(product_root)
+    board_manifest = _select_product_board(product_root, board)
+    try:
+        selected_environment = resolve_build_environment(
+            yicore_root, board_manifest
+        )
+    except ToolchainResolutionError as error:
+        raise YiCliError(str(error)) from error
     configure = [
         "cmake",
         "-S",
@@ -276,10 +454,22 @@ def build_product(
         str(resolved_build),
         "-G",
         generator,
-        f"-DCMAKE_TOOLCHAIN_FILE={toolchain}",
         f"-DYI_PRODUCT_IMAGE={image}",
         f"-DYIECG_IMAGE={image}",
     ]
+    _append_environment_cmake(
+        configure,
+        selected_environment,
+        yicore_root,
+        source_dir / "arm-none-eabi.cmake",
+    )
+    _append_kconfig_cmake(
+        configure,
+        yicore_root,
+        resolved_build,
+        image_root,
+        board_manifest.get("id", board),
+    )
     if generator == "Ninja":
         ninja = _find_ninja()
         if ninja is None:
@@ -289,9 +479,15 @@ def build_product(
         configure.append(f"-DCMAKE_MAKE_PROGRAM={ninja}")
 
     try:
-        subprocess.run(configure, check=True)
         subprocess.run(
-            ["cmake", "--build", str(resolved_build)], check=True
+            configure,
+            check=True,
+            env=selected_environment.process_environment,
+        )
+        subprocess.run(
+            ["cmake", "--build", str(resolved_build)],
+            check=True,
+            env=selected_environment.process_environment,
         )
     except (OSError, subprocess.CalledProcessError) as error:
         raise YiCliError(f"product {image} build failed") from error
@@ -701,6 +897,7 @@ def main() -> int:
                     args.build_dir,
                     args.pristine,
                     args.generator,
+                    args.board,
                 )
             else:
                 if args.board is None:

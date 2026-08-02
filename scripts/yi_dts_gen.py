@@ -28,6 +28,12 @@ _LEVEL_MAP = {
     "application": "YI_INIT_APPLICATION",
 }
 
+_LEVEL_RANK = {
+    "pre-kernel": 0,
+    "post-kernel": 1,
+    "application": 2,
+}
+
 _PINMUX_FUNCTION_MAP = {
     "gpio": "YI_PINMUX_FUNCTION_GPIO",
     "uart-tx": "YI_PINMUX_FUNCTION_UART_TX",
@@ -126,6 +132,21 @@ def dependency_order(nodes: list[ValidatedNode]) -> list[ValidatedNode]:
                 f"{', '.join(sorted(missing))}"
             )
         dependencies[label] = refs
+        owner_order = (
+            _LEVEL_RANK[item.properties["init-level"]],
+            item.properties["init-priority"],
+        )
+        for dependency in refs:
+            dependency_item = by_label[dependency]
+            dependency_order_key = (
+                _LEVEL_RANK[dependency_item.properties["init-level"]],
+                dependency_item.properties["init-priority"],
+            )
+            if dependency_order_key > owner_order:
+                raise BindingError(
+                    f"{item.node.path}: dependency {dependency!r} initializes "
+                    "after its consumer"
+                )
 
     result: list[ValidatedNode] = []
     emitted: set[str] = set()
@@ -194,7 +215,8 @@ def _generate_gpio(item: ValidatedNode) -> str:
     label = item.node.label
     port = item.properties["port"]
     pin = item.properties["pin"]
-    clock = item.properties["clocks"].label
+    clock_property = item.properties.get("clocks")
+    clock = f"&{clock_property.label}" if clock_property is not None else "NULL"
     direction_map = {
         "input": "YI_GPIO_DIRECTION_INPUT",
         "output": "YI_GPIO_DIRECTION_OUTPUT",
@@ -229,7 +251,7 @@ static const yi_gpio_config_t {label}_cfg =
     .self = &{label},
     .port = {port},
     .pin = YI_GPIO_PIN({pin}),
-    .clock = &{clock},
+    .clock = {clock},
     .direction = {direction},
     .drive = {drive},
     .pull = {pull},
@@ -266,7 +288,7 @@ YI_LED_DEFINE_LEVEL(
 );"""
 
 
-def _generate_uart(item: ValidatedNode) -> str:
+def _generate_stm32_uart(item: ValidatedNode) -> str:
     label = item.node.label
     reg, clock_bus, clock_mask = _stm32_peripheral(item)
     speed = item.properties["current-speed"]
@@ -346,6 +368,64 @@ void {handler}(void)
 {{
     yi_uart_stm32_irq_handler(&{label});
 }}{dma_handler_text}"""
+
+
+def _generate_wch_uart(item: ValidatedNode) -> str:
+    label = item.node.label
+    reg = item.properties["reg"]
+    speed = item.properties["current-speed"]
+    tx_pin = item.properties["tx-pin"]
+    rx_pin = item.properties["rx-pin"]
+    alternate = item.properties["alternate"]
+    interrupt = _irq(item, "interrupts")
+    handler = _irq_handler(interrupt)
+    priority = _irq_priority(item)
+    if speed <= 0:
+        raise BindingError(f"{item.node.path}: current-speed must be positive")
+    for name, value in (("tx-pin", tx_pin), ("rx-pin", rx_pin)):
+        if not 0 <= value <= 15:
+            raise BindingError(f"{item.node.path}: {name} must be in range 0..15")
+    if not 0 <= alternate <= 15:
+        raise BindingError(f"{item.node.path}: alternate must be in range 0..15")
+    return f"""static yi_device_t {label};
+
+static const yi_uart_wch_config_t {label}_cfg =
+{{
+    .self = &{label},
+    .instance = (USART_TypeDef *)0x{reg:08X}U,
+    .tx_port = {item.properties['tx-port']},
+    .rx_port = {item.properties['rx-port']},
+    .tx_pin = YI_GPIO_PIN({tx_pin}),
+    .rx_pin = YI_GPIO_PIN({rx_pin}),
+    .tx_pin_source = {tx_pin}U,
+    .rx_pin_source = {rx_pin}U,
+    .alternate = {alternate}U,
+    .irqn = {interrupt},
+    .irq_priority = {priority}U,
+    .baudrate = {speed}U
+}};
+
+static yi_uart_wch_data_t {label}_data;
+
+YI_UART_WCH_DEFINE_LEVEL(
+    {label},
+    {_level(item)},
+    {item.properties['init-priority']},
+    {label}_cfg,
+    {label}_data
+);
+
+void {handler}(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+void {handler}(void)
+{{
+    yi_uart_wch_irq_handler(&{label});
+}}"""
+
+
+def _generate_uart(item: ValidatedNode) -> str:
+    if item.binding.compatible == "yi,wch-uart":
+        return _generate_wch_uart(item)
+    return _generate_stm32_uart(item)
 
 
 def _mapped_pinmux_value(item: ValidatedNode, name: str, mapping: dict[str, str]) -> str:
@@ -1248,7 +1328,9 @@ _GENERATORS = {
 
 def generate_sources(nodes: list[ValidatedNode], source_name: str,
                      bootloader_enabled: bool = False,
-                     soc_header: str = "stm32f1xx.h") -> tuple[str, str]:
+                     soc_header: str = "stm32f1xx.h",
+                     aliases_map: dict[str, str] | None = None,
+                     chosen_map: dict[str, str] | None = None) -> tuple[str, str]:
     ordered = dependency_order(nodes)
     occupied_pins: dict[tuple[str, int], str] = {}
     for item in ordered:
@@ -1291,10 +1373,43 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str,
 """
 
     aliases = []
+    instance_counts: dict[str, int] = {}
     for item in ordered:
-        macro = item.node.label.upper()
-        aliases.append(f'#define YI_DT_{macro}_NAME "{item.node.label}"')
+        label = item.node.label
+        macro = label.upper()
+        aliases.append(f'#define YI_DT_{macro}_NAME "{label}"')
+        aliases.append(f'#define YI_DT_{label}_NAME "{label}"')
+        aliases.append(f'#define YI_DT_{label}_EXISTS 1')
+        aliases.append(f'#define YI_DT_{label}_STATUS_okay 1')
+        compatible = re.sub(r"[^A-Za-z0-9_]", "_", item.binding.compatible)
+        instance = instance_counts.get(compatible, 0)
+        instance_counts[compatible] = instance + 1
+        aliases.append(f'#define YI_DT_INST_{compatible}_{instance} {label}')
+        for name, value in item.properties.items():
+            property_name = name.replace("-", "_")
+            aliases.append(f'#define YI_DT_{label}_P_{property_name}_EXISTS 1')
+            if isinstance(value, DtsReference):
+                rendered = value.label
+            elif isinstance(value, bool):
+                rendered = "1" if value else "0"
+            elif isinstance(value, int):
+                rendered = str(value)
+            elif isinstance(value, str):
+                rendered = f'"{value}"'
+            else:
+                continue
+            aliases.append(f'#define YI_DT_{label}_P_{property_name} {rendered}')
     alias_text = "\n".join(aliases)
+    special_nodes = []
+    for name, label in (aliases_map or {}).items():
+        special_nodes.append(
+            f'#define YI_DT_ALIAS_{name.replace("-", "_")} {label}'
+        )
+    for name, label in (chosen_map or {}).items():
+        special_nodes.append(
+            f'#define YI_DT_CHOSEN_{name.replace(",", "_").replace("-", "_")} {label}'
+        )
+    special_text = "\n".join(special_nodes)
     if bootloader_enabled:
         boot_config = """#define YI_BOOTLOADER_ENABLED 1
 #define YI_APP_FLASH_OFFSET 0x0000C000U
@@ -1320,8 +1435,47 @@ def generate_sources(nodes: list[ValidatedNode], source_name: str,
 {boot_config}
 
 {alias_text}
+{special_text}
 
 #define YI_DT_GET(_label) yi_device_get(YI_DT_##_label##_NAME)
+
+/* Zephyr-compatible application-facing Devicetree subset. */
+#define YI_DT_CAT_(a, b) a##b
+#define YI_DT_CAT(a, b) YI_DT_CAT_(a, b)
+#define YI_DT_CAT3_(a, b, c) a##b##c
+#define YI_DT_CAT3(a, b, c) YI_DT_CAT3_(a, b, c)
+#define YI_DT_CAT4_(a, b, c, d) a##b##c##d
+#define YI_DT_CAT4(a, b, c, d) YI_DT_CAT4_(a, b, c, d)
+#define YI_DT_CAT5_(a, b, c, d, e) a##b##c##d##e
+#define YI_DT_CAT5(a, b, c, d, e) YI_DT_CAT5_(a, b, c, d, e)
+#define YI_DT_ARG_PLACEHOLDER_1 0,
+#define YI_DT_TAKE_SECOND_ARG(_ignored, value, ...) value
+#define YI_DT_IS_ENABLED_1(value) YI_DT_IS_ENABLED_2(YI_DT_ARG_PLACEHOLDER_##value)
+#define YI_DT_IS_ENABLED_2(arg1_or_junk) \
+    YI_DT_TAKE_SECOND_ARG(arg1_or_junk 1, 0)
+#define YI_DT_IS_ENABLED(value) YI_DT_IS_ENABLED_1(value)
+#define YI_DT_IF_0(_true_value, false_value) false_value
+#define YI_DT_IF_1(true_value, _false_value) true_value
+#define YI_DT_IF(condition, true_value, false_value) \
+    YI_DT_CAT(YI_DT_IF_, condition)(true_value, false_value)
+#define DT_NODELABEL(label) label
+#define DT_ALIAS(alias) YI_DT_CAT(YI_DT_ALIAS_, alias)
+#define DT_CHOSEN(chosen) YI_DT_CAT(YI_DT_CHOSEN_, chosen)
+#define DT_NODE_EXISTS(node_id) YI_DT_CAT3(YI_DT_, node_id, _EXISTS)
+#define DT_NODE_HAS_STATUS(node_id, status) \
+    YI_DT_CAT4(YI_DT_, node_id, _STATUS_, status)
+#define DT_PROP(node_id, prop) YI_DT_CAT4(YI_DT_, node_id, _P_, prop)
+#define DT_NODE_HAS_PROP(node_id, prop) \
+    YI_DT_IS_ENABLED(YI_DT_CAT5(YI_DT_, node_id, _P_, prop, _EXISTS))
+#define DT_PROP_OR(node_id, prop, default_value) \
+    YI_DT_IF(DT_NODE_HAS_PROP(node_id, prop), \
+             DT_PROP(node_id, prop), default_value)
+#define DT_PHANDLE(node_id, prop) DT_PROP(node_id, prop)
+#define DT_LABEL(node_id) YI_DT_CAT3(YI_DT_, node_id, _NAME)
+#define DT_INST(inst, compat) YI_DT_CAT4(YI_DT_INST_, compat, _, inst)
+#define DEVICE_DT_GET(node_id) yi_device_get(DT_LABEL(node_id))
+#define DEVICE_DT_GET_OR_NULL(node_id) DEVICE_DT_GET(node_id)
+#define DEVICE_DT_INST_GET(inst) DEVICE_DT_GET(DT_INST(inst, DT_DRV_COMPAT))
 
 #endif
 """
@@ -1382,9 +1536,19 @@ def generate(dts: Path, bindings_dir: Path, output_dir: Path,
                 f"{bootloader.path}: bootloader status must be 'okay' or 'disable'"
             )
         bootloader_enabled = status == "okay"
+    aliases_map: dict[str, str] = {}
+    chosen_map: dict[str, str] = {}
+    for child in tree.root.children:
+        if child.name not in {"aliases", "chosen"}:
+            continue
+        destination = aliases_map if child.name == "aliases" else chosen_map
+        for name, value in child.properties.items():
+            reference = value.values[0] if isinstance(value, DtsCells) and value.values else value
+            if isinstance(reference, DtsReference):
+                destination[name] = reference.label
     c_source, h_source = generate_sources(
         nodes, dts.name, bootloader_enabled=bootloader_enabled,
-        soc_header=soc_header
+        soc_header=soc_header, aliases_map=aliases_map, chosen_map=chosen_map
     )
     c_path = output_dir / "yi_generated.c"
     h_path = output_dir / "yi_generated.h"

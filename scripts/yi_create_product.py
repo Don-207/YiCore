@@ -39,10 +39,8 @@ def _hpm5301_main() -> str:
 #include <stdio.h>
 
 #include "board.h"
+#include "yi_poll.h"
 #include "yi_riscv_irq.h"
-
-/** Product heartbeat interval in milliseconds. */
-#define YI_PRODUCT_HEARTBEAT_MS (1000U)
 
 /**
  * @brief Initialize the HPM5301 board and run product processing.
@@ -53,9 +51,6 @@ int main(void)
 {
     /** Saved global interrupt state used to validate critical sections. */
     uint32_t irq_key;
-    /** Monotonic product heartbeat counter. */
-    uint32_t heartbeat = 0U;
-
     board_init();
     irq_key = yi_riscv_irq_lock();
     yi_riscv_memory_barrier();
@@ -63,9 +58,8 @@ int main(void)
 
     printf("HPM5301 YiCore product ready\\r\\n");
     for (;;) {
-        printf("heartbeat %lu\\r\\n", (unsigned long)heartbeat);
-        heartbeat++;
-        board_delay_ms(YI_PRODUCT_HEARTBEAT_MS);
+        (void)yi_poll();
+        yi_idle();
     }
 }
 """
@@ -109,11 +103,21 @@ find_package(hpm-sdk REQUIRED HINTS "${{HPM_SDK_BASE}}")
 project({name} LANGUAGES C ASM)
 
 set(YICORE_ROOT "${{YI_PRODUCT_ROOT}}/YiCore")
+if(DEFINED YI_KCONFIG_CMAKE AND EXISTS "${{YI_KCONFIG_CMAKE}}")
+    include("${{YI_KCONFIG_CMAKE}}")
+endif()
+if(DEFINED YI_GENERATED_INCLUDE_DIR)
+    sdk_inc("${{YI_GENERATED_INCLUDE_DIR}}")
+endif()
+if(DEFINED YI_AUTOCONF_HEADER)
+    sdk_compile_options("-include${{YI_AUTOCONF_HEADER}}")
+endif()
 sdk_app_src(
     "${{YI_PRODUCT_ROOT}}/firmware/images/application/main.c"
     "${{YICORE_ROOT}}/arch/riscv/yi_riscv_irq.c"
+    "${{YICORE_ROOT}}/core/yi_poll.c"
 )
-sdk_app_inc("${{YICORE_ROOT}}/arch/riscv")
+sdk_app_inc("${{YICORE_ROOT}}/arch/riscv" "${{YICORE_ROOT}}/core")
 """
 
 
@@ -235,6 +239,7 @@ def _image_main(image: str) -> str:
 
 #include "main.h"
 #include "yi_device.h"
+#include "yi_poll.h"
 #include "yi_system.h"
 
 /**
@@ -250,7 +255,9 @@ int main(void)
 
     for (;;)
     {{
-        /* Add product-specific {purpose} processing here. */
+        (void)yi_poll();
+        /* Add one non-blocking {purpose} processing step here. */
+        yi_idle();
     }}
 }}
 
@@ -400,6 +407,7 @@ manifest:
       url: https://github.com/Don-207/YiCore.git
       revision: {yicore_revision}
       path: YiCore
+      west-commands: west-commands.yml
       import:
         file: yi-modules.yml
         path-prefix: {product_directory}

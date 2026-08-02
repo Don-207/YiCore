@@ -63,6 +63,9 @@ bool yi_soft_timer_is_active(const yi_soft_timer_t *timer);
 /**
  * @brief Perform the yi soft timer process operation.
  */
-void yi_soft_timer_process(void);
+bool yi_soft_timer_process(void);
+
+/** Register software timers as a non-blocking yi_poll() service. */
+int yi_soft_timer_poll_register(void);
 
 #endif

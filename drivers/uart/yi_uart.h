@@ -48,8 +48,8 @@ typedef struct
 } yi_uart_api_t;
 
 /*
- * 阻塞发送/接收。
- * 成功返回0，参数错误、超时或HAL错误返回-1。
+ * Backend-defined stream transfer. STM32 currently uses blocking transfers;
+ * CH32 returns the number of immediately available RX bytes without waiting.
  */
 extern const yi_device_api_t yi_uart_driver_api;
 

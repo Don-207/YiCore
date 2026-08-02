@@ -40,26 +40,26 @@ typedef enum
  */
 typedef int (*yi_device_init_t)(const void *config);
 
-struct yi_device;
+struct device;
 
 typedef struct
 {
     /*
      * 打开设备
      */
-    int (*open)( struct yi_device *dev);
+    int (*open)(struct device *dev);
     /*
      * 关闭设备
      */
-    int (*close)(struct yi_device *dev);
+    int (*close)(struct device *dev);
     /*
      * 流式设备读写接口；不支持时置为NULL
      */
-    int (*write)(struct yi_device *dev, const uint8_t *buf, uint32_t len);
-    int (*read)(struct yi_device *dev, uint8_t *buf, uint32_t len);
+    int (*write)(struct device *dev, const uint8_t *buf, uint32_t len);
+    int (*read)(struct device *dev, uint8_t *buf, uint32_t len);
 }yi_device_api_t;
 
-typedef struct yi_device
+typedef struct device
 {
     const char *name; /**< Name value. */
     yi_device_init_t init; /**< Init value. */
@@ -68,7 +68,11 @@ typedef struct yi_device
     const yi_device_api_t *api; /**< Api value. */
     yi_init_level_t init_level; /**< Init level value. */
     uint8_t init_priority; /**< Init priority value. */
+    uint16_t init_order; /**< Stable declaration order within one priority. */
     yi_device_state_t state; /**< State value. */}yi_device_t;
+
+/** Zephyr-style typedef for code that does not use the struct tag. */
+typedef struct device device_t;
 
 #define YI_DEVICE_MAX_NUM 32
 
@@ -88,6 +92,12 @@ int yi_device_init_level(yi_init_level_t level);
  * @param dev Device instance.
  */
 bool yi_device_is_ready(const yi_device_t *dev);
+
+/** Return device readiness through the Zephyr-compatible public name. */
+static inline bool device_is_ready(const struct device *dev)
+{
+    return yi_device_is_ready(dev);
+}
 
 /**
  * @brief Get the module.
@@ -115,6 +125,7 @@ static yi_device_t _name =                                           \
     .api = _api,                                                     \
     .init_level = (_level),                                         \
     .init_priority = (_priority),                                   \
+    .init_order = (uint16_t)__COUNTER__,                             \
     .state = YI_DEVICE_STATE_UNINITIALIZED                          \
 };                                                                   \
                                                                      \
@@ -125,5 +136,37 @@ static yi_device_t * const _name##_ptr = &_name;
     YI_DEVICE_DEFINE_WITH_API(                                       \
         _name, YI_INIT_APPLICATION, YI_INIT_PRIORITY_DEFAULT,        \
         _init, _config, 0, 0)
+
+/* Initialization-level names retain Zephyr spelling without kernel meaning. */
+#define EARLY YI_INIT_PRE_KERNEL
+#define PRE_KERNEL_1 YI_INIT_PRE_KERNEL
+#define PRE_KERNEL_2 YI_INIT_PRE_KERNEL
+#define POST_KERNEL YI_INIT_POST_KERNEL
+#define APPLICATION YI_INIT_APPLICATION
+
+/* Define a device using the common Zephyr driver declaration signature. */
+#define DEVICE_DEFINE(_name, _init, _pm, _data, _config, _level,      \
+                      _priority, _api, ...)                            \
+    static int _name##_yi_init_adapter(const void *unused);           \
+    YI_DEVICE_DEFINE_WITH_API(                                        \
+        _name, _level, _priority, _name##_yi_init_adapter,            \
+        _config, _data, (const yi_device_api_t *)(_api))              \
+    static int _name##_yi_init_adapter(const void *unused)            \
+    {                                                                 \
+        (void)unused;                                                  \
+        (void)(_pm);                                                   \
+        return (_init != NULL) ? _init(&_name) : 0;                   \
+    }
+
+#define DEVICE_DT_DEFINE(_node_id, _init, _pm, _data, _config,       \
+                         _level, _priority, _api, ...)                 \
+    DEVICE_DEFINE(_node_id, _init, _pm, _data, _config, _level,      \
+                  _priority, _api, __VA_ARGS__)
+
+#define DEVICE_DT_INST_DEFINE(_inst, _init, _pm, _data, _config,     \
+                              _level, _priority, _api, ...)            \
+    DEVICE_DT_DEFINE(DT_INST(_inst, DT_DRV_COMPAT), _init, _pm,      \
+                     _data, _config, _level, _priority, _api,         \
+                     __VA_ARGS__)
 
 #endif
