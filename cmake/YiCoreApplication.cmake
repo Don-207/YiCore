@@ -10,7 +10,7 @@ include(CMakeParseArguments)
 # Define a thin YiCore application and select its board at configure time.
 function(yi_application)
     set(_options)
-    set(_one_value NAME DTS CONF VERSION_FILE)
+    set(_one_value NAME CORE DTS CONF VERSION_FILE)
     set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_APP
@@ -27,7 +27,12 @@ function(yi_application)
         message(FATAL_ERROR "Select a board with -DBOARD=<board-id>")
     endif()
 
-    set(_board_dir "${YICORE_ROOT}/boards/${BOARD}")
+    if(DEFINED YI_BOARD_ROOT AND
+       EXISTS "${YI_BOARD_ROOT}/${BOARD}/board.json")
+        set(_board_dir "${YI_BOARD_ROOT}/${BOARD}")
+    else()
+        set(_board_dir "${YICORE_ROOT}/boards/${BOARD}")
+    endif()
     set(_board_manifest "${_board_dir}/board.json")
     if(NOT EXISTS "${_board_manifest}")
         message(FATAL_ERROR "Unknown YiCore board: ${BOARD}")
@@ -59,6 +64,7 @@ function(yi_application)
     include("${_platform_adapter}")
     yi_platform_application(
         NAME "${YI_APP_NAME}"
+        CORE "${YI_APP_CORE}"
         SOURCES ${YI_APP_SOURCES}
         INCLUDE_DIRS ${YI_APP_INCLUDE_DIRS}
         COMPILE_DEFINITIONS ${YI_APP_COMPILE_DEFINITIONS}

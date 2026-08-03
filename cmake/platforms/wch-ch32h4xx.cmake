@@ -1,21 +1,28 @@
 # File: wch-ch32h4xx.cmake
-# Function: Build thin YiCore applications for the CH32H417 V3F core.
+# Function: Build thin YiCore applications for the CH32H417 V3F or V5F core.
 # Author: Don
 # Date: 2026-07-31
 # Version: 1.0.0
 
 include(CMakeParseArguments)
 
-# Build one CH32H417 V3F image from application and YiCore sources.
+# Build one CH32H417 core image from application and YiCore sources.
 function(yi_platform_application)
     set(_options)
-    set(_one_value NAME)
+    set(_one_value NAME CORE)
     set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_PLATFORM "${_options}" "${_one_value}" "${_multi_value}" ${ARGN}
     )
     if(NOT YI_PLATFORM_NAME OR NOT YI_PLATFORM_SOURCES)
         message(FATAL_ERROR "CH32H4xx adapter requires NAME and SOURCES")
+    endif()
+    if(NOT YI_PLATFORM_CORE)
+        set(YI_PLATFORM_CORE "V3F")
+    endif()
+    string(TOUPPER "${YI_PLATFORM_CORE}" _core)
+    if(NOT _core STREQUAL "V3F" AND NOT _core STREQUAL "V5F")
+        message(FATAL_ERROR "CH32H4xx CORE must be V3F or V5F")
     endif()
 
     set(
@@ -29,7 +36,10 @@ function(yi_platform_application)
     set(_generated_sources)
     if(DEFINED YI_APP_OVERLAY AND EXISTS "${YI_APP_OVERLAY}")
         find_package(Python3 REQUIRED COMPONENTS Interpreter)
-        set(_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+        set(
+            _generated_dir
+            "${CMAKE_CURRENT_BINARY_DIR}/generated/${YI_PLATFORM_NAME}"
+        )
         set(_resolved_dts "${_generated_dir}/app.dts")
         file(MAKE_DIRECTORY "${_generated_dir}")
         file(TO_CMAKE_PATH "${YI_APP_BOARD_DIR}/board.dts" _board_dts)
@@ -58,12 +68,20 @@ function(yi_platform_application)
     endif()
 
     set(_target "${YI_PLATFORM_NAME}.elf")
-    set(_linker_script "${YI_HAL_WCH_ROOT}/Ld/V3F/Link_v3f.ld")
+    if(_core STREQUAL "V3F")
+        set(_startup_file "${YI_HAL_WCH_ROOT}/Startup/startup_ch32h417_v3f.S")
+        set(_linker_script "${YI_HAL_WCH_ROOT}/Ld/V3F/Link_v3f.ld")
+        set(_core_definition Core_V3F)
+    else()
+        set(_startup_file "${YI_HAL_WCH_ROOT}/Startup/startup_ch32h417_v5f.S")
+        set(_linker_script "${YI_HAL_WCH_ROOT}/Ld/V5F/Link_v5f.ld")
+        set(_core_definition Core_V5F)
+    endif()
     add_executable(
         "${_target}"
         ${YI_PLATFORM_SOURCES}
         ${_generated_sources}
-        "${YI_HAL_WCH_ROOT}/Startup/startup_ch32h417_v3f.S"
+        "${_startup_file}"
         "${YI_HAL_WCH_ROOT}/System/system_ch32h417.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_flash.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_gpio.c"
@@ -74,7 +92,7 @@ function(yi_platform_application)
         "${YICORE_ROOT}/soc/wch/ch32h4xx/yi_ch32h417_system.c"
     )
     target_compile_definitions(
-        "${_target}" PRIVATE Core_V3F YI_DEVICE_USE_AUTO_SECTION=1
+        "${_target}" PRIVATE ${_core_definition} YI_DEVICE_USE_AUTO_SECTION=1
     )
     target_compile_definitions(
         "${_target}" PRIVATE ${YI_PLATFORM_COMPILE_DEFINITIONS}
