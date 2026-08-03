@@ -235,8 +235,8 @@ turnaround，以及 WAIT/FAULT 可选 data phase。`DAP_Info(0x04)` 返回 CMSIS
 
 ```text
 VID:          0x1A86
-PID:          0xD418
-bcdDevice:    2.03
+PID:          0xD41A
+bcdDevice:    2.05
 Product:      CMSIS-DAP v2
 Interface:    CMSIS-DAP v2
 Class:        0xFF / 0x00 / 0x00
@@ -254,14 +254,15 @@ Microsoft OS 1.0 描述符包括：
 - Extended Properties（`wIndex=0x0005`），注册 CMSIS-DAP 标准接口 GUID
   `{CDB3B5AD-293B-4663-AA36-1AAE46463776}`。
 
-Windows 会按 VID/PID 缓存 Microsoft OS 描述符。加入接口 GUID 后将 PID 从
-`0xD417` 更新到 `0xD418`，确保系统按新设备重新查询描述符，而不沿用旧缓存。
+Windows 会按 VID/PID 缓存 Microsoft OS 描述符。加入接口 GUID 后曾将 PID 从
+`0xD417` 更新到 `0xD418`；加入 CDC-ACM 后进一步更新到 `0xD41A`，确保系统按
+新复合设备重新查询描述符，而不沿用旧缓存。
 设备管理器的 FriendlyName 可能仍短暂显示旧的 `YiDap V2 HS`；判断固件是否更新
 应读取 `DEVPKEY_Device_BusReportedDeviceDesc` 和 Hardware ID，而不是只看缓存名称。
 
 ### 已完成实机验证
 
-- Windows 正常枚举 `VID_1A86&PID_D418`，设备无黄色感叹号；
+- Windows 正常枚举 `VID_1A86&PID_D41A`，设备无黄色感叹号；
 - Microsoft WinUSB 驱动正常绑定；
 - USB 总线上报名称为 `CMSIS-DAP v2`；
 - Keil 已能发现并选择该 CMSIS-DAP v2 探针；
@@ -321,6 +322,38 @@ NACK、超时和其他总线错误映射为稳定协议状态码。
 `YiLink/doc/I2C_PROTOCOL.md`。WCH GCC 15.2.0 完整构建通过，最终合并镜像为
 `YiLink/build/verify-ch32h417/YiLink.bin`，大小 76148 字节，SHA256 为
 `82276AA25EAB74299BA2F5B9DDAF01B998FA060C0A78CC046DAA0B1C3C728889`。
+
+## USB CDC-ACM 虚拟串口
+
+V5F USBHS 已扩展为四接口复合设备：
+
+```text
+Interface 0  CMSIS-DAP v2，WinUSB，EP1 OUT / EP2 IN
+Interface 1  Logic Analyzer，WinUSB，EP3 OUT/IN / EP4 IN
+Interface 2  CDC-ACM Control，EP5 Interrupt IN
+Interface 3  CDC-ACM Data，EP6 Bulk OUT / EP7 Bulk IN
+```
+
+设备类采用复合设备 `0xEF/0x02/0x01`，CDC 描述符包含 IAD、Header、Call
+Management、ACM 和 Union。V5F 支持 `GET_LINE_CODING`、`SET_LINE_CODING` 和
+`SET_CONTROL_LINE_STATE`，默认 Line Coding 为 115200、8N1。CDC OUT 使用
+1024 字节中断生产/主循环消费的环形队列，并通过
+`yilink_usbhs_cdc_read()`/`yilink_usbhs_cdc_write()` 暴露固件接口。
+
+在尚未指定 V3F 物理 USART 引脚前，V5F 主循环提供 64 字节 CDC 回环，便于使用
+串口工具立即验证 COM 口双向传输。后续接入实际 UART 时，应以 YiCore `yi_uart`
+设备替换回环，不需要修改 USB 描述符。
+
+加入 CDC 后，高速和全速配置描述符均为 128 字节，恰好是 EP0 64 字节最大包长的
+整数倍。Windows 以大于实际描述符的长度请求配置描述符时，控制 IN 传输必须在
+128 字节后发送零长度包（ZLP）。缺少该 ZLP 时，设备管理器显示“未知 USB 设备
+（配置描述符请求失败）”，并退化为 `VID_0000&PID_0003`。USBHS 驱动现已记录
+packet-aligned short descriptor 状态并自动发送终止 ZLP。
+
+修复后的合并镜像 `YiLink.bin` 大小为 76148 字节，SHA256 为
+`7A2AD8A221E94F4A10C584D1ADE9D40D43266F8888EAE5A4326316434AAD7443`。
+该镜像已经完成实机烧录和重新插拔验证，Windows 能成功识别新的复合设备及
+CDC-ACM 虚拟串口。
 
 ## 当前工作区注意事项
 
