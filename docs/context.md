@@ -271,6 +271,57 @@ Windows 会按 VID/PID 缓存 Microsoft OS 描述符。加入接口 GUID 后将 
 后续目标侧联调建议先在 Keil 中选择 100--500 kHz SWD 时钟，依次验证 IDCODE、
 复位、单字读写、块传输和 Flash 下载，再逐步提高 SWD 时钟。
 
+## YiLink V3F GPIO、SPI 与 I2C 扩展
+
+V3F 的产品协议层已经改为只依赖 YiCore 公共 API，默认不包含 WCH GPIO、SPI、
+I2C 类型或寄存器实现。CH32H417 的时钟、GPIO 复用、轮询传输和错误标志处理集中在
+`YiCore/soc/wch/ch32h4xx/`，YiLink 板级文件只负责把固定引脚绑定为 YiCore 设备。
+
+YiCore 本轮新增或补齐：
+
+- CH32H4xx 硬件 SPI 后端，并在平台 CMake 中默认接入；
+- `yi_spi_configure()` 和 `yi_spi_get_frequency()`，用于配置并返回实际分频时钟；
+- CH32H4xx 硬件 I2C 主机后端，并在平台 CMake 中默认接入；
+- `yi_i2c_get_frequency()`，用于协议层查询当前总线速率；
+- CH32H4xx GPIO 后端增加 GPIOF 时钟识别；
+- V3F PC2 心跳灯和 SPI 软件片选均通过 `yi_gpio` 操作。
+
+### SPI3
+
+固定引脚为：
+
+```text
+PC10  SPI3_SCK
+PC11  SPI3_MISO
+PC12  SPI3_MOSI
+PD0   软件 CS，低有效
+```
+
+主机命令沿用 CMSIS-DAP v2 Bulk 接口：`0x83` 查询、`0x84` 配置、`0x85`
+全双工传输。支持 Mode 0--3、MSB/LSB、1--255 字节传输和 100 kHz--20 MHz
+请求范围。硬件采用 2 的幂次分频，响应返回实际频率；整个事务期间由 YiCore SPI
+公共层保持 PD0 为低。
+
+### I2C4
+
+根据 CH32H417 引脚复用表，固定引脚为：
+
+```text
+PF12  I2C4_SCL，AF2
+PF13  I2C4_SDA，AF2
+```
+
+两根线配置为复用开漏，板上或外部目标必须提供与总线电压、速率和电容匹配的上拉
+电阻。主机命令为 `0x80` 查询、`0x81` 配置、`0x82` 传输，支持 100 kHz、
+400 kHz 和 1 MHz，单阶段写、单阶段读以及无 STOP 间隔的重复 START 写后读。
+读写长度各为 1--255 字节，拒绝 `0x08` 以下和 `0x77` 以上的保留地址，并将
+NACK、超时和其他总线错误映射为稳定协议状态码。
+
+协议文档已经同步到 `YiLink/doc/SPI_PROTOCOL.md` 和
+`YiLink/doc/I2C_PROTOCOL.md`。WCH GCC 15.2.0 完整构建通过，最终合并镜像为
+`YiLink/build/verify-ch32h417/YiLink.bin`，大小 76148 字节，SHA256 为
+`82276AA25EAB74299BA2F5B9DDAF01B998FA060C0A78CC046DAA0B1C3C728889`。
+
 ## 当前工作区注意事项
 
 `YiLink/doc/nanoCH32H417.pdf` 是完整电路图，仅用于核对 USB 部分，目前保持未跟踪，

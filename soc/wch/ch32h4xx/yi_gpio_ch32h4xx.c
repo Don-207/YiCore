@@ -19,6 +19,7 @@ static uint32_t yi_ch32h4xx_gpio_clock(const void *port)
     if(port == GPIOC) { return RCC_HB2Periph_GPIOC; }
     if(port == GPIOD) { return RCC_HB2Periph_GPIOD; }
     if(port == GPIOE) { return RCC_HB2Periph_GPIOE; }
+    if(port == GPIOF) { return RCC_HB2Periph_GPIOF; }
     return 0U;
 }
 
@@ -42,8 +43,7 @@ int yi_gpio_init(const void *config)
     GPIO_InitTypeDef vendor_config = {0};
     uint32_t clock_mask;
 
-    if((gpio_config == NULL) || (gpio_config->self == NULL) ||
-       (gpio_config->self->data == NULL) || (gpio_config->port == NULL) ||
+    if((gpio_config == NULL) || (gpio_config->port == NULL) ||
        (gpio_config->pin == 0U) ||
        (gpio_config->interrupt != YI_GPIO_INTERRUPT_NONE))
     {

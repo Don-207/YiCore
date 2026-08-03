@@ -37,7 +37,11 @@ typedef struct
     int (*transfer)(yi_device_t *dev, uint8_t address,
                     yi_i2c_msg_t *messages, uint8_t message_count,
                     uint32_t timeout_ms);
+    uint32_t (*get_frequency)(yi_device_t *dev);
 } yi_i2c_api_t;
+
+/** Return the active hardware I2C clock in hertz, or zero when unavailable. */
+uint32_t yi_i2c_get_frequency(yi_device_t *dev);
 
 /**
  * @brief Configure the I2C bus clock frequency.

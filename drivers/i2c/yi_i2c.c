@@ -9,6 +9,16 @@
 #include <stddef.h>
 #include "yi_i2c.h"
 
+/** Return the active clock selected by a ready I2C backend. */
+uint32_t yi_i2c_get_frequency(yi_device_t *dev)
+{
+    const yi_i2c_api_t *api;
+
+    if(!yi_device_is_ready(dev) || (dev->api == NULL)) { return 0U; }
+    api = (const yi_i2c_api_t *)dev->api;
+    return (api->get_frequency != NULL) ? api->get_frequency(dev) : 0U;
+}
+
 /**
  * @brief Configure the I2C bus clock frequency.
  * @param dev Device instance.

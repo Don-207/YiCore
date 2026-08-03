@@ -21,11 +21,30 @@ typedef struct
 
 typedef struct
 {
+    int (*configure)(yi_device_t *dev,
+                     const yi_spi_transfer_config_t *config);
     int (*transceive)(yi_device_t *dev,
                       const yi_spi_transfer_config_t *config,
                       const uint8_t *tx, uint8_t *rx,
                       uint16_t length, uint32_t timeout_ms);
+    uint32_t (*get_frequency)(yi_device_t *dev);
 } yi_spi_api_t;
+
+/**
+ * @brief Configure a hardware SPI controller without starting a transfer.
+ * @param dev Ready YiCore SPI device.
+ * @param config Requested bus frequency, mode, and bit order.
+ * @return Zero on success or a negative backend error.
+ */
+int yi_spi_configure(yi_device_t *dev,
+                     const yi_spi_transfer_config_t *config);
+
+/**
+ * @brief Read the actual SPI clock selected by the hardware backend.
+ * @param dev Ready YiCore SPI device.
+ * @return Active clock in hertz, or zero when unavailable.
+ */
+uint32_t yi_spi_get_frequency(yi_device_t *dev);
 
 /**
  * @brief Perform the yi spi transceive operation.

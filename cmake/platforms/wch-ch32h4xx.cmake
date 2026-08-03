@@ -85,11 +85,17 @@ function(yi_platform_application)
         "${YI_HAL_WCH_ROOT}/System/system_ch32h417.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_flash.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_gpio.c"
+        "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_i2c.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_rcc.c"
+        "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_spi.c"
         "${YI_HAL_WCH_ROOT}/Peripheral/src/ch32h417_usart.c"
         "${YICORE_ROOT}/arch/riscv/yi_riscv_irq.c"
         "${YICORE_ROOT}/core/yi_poll.c"
+        "${YICORE_ROOT}/drivers/spi/yi_spi.c"
+        "${YICORE_ROOT}/drivers/i2c/yi_i2c.c"
         "${YICORE_ROOT}/soc/wch/ch32h4xx/yi_ch32h417_system.c"
+        "${YICORE_ROOT}/soc/wch/ch32h4xx/yi_spi_ch32h4xx.c"
+        "${YICORE_ROOT}/soc/wch/ch32h4xx/yi_i2c_ch32h4xx.c"
     )
     target_compile_definitions(
         "${_target}" PRIVATE ${_core_definition} YI_DEVICE_USE_AUTO_SECTION=1
@@ -107,7 +113,10 @@ function(yi_platform_application)
         "${YICORE_ROOT}/core"
         "${YICORE_ROOT}/drivers/gpio"
         "${YICORE_ROOT}/drivers/led"
+        "${YICORE_ROOT}/drivers/i2c"
+        "${YICORE_ROOT}/drivers/spi"
         "${YICORE_ROOT}/drivers/uart"
+        "${YICORE_ROOT}/soc/wch/ch32h4xx"
         "${_generated_dir}"
         ${YI_PLATFORM_INCLUDE_DIRS}
     )
