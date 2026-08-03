@@ -175,20 +175,104 @@ OpenOCD 校验结束时可能报告无法恢复 `0x20000000` working area，但�
 - application 源码中已无 `Delay_Ms`、`Delay_Init`、`debug.h`、
   `SystemInit` 或 `SystemAndCoreClockUpdate` 调用。
 
-## 当前工作区注意事项
+## YiLink / YiDap 最终实现状态
 
-YiCore 中当前未提交的相关修改包括：
+YiLink 已完全移除旧 HPM5301、CherryDAP 和 CherryUSB 依赖。当前实现由两个内核
+分工：
+
+- V3F：运行独立实现的 YiDap CMSIS-DAP 命令引擎和 GPIO bit-bang SWD；
+- V5F：运行 WCH 官方 CH32H417 USBHS Device 寄存器驱动，通过共享 mailbox
+  将 512 字节 CMSIS-DAP 请求交给 V3F；
+- 合并镜像布局为 V3F `0x00000000`、V5F `0x00010000`；
+- V3F 的 PC2 每 200 ms 翻转，V5F 的 PC3 每 800 ms 翻转；
+- V5F 启动后延迟 3 秒再关闭 SWJ 并启用 USBHS，保留 WCH-Link 恢复窗口。
+
+目标调试接口引脚固定为：
 
 ```text
-cmake/YiCoreApplication.cmake
-cmake/platforms/wch-ch32h4xx.cmake
-soc/wch/ch32h4xx/yi_ch32h417_system.c
-docs/CH32H417_DEBUG_PLAYBOOK.md
-docs/context.md
+PA5  SWCLK/TCK
+PA6  SWDIO/TMS
+PC4  TDI
+PC5  TDO
+PB0  nRESET（开漏）
 ```
 
-`samples/boards/ch32h417/dual-core-gpio/` 是早期误放在 YiCore 内的验证工程，正式
-实现迁移到 `CH32H417DualCoreGPIO/` 后已删除，避免两套实现并存。
+板载 USBHS 的 D+/D- 使用 PB8/PB9，它们同时是 CH32H417 本机下载调试口的
+SWCLK/SWDIO。程序启动 USBHS 前必须执行 `GPIO_Remap_SWJ_Disable` 释放这两个
+引脚；需要 WCH-Link 恢复时，应利用上述 3 秒窗口或按住复位后连接。
 
-`docs/CH32H417_DEBUG_PLAYBOOK.md` 原先也是未跟踪文件，已经补充双核合并镜像、
-OpenOCD 直接运行、实际工具路径和故障诊断经验。
+### YiDap 协议覆盖
+
+YiDap 不依赖 CherryDAP，当前独立支持 Keil 建链和下载所需的命令：
+
+```text
+DAP_Info                 0x00
+DAP_HostStatus           0x01
+DAP_Connect              0x02
+DAP_Disconnect           0x03
+DAP_TransferConfigure    0x04
+DAP_Transfer             0x05
+DAP_TransferBlock        0x06
+DAP_TransferAbort        0x07
+DAP_WriteABORT           0x08
+DAP_Delay                0x09
+DAP_ResetTarget          0x0A
+DAP_SWJ_Pins             0x10
+DAP_SWJ_Clock            0x11
+DAP_SWJ_Sequence         0x12
+DAP_SWD_Configure        0x13
+DAP_SWD_Sequence         0x1D
+```
+
+传输层已实现 WAIT 重试、value match、match mask、transfer idle clocks、可配置
+turnaround，以及 WAIT/FAULT 可选 data phase。`DAP_Info(0x04)` 返回 CMSIS-DAP
+协议版本 `2.1.0`，产品固件信息返回 `YiDap 0.3.1`。当前只声明 SWD 能力，未声明
+尚未实现的 JTAG、SWO 或 UART 能力。
+
+### USBHS 与 Keil 发现条件
+
+最终 USB 标识和接口如下：
+
+```text
+VID:          0x1A86
+PID:          0xD418
+bcdDevice:    2.03
+Product:      CMSIS-DAP v2
+Interface:    CMSIS-DAP v2
+Class:        0xFF / 0x00 / 0x00
+Endpoint 1:   Bulk OUT, HS 512 bytes / FS 64 bytes
+Endpoint 2:   Bulk IN,  HS 512 bytes / FS 64 bytes
+Driver:       WinUSB
+```
+
+单接口 CMSIS-DAP v2 的 Product String 必须包含 `CMSIS-DAP`。只把该文本放在
+Interface String 中会导致 Windows 能枚举 WinUSB，但 Keil 不显示探针。
+
+Microsoft OS 1.0 描述符包括：
+
+- Extended Compat ID（`wIndex=0x0004`），将接口 0 绑定到 WinUSB；
+- Extended Properties（`wIndex=0x0005`），注册 CMSIS-DAP 标准接口 GUID
+  `{CDB3B5AD-293B-4663-AA36-1AAE46463776}`。
+
+Windows 会按 VID/PID 缓存 Microsoft OS 描述符。加入接口 GUID 后将 PID 从
+`0xD417` 更新到 `0xD418`，确保系统按新设备重新查询描述符，而不沿用旧缓存。
+设备管理器的 FriendlyName 可能仍短暂显示旧的 `YiDap V2 HS`；判断固件是否更新
+应读取 `DEVPKEY_Device_BusReportedDeviceDesc` 和 Hardware ID，而不是只看缓存名称。
+
+### 已完成实机验证
+
+- Windows 正常枚举 `VID_1A86&PID_D418`，设备无黄色感叹号；
+- Microsoft WinUSB 驱动正常绑定；
+- USB 总线上报名称为 `CMSIS-DAP v2`；
+- Keil 已能发现并选择该 CMSIS-DAP v2 探针；
+- WCH GCC 15.2.0 已成功构建 V3F、V5F 和合并镜像；
+- 已验证合并镜像输出为 `YiLink/build/verify-ch32h417/YiLink.bin`。
+
+后续目标侧联调建议先在 Keil 中选择 100--500 kHz SWD 时钟，依次验证 IDCODE、
+复位、单字读写、块传输和 Flash 下载，再逐步提高 SWD 时钟。
+
+## 当前工作区注意事项
+
+`YiLink/doc/nanoCH32H417.pdf` 是完整电路图，仅用于核对 USB 部分，目前保持未跟踪，
+不得随固件提交。`samples/boards/ch32h417/dual-core-gpio/` 是早期验证工程，正式实现
+已迁移到独立产品工程，避免维护两套实现。
