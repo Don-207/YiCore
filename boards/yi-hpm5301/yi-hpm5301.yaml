@@ -1,0 +1,16 @@
+# File: yi-hpm5301.yaml
+# Function: Describe yi-hpm5301 to the HPM SDK build system.
+# Author: Don
+# Date: 2026-07-29
+# Version: 1.0.0
+
+board:
+    soc: HPM5301
+    device: HPM5301xEGx
+    openocd-soc: hpm5300
+    openocd-probe: cmsis_dap
+    on-board-flash:
+      type: qspi-nor-flash
+      size: 1M
+    feature:
+      - board_usb_otg

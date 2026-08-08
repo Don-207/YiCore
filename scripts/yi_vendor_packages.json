@@ -4,9 +4,10 @@
     "vendor": "st",
     "family": "stm32f1",
     "package": "STM32CubeF1",
-    "version": "vendored",
-    "source": "https://github.com/STMicroelectronics/STM32CubeF1",
-    "path": "vendor/st",
+    "version": "321117a5282e7217c71e4d9b1c49d863c5cbd6c3",
+    "source": "https://github.com/Don-207/YiHAL-ST",
+    "path": "modules/hal/st",
+    "scope": "workspace",
     "status": "ready",
     "required": [
       "cmsis/Include/core_cm3.h",
@@ -31,6 +32,38 @@
     ]
   },
   {
+    "id": "st-stm32f4",
+    "vendor": "st",
+    "family": "stm32f4",
+    "package": "STM32CubeF4",
+    "version": "992138c8f7b5a091b48f30ebfdaee1f4dac8049b",
+    "source": "https://gitee.com/Don-207/YiHAL-ST",
+    "path": "modules/hal/st",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "cmsis/Include/core_cm4.h",
+      "cmsis/Device/ST/STM32F4xx/Include/stm32f407xx.h",
+      "stm32cube/stm32f4xx_hal_driver/Inc/stm32f4xx_hal.h"
+    ]
+  },
+  {
+    "id": "st-stm32h7",
+    "vendor": "st",
+    "family": "stm32h7",
+    "package": "STM32CubeH7",
+    "version": "992138c8f7b5a091b48f30ebfdaee1f4dac8049b",
+    "source": "https://gitee.com/Don-207/YiHAL-ST",
+    "path": "modules/hal/st",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "cmsis/Include/core_cm7.h",
+      "cmsis/Device/ST/STM32H7xx/Include/stm32h743xx.h",
+      "stm32cube/stm32h7xx_hal_driver/Inc/stm32h7xx_hal.h"
+    ]
+  },
+  {
     "id": "hpmicro-hpm5300",
     "vendor": "hpmicro",
     "family": "hpm5300",
@@ -38,10 +71,34 @@
     "version": "88b01b43900d8c30844a1e5cdd3f3b7aff6db40e",
     "source": "https://github.com/hpmicro/hpm_sdk",
     "path": "modules/hal/hpmicro/hpm_sdk",
+    "scope": "workspace",
     "status": "pending",
     "required": [
       "soc/HPM5300/HPM5301/CMakeLists.txt",
       "boards/hpm5301evklite/hpm5301evklite.yaml"
+    ]
+  },
+  {
+    "id": "wch-ch32h4xx",
+    "vendor": "wch",
+    "family": "ch32h4xx",
+    "package": "WCH CH32H417 EVT",
+    "version": "1a8132b1813ecda1ade48fb07fd85e2b286e8337",
+    "source": "https://gitee.com/Don-207/YiHAL-WCH",
+    "path": "modules/hal/wch",
+    "scope": "workspace",
+    "status": "ready",
+    "required": [
+      "Core/core_riscv.h",
+      "Peripheral/inc/ch32h417.h",
+      "Peripheral/src/ch32h417_gpio.c",
+      "Startup/startup_ch32h417_v3f.S",
+      "Ld/V3F/Link_v3f.ld",
+      "System/system_ch32h417.c",
+      "System/ch32h417_conf.h",
+      "Metadata/CH32H417-targetProcessor.json",
+      "Metadata/CH32H417-flash.json",
+      "SVD/CH32H417xx.svd"
     ]
   }
 ]

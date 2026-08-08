@@ -1,0 +1,55 @@
+/*
+ * File: board.dts
+ * Description: Describe the CH32H417 evaluation board V3F bring-up routing.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    /include/ "../../dts/riscv/wch/ch32h417/soc.dtsi"
+
+    led_pc2_gpio: led-pc2-gpio {
+        compatible = "yi,wch-gpio";
+        port = "GPIOC";
+        pin = <2>;
+        direction = "output";
+        drive = "push-pull";
+        status = "available";
+    };
+
+    led_pc3_gpio: led-pc3-gpio {
+        compatible = "yi,wch-gpio";
+        port = "GPIOC";
+        pin = <3>;
+        direction = "output";
+        drive = "push-pull";
+        status = "available";
+    };
+
+    led0: led-pc2 {
+        compatible = "yi,gpio-led";
+        gpios = <&led_pc2_gpio>;
+        status = "available";
+    };
+
+    led1: led-pc3 {
+        compatible = "yi,gpio-led";
+        gpios = <&led_pc3_gpio>;
+        status = "available";
+    };
+
+    usart1: serial@40013800 {
+        compatible = "yi,wch-uart";
+        reg = <0x40013800>;
+        current-speed = <115200>;
+        tx-port = "GPIOA";
+        tx-pin = <9>;
+        rx-port = "GPIOA";
+        rx-pin = <10>;
+        alternate = <7>;
+        interrupts = "USART1_IRQn";
+        irq-priority = <10>;
+        status = "available";
+    };
+};

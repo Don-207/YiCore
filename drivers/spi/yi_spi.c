@@ -10,6 +10,41 @@
 #include "yi_gpio.h"
 #include <stddef.h>
 
+/** Validate configuration fields shared by configure and transfer calls. */
+static int yi_spi_validate(yi_device_t *dev,
+                           const yi_spi_transfer_config_t *config)
+{
+    if(!yi_device_is_ready(dev) || (dev->api == NULL) ||
+       (config == NULL) || (config->frequency == 0U) ||
+       (config->mode > 3U)) { return -1; }
+    if((config->cs_gpio != NULL) && !yi_device_is_ready(config->cs_gpio))
+    {
+        return -1;
+    }
+    return 0;
+}
+
+/** Configure a ready SPI device through its platform-independent API. */
+int yi_spi_configure(yi_device_t *dev,
+                     const yi_spi_transfer_config_t *config)
+{
+    const yi_spi_api_t *api;
+
+    if(yi_spi_validate(dev, config) != 0) { return -1; }
+    api = (const yi_spi_api_t *)dev->api;
+    return (api->configure != NULL) ? api->configure(dev, config) : 0;
+}
+
+/** Return the backend's currently active hardware SPI frequency. */
+uint32_t yi_spi_get_frequency(yi_device_t *dev)
+{
+    const yi_spi_api_t *api;
+
+    if(!yi_device_is_ready(dev) || (dev->api == NULL)) { return 0U; }
+    api = (const yi_spi_api_t *)dev->api;
+    return (api->get_frequency != NULL) ? api->get_frequency(dev) : 0U;
+}
+
 /**
  * @brief Perform the yi spi transceive operation.
  * @param dev Device instance.
@@ -29,14 +64,8 @@ int yi_spi_transceive(yi_device_t *dev,
     yi_gpio_value_t cs_active;
     int result;
 
-    if(!yi_device_is_ready(dev) || (dev->api == NULL) ||
-       (config == NULL) || (config->frequency == 0U) ||
-       (config->mode > 3U) || (length == 0U) ||
+    if((yi_spi_validate(dev, config) != 0) || (length == 0U) ||
        (timeout_ms == 0U) || ((tx == NULL) && (rx == NULL))) { return -1; }
-    if((config->cs_gpio != NULL) && !yi_device_is_ready(config->cs_gpio))
-    {
-        return -1;
-    }
     if(config->cs_gpio != NULL)
     {
         gpio_api = (const yi_gpio_api_t *)config->cs_gpio->api;

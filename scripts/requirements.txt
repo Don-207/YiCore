@@ -1,7 +1,9 @@
 # File: requirements.txt
-# Function: Declare Python dependencies for YiCore tooling.
+# Function: Pin Python tools required by YiCore build and west extensions.
 # Author: Don
-# Date: 2026-07-28
+# Date: 2026-08-02
 # Version: 1.0.0
 
-PyYAML>=6.0,<7.0
+west>=1.5,<2
+kconfiglib>=14.1,<15
+PyYAML>=6,<7

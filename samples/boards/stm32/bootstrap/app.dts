@@ -1,0 +1,19 @@
+/*
+ * File: app.dts
+ * Description: Keep the STM32 bootstrap application DeviceTree overlay empty.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+&led0 {
+    status = "okay";
+};
+
+&usart1_tx_pin {
+    status = "okay";
+};
+
+&usart1_rx_pin {
+    status = "okay";
+};

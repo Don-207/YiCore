@@ -1,0 +1,76 @@
+# File: Kconfig
+# Function: Define the root configuration menu for bare-metal YiCore builds.
+# Author: Don
+# Date: 2026-08-02
+# Version: 1.0.0
+
+mainmenu "YiCore Bare-Metal Configuration"
+
+config YICORE
+    bool
+    default y
+
+config BARE_METAL
+    bool
+    default y
+    help
+      Select the mandatory scheduler-free YiCore execution model.
+
+menu "Core services"
+
+config YI_POLL
+    bool "Bare-metal poll loop"
+    default y
+
+config YI_EVENT_QUEUE
+    bool "ISR-to-main event delivery"
+    default y
+    depends on YI_POLL
+
+config YI_IDLE_WFI
+    bool "Wait for interrupt while idle"
+    default y
+
+config LOG
+    bool "Logging"
+    default n
+    depends on YI_POLL
+
+config YI_SOFT_TIMER
+    bool "Main-loop software timers"
+    default y
+    depends on YI_POLL
+
+config ASSERT
+    bool "Runtime assertions"
+    default y
+
+endmenu
+
+menu "Device classes"
+
+config GPIO
+    bool "GPIO drivers"
+    default y
+
+config SERIAL
+    bool "Serial drivers"
+    default y
+
+config SPI
+    bool "SPI drivers"
+    default y
+
+config I2C
+    bool "I2C drivers"
+    default y
+
+config FLASH
+    bool "Flash drivers"
+    default n
+
+config TIMER
+    bool "Timer drivers"
+    default y
+
+endmenu

@@ -1,0 +1,12 @@
+/*
+ * File: soc.dtsi
+ * Description: Define the STM32H743xx bootstrap DeviceTree include boundary.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/*
+ * Peripheral nodes are added here as their YiCore backends become available.
+ * Keeping the include present makes board overlays stable across that work.
+ */

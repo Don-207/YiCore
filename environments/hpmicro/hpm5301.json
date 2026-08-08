@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "hpmicro-hpm5301-gcc",
+  "vendor": "hpmicro",
+  "model": "hpm5301",
+  "toolchain": {
+    "id": "hpmicro-riscv-gcc",
+    "version": "13.2.0",
+    "compiler_prefix": "riscv32-unknown-elf"
+  },
+  "environment": {
+    "GNURISCV_TOOLCHAIN_PATH": "root"
+  },
+  "cmake": {
+    "adapter": "sdk"
+  }
+}

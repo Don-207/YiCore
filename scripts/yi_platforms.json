@@ -18,6 +18,24 @@
     "status": "reserved"
   },
   {
+    "id": "st-stm32f4",
+    "arch": "arm",
+    "vendor": "st",
+    "family": "stm32f4",
+    "backend": "soc/st/stm32/stm32f4",
+    "vendor_package": "st-stm32f4",
+    "status": "reserved"
+  },
+  {
+    "id": "st-stm32h7",
+    "arch": "arm",
+    "vendor": "st",
+    "family": "stm32h7",
+    "backend": "soc/st/stm32/stm32h7",
+    "vendor_package": "st-stm32h7",
+    "status": "reserved"
+  },
+  {
     "id": "hpmicro-hpm5300",
     "arch": "riscv",
     "vendor": "hpmicro",
@@ -25,5 +43,14 @@
     "backend": "soc/hpmicro/hpm5300",
     "vendor_package": "hpmicro-hpm5300",
     "status": "reserved"
+  },
+  {
+    "id": "wch-ch32h4xx",
+    "arch": "riscv",
+    "vendor": "wch",
+    "family": "ch32h4xx",
+    "backend": "soc/wch/ch32h4xx",
+    "vendor_package": "wch-ch32h4xx",
+    "status": "ready"
   }
 ]

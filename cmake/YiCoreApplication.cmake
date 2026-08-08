@@ -10,8 +10,8 @@ include(CMakeParseArguments)
 # Define a thin YiCore application and select its board at configure time.
 function(yi_application)
     set(_options)
-    set(_one_value NAME DTS CONF VERSION_FILE)
-    set(_multi_value SOURCES)
+    set(_one_value NAME CORE DTS CONF VERSION_FILE FLASH_ORIGIN FLASH_LENGTH)
+    set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_APP
         "${_options}"
@@ -27,7 +27,12 @@ function(yi_application)
         message(FATAL_ERROR "Select a board with -DBOARD=<board-id>")
     endif()
 
-    set(_board_dir "${YICORE_ROOT}/boards/${BOARD}")
+    if(DEFINED YI_BOARD_ROOT AND
+       EXISTS "${YI_BOARD_ROOT}/${BOARD}/board.json")
+        set(_board_dir "${YI_BOARD_ROOT}/${BOARD}")
+    else()
+        set(_board_dir "${YICORE_ROOT}/boards/${BOARD}")
+    endif()
     set(_board_manifest "${_board_dir}/board.json")
     if(NOT EXISTS "${_board_manifest}")
         message(FATAL_ERROR "Unknown YiCore board: ${BOARD}")
@@ -53,9 +58,31 @@ function(yi_application)
     set(YI_APP_OVERLAY "${YI_APP_DTS}")
     set(YI_APP_CONF "${YI_APP_CONF}")
     set(YI_APP_VERSION_FILE "${YI_APP_VERSION_FILE}")
+    set(YI_APP_FLASH_ORIGIN "${YI_APP_FLASH_ORIGIN}")
+    set(YI_APP_FLASH_LENGTH "${YI_APP_FLASH_LENGTH}")
+    if(DEFINED YI_KCONFIG_CMAKE AND EXISTS "${YI_KCONFIG_CMAKE}")
+        include("${YI_KCONFIG_CMAKE}")
+    endif()
     include("${_platform_adapter}")
     yi_platform_application(
         NAME "${YI_APP_NAME}"
+        CORE "${YI_APP_CORE}"
         SOURCES ${YI_APP_SOURCES}
+        INCLUDE_DIRS ${YI_APP_INCLUDE_DIRS}
+        COMPILE_DEFINITIONS ${YI_APP_COMPILE_DEFINITIONS}
     )
+    set(_application_target "${YI_APP_NAME}.elf")
+    if(NOT TARGET "${_application_target}")
+        message(FATAL_ERROR "Platform adapter did not create ${_application_target}")
+    endif()
+    if(DEFINED YI_GENERATED_INCLUDE_DIR)
+        target_include_directories(
+            "${_application_target}" PRIVATE "${YI_GENERATED_INCLUDE_DIR}"
+        )
+    endif()
+    if(DEFINED YI_AUTOCONF_HEADER)
+        target_compile_options(
+            "${_application_target}" PRIVATE "-include${YI_AUTOCONF_HEADER}"
+        )
+    endif()
 endfunction()

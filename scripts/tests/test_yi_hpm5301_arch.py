@@ -18,7 +18,7 @@ class Hpm5301ArchitectureTests(unittest.TestCase):
 
         cls.repo_root = Path(__file__).resolve().parents[2]
         cls.application = (
-            cls.repo_root / "applications" / "hpm5301-bringup"
+            cls.repo_root / "samples" / "boards" / "hpm5301" / "bringup"
         )
 
     def test_bringup_uses_official_flash_xip_board(self):

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "wch-ch32h417-gcc",
+  "vendor": "wch",
+  "model": "ch32h417",
+  "toolchain": {
+    "id": "wch-riscv-gcc",
+    "version": "15.2.0",
+    "compiler_prefix": "riscv32-wch-elf"
+  },
+  "environment": {
+    "WCH_RISCV_TOOLCHAIN_PATH": "root"
+  },
+  "cmake": {
+    "adapter": "cmake/toolchains/wch-riscv-gcc.cmake"
+  }
+}

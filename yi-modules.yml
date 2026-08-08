@@ -1,0 +1,56 @@
+# File: yi-modules.yml
+# Function: Declare standard external modules required by YiCore workspaces.
+# Author: Don
+# Date: 2026-07-30
+# Version: 1.0.0
+
+manifest:
+  version: "1.2"
+  projects:
+    - name: YiHAL-ST
+      url: https://gitee.com/Don-207/YiHAL-ST.git
+      revision: 992138c8f7b5a091b48f30ebfdaee1f4dac8049b
+      path: modules/hal/st
+      submodules: true
+      groups:
+        - hal-st
+
+    - name: lwrb
+      url: https://github.com/MaJerle/lwrb.git
+      revision: 77b2bdbecf60cd80e449f5c61bde72ec195efac4
+      path: modules/lib/lwrb
+      submodules: false
+      groups:
+        - serial
+
+    - name: segger-rtt
+      url: https://github.com/SEGGERMicro/RTT.git
+      revision: 4d8feab3150f86f37a9d323ddc88d6cdf5673072
+      path: modules/debug/segger-rtt
+      submodules: false
+      groups:
+        - debug
+
+    - name: mcuboot
+      url: https://github.com/mcu-tools/mcuboot.git
+      revision: 6d3b3d2c38ab20c242e5b9abb04d050086383eb2
+      path: bootloader/mcuboot
+      submodules: false
+      groups:
+        - bootloader
+
+    - name: YiHAL-HPMicro
+      url: https://gitee.com/Don-207/YiHAL-HPMicro.git
+      revision: e0b30704537d67b79cf5e3e22f7e0569dea93774
+      path: modules/hal/hpmicro
+      submodules: true
+      groups:
+        - hal-hpmicro
+
+    - name: YiHAL-WCH
+      url: https://gitee.com/Don-207/YiHAL-WCH.git
+      revision: 1a8132b1813ecda1ade48fb07fd85e2b286e8337
+      path: modules/hal/wch
+      submodules: false
+      groups:
+        - hal-wch

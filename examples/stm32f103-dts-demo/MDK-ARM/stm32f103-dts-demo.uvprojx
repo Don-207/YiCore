@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE,LWRB_DISABLE_ATOMIC</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../vendor/st/cmsis/Device/ST/STM32F1xx/Include;../../../vendor/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../drivers/adc;../../../drivers/adc/ads7830;../../../drivers/adc/ads1298;../../../drivers/sensor/max31856;../../../drivers/sensor/tsys01;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../third_party/RTT;../../../third_party/lwrb/lwrb/src/include</IncludePath>
+              <IncludePath>../Core/Inc;../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Inc/Legacy;../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Inc;../../../../modules/hal/st/cmsis/Device/ST/STM32F1xx/Include;../../../../modules/hal/st/cmsis/Include;../../../core;../../../drivers/led;../generated;../../../drivers/uart;../../../drivers/gpio;../../../drivers/pinmux;../../../drivers/clock;../../../drivers/flash;../../../drivers/flash/w25q64;../../../drivers/eeprom;../../../drivers/eeprom/at24c02;../../../drivers/timer;../../../drivers/spi;../../../drivers/i2c;../../../drivers/can;../../../drivers/adc;../../../drivers/adc/ads7830;../../../drivers/adc/ads1298;../../../drivers/sensor/max31856;../../../drivers/sensor/tsys01;../../../subsys/console;../../../subsys/log;../../../subsys/timer;../../../ports/rtt;../../../soc/st/stm32/stm32f1;../../../../modules/debug/segger-rtt/RTT;../../../../modules/debug/segger-rtt/Config;../../../../modules/lib/lwrb/lwrb/src/include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -422,27 +422,27 @@
             <File>
               <FileName>stm32f1xx_hal_spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_spi.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_spi.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_i2c.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_i2c.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_can.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_can.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_can.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_gpio_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio_ex.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -498,7 +498,7 @@
             <File>
               <FileName>stm32f1xx_hal_tim_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim_ex.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_tim_ex.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -554,57 +554,57 @@
             <File>
               <FileName>stm32f1xx_hal.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc_ex.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_rcc_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_gpio.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_dma.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_dma.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_dma.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_cortex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_cortex.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_cortex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_pwr.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_pwr.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_pwr.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_flash_ex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash_ex.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_flash_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_exti.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_exti.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_exti.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_uart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../../../vendor/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_uart.c</FilePath>
+              <FilePath>../../../../modules/hal/st/stm32cube/stm32f1xx_hal_driver/Src/stm32f1xx_hal_uart.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -875,12 +875,12 @@
             <File>
               <FileName>SEGGER_RTT.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\third_party\RTT\SEGGER_RTT.c</FilePath>
+              <FilePath>..\..\..\..\modules\debug\segger-rtt\RTT\SEGGER_RTT.c</FilePath>
             </File>
             <File>
               <FileName>lwrb.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\third_party\lwrb\lwrb\src\lwrb\lwrb.c</FilePath>
+              <FilePath>..\..\..\..\modules\lib\lwrb\lwrb\src\lwrb\lwrb.c</FilePath>
             </File>
           </Files>
         </Group>

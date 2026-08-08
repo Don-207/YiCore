@@ -1,0 +1,30 @@
+# File: west-commands.yml
+# Function: Register Zephyr-compatible YiCore west extension commands.
+# Author: Don
+# Date: 2026-08-02
+# Version: 1.0.0
+
+west-commands:
+  - file: scripts/west_commands/commands.py
+    commands:
+      - name: boards
+        class: Boards
+        help: list boards supported by YiCore
+      - name: build
+        class: Build
+        help: configure and build a YiCore application
+      - name: flash
+        class: Flash
+        help: flash a YiCore image
+      - name: debug
+        class: Debug
+        help: debug a YiCore image
+      - name: debugserver
+        class: DebugServer
+        help: start a YiCore debug server
+      - name: test
+        class: Test
+        help: discover YiCore tests
+      - name: sysbuild
+        class: Sysbuild
+        help: plan YiCore images

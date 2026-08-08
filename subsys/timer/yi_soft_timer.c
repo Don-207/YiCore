@@ -7,6 +7,7 @@
  */
 
 #include "yi_soft_timer.h"
+#include "yi_poll.h"
 #include "yi_system.h"
 #include <limits.h>
 #include <stddef.h>
@@ -117,10 +118,11 @@ bool yi_soft_timer_is_active(const yi_soft_timer_t *timer)
 /**
  * @brief Perform the yi soft timer process operation.
  */
-void yi_soft_timer_process(void)
+bool yi_soft_timer_process(void)
 {
     yi_soft_timer_t *timer;
     uint32_t now = yi_system_uptime_ms();
+    bool handled = false;
 
     for(timer = timer_list; timer != NULL; timer = timer->next)
     {
@@ -152,10 +154,23 @@ void yi_soft_timer_process(void)
             void *user_data = timer->user_data;
 
             timer->pending = false;
+            handled = true;
             if(callback != NULL)
             {
                 callback(timer, user_data);
             }
         }
     }
+    return handled;
+}
+
+static bool yi_soft_timer_poll(void *user_data)
+{
+    (void)user_data;
+    return yi_soft_timer_process();
+}
+
+int yi_soft_timer_poll_register(void)
+{
+    return yi_poll_hook_register(yi_soft_timer_poll, NULL);
 }

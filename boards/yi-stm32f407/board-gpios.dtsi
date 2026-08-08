@@ -1,0 +1,30 @@
+/*
+ * File: board-gpios.dtsi
+ * Description: Define the Yi STM32F407 bootstrap LED GPIO.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+clk_gpioa: clock-gpioa {
+    compatible = "yi,stm32-clock";
+    clock-id = "gpioa";
+    status = "available";
+};
+
+clk_gpiob: clock-gpiob {
+    compatible = "yi,stm32-clock";
+    clock-id = "gpiob";
+    status = "available";
+};
+
+led0_gpio: led0-gpio {
+    compatible = "yi,stm32-gpio";
+    port = "GPIOB";
+    pin = <0>;
+    clocks = <&clk_gpiob>;
+    direction = "output";
+    init-level = "pre-kernel";
+    init-priority = <10>;
+    status = "available";
+};

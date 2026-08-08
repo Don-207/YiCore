@@ -46,6 +46,12 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("void DMA1_Channel5_IRQHandler(void)", source)
         self.assertIn("yi_uart_stm32_dma_rx_irq_handler(&usart1);", source)
         self.assertIn("#define YI_DT_GET(_label)", header)
+        self.assertIn("#define DT_NODELABEL(label) label", header)
+        self.assertIn("#define DEVICE_DT_GET(node_id)", header)
+        self.assertIn("#define DT_PROP(node_id, prop)", header)
+        self.assertIn("#define DT_PHANDLE(node_id, prop)", header)
+        self.assertIn("#define YI_DT_led0_STATUS_okay 1", header)
+        self.assertIn("#define YI_DT_usart1_P_current_speed 921600", header)
         self.assertIn(".instance = (TIM_TypeDef *)0x40001400U", source)
         self.assertIn(".enable_mask = 0x00000020U", source)
         self.assertIn("void TIM7_IRQHandler(void)", source)
@@ -89,6 +95,30 @@ class DtsGeneratorTests(unittest.TestCase):
             with self.assertRaisesRegex(BindingError, "'okay' or 'disable'"):
                 generate(dts, self.yicore / "dts" / "bindings", root / "generated")
 
+    def test_aliases_and_chosen_generate_zephyr_style_tokens(self):
+        """Expose phandle aliases and chosen nodes through familiar macros."""
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dts = root / "app.dts"
+            dts.write_text('''/ {
+                aliases { status-led = <&led>; };
+                chosen { yi,console = <&led>; };
+                clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
+                pin: pin { compatible = "yi,stm32-gpio"; port = "GPIOA";
+                    pin = <1>; clocks = <&clk>; };
+                led: led { compatible = "yi,gpio-led"; gpios = <&pin>; };
+            };''', encoding="utf-8")
+            _, header_path = generate(
+                dts, self.yicore / "dts" / "bindings", root / "generated"
+            )
+            header = header_path.read_text(encoding="utf-8")
+
+        self.assertIn("#define YI_DT_ALIAS_status_led led", header)
+        self.assertIn("#define YI_DT_CHOSEN_yi_console led", header)
+        self.assertIn("#define DT_ALIAS(alias)", header)
+        self.assertIn("#define DT_PROP_OR(node_id, prop, default_value)", header)
+
     def test_gpio_interrupt_generation(self):
         tree = parse_text('''/ {
             clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa"; };
@@ -110,6 +140,22 @@ class DtsGeneratorTests(unittest.TestCase):
         };''')
         with self.assertRaisesRegex(BindingError, "must use direction"):
             generate_sources(validate_tree(tree, self.bindings), "gpio-irq-bad.dts")
+
+    def test_wch_gpio_generation_owns_its_port_clock(self):
+        """CH32 GPIO nodes omit STM32-specific clock-provider dependencies."""
+
+        tree = parse_text('''/ {
+            led: led { compatible = "yi,wch-gpio"; port = "GPIOC";
+                pin = <2>; direction = "output"; };
+        };''')
+        source, header = generate_sources(
+            validate_tree(tree, self.bindings), "wch-gpio.dts",
+            soc_header="ch32h417.h"
+        )
+        self.assertIn(".port = GPIOC", source)
+        self.assertIn(".pin = YI_GPIO_PIN(2)", source)
+        self.assertIn(".clock = NULL", source)
+        self.assertIn('#define YI_DT_LED_NAME "led"', header)
 
     def test_soft_i2c_generation(self):
         tree = parse_text('''/ {
@@ -176,6 +222,19 @@ class DtsGeneratorTests(unittest.TestCase):
         };''')
         nodes = validate_tree(tree, self.bindings)
         with self.assertRaisesRegex(BindingError, "dependency cycle"):
+            dependency_order(nodes)
+
+    def test_dependency_cannot_initialize_after_consumer(self):
+        """Reject priority metadata that violates device dependencies."""
+
+        tree = parse_text('''/ {
+            clk: clk { compatible = "yi,stm32-clock"; clock-id = "gpioa";
+                init-priority = <80>; };
+            led: led { compatible = "yi,stm32-gpio"; port = "GPIOA";
+                pin = <1>; clocks = <&clk>; init-priority = <20>; };
+        };''')
+        nodes = validate_tree(tree, self.bindings)
+        with self.assertRaisesRegex(BindingError, "initializes after"):
             dependency_order(nodes)
 
     def test_duplicate_pin_ownership_is_rejected(self):
@@ -319,6 +378,21 @@ class DtsGeneratorTests(unittest.TestCase):
         self.assertIn("yi_uart_stm32_dma_tx_irq_handler(&usart1);", source)
         self.assertIn("void DMA1_Channel5_IRQHandler(void)", source)
         self.assertIn("yi_uart_stm32_dma_rx_irq_handler(&usart1);", source)
+
+    def test_wch_uart_irq_ring_generation(self):
+        tree = parse_text('''/ {
+            usart1: serial { compatible = "yi,wch-uart";
+                reg = <0x40013800>; current-speed = <115200>;
+                tx-port = "GPIOA"; tx-pin = <9>;
+                rx-port = "GPIOA"; rx-pin = <10>; alternate = <7>;
+                interrupts = "USART1_IRQn"; irq-priority = <10>; };
+        };''')
+        source, _ = generate_sources(validate_tree(tree, self.bindings),
+                                     "wch-uart.dts")
+        self.assertIn("static yi_uart_wch_data_t usart1_data", source)
+        self.assertIn(".irqn = USART1_IRQn", source)
+        self.assertIn('interrupt("WCH-Interrupt-fast")', source)
+        self.assertIn("yi_uart_wch_irq_handler(&usart1);", source)
 
     def test_multiple_default_consoles_are_rejected(self):
         tree = parse_text('''/ {

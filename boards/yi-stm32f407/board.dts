@@ -1,0 +1,21 @@
+/*
+ * File: board.dts
+ * Description: Reserve the Yi STM32F407 board identity and memory contract.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    /include/ "../../dts/arm/st/stm32f407xx/soc.dtsi"
+    /include/ "board-gpios.dtsi"
+    /include/ "board-pinctrl.dtsi"
+    /include/ "board-devices.dtsi"
+
+    model = "Yi STM32F407";
+    compatible = "yi,stm32f407";
+
+    chosen {
+        yi,part = "stm32f407zgt6";
+    };
+};

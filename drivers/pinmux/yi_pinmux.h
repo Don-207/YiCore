@@ -59,6 +59,7 @@ typedef struct
     yi_pinmux_pull_t pull; /**< Pull value. */
     yi_pinmux_speed_t speed; /**< Speed value. */
     yi_pinmux_function_t function; /**< Function value. */
+    uint8_t alternate; /**< STM32 alternate-function number, range 0..15. */
     yi_device_t *clock; /**< Clock value. */} yi_pinmux_config_t;
 
 /**

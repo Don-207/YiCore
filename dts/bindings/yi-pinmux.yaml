@@ -13,6 +13,9 @@ properties:
   function:
     type: string
     required: true
+  alternate:
+    type: int
+    default: 0
   mode:
     type: string
     required: true

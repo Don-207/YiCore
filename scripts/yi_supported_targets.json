@@ -14,5 +14,13 @@
     "model": "hpm5301",
     "template": "hpm5301-bringup",
     "description": "HPM5301 RISC-V target"
+  },
+  {
+    "vendor": "wch",
+    "vendor_name": "Nanjing Qinheng Microelectronics",
+    "series": "ch32h4xx",
+    "model": "ch32h417",
+    "template": "ch32h417-bringup",
+    "description": "CH32H417 V3F RISC-V target"
   }
 ]

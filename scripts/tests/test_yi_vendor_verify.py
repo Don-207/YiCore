@@ -63,6 +63,7 @@ class VendorPackageTests(unittest.TestCase):
         self.assertEqual(
             hpm_package["path"], "modules/hal/hpmicro/hpm_sdk"
         )
+        self.assertEqual(hpm_package["scope"], "workspace")
 
     def test_ready_package_reports_missing_files(self):
         """A ready declaration must fail verification when files are absent."""

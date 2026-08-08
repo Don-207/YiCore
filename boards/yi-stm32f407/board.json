@@ -1,0 +1,14 @@
+{
+  "id": "yi-stm32f407",
+  "name": "Yi STM32F407",
+  "vendor": "st",
+  "series": "stm32f4",
+  "model": "stm32f407xx",
+  "part": "stm32f407zgt6",
+  "keil_device": "STM32F407ZG",
+  "cube_package": "LQFP144",
+  "flash_size": 1048576,
+  "ram_size": 196608,
+  "status": "pending",
+  "description": "Yi reference board contract for STM32F407ZGT6"
+}

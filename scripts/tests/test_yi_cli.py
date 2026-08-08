@@ -32,6 +32,38 @@ from yi_create_app import create_app  # noqa: E402
 class YiCliTests(unittest.TestCase):
     """Verify Zephyr-style argument parsing and CMake dispatch."""
 
+    def _write_test_environment(
+        self, yicore: Path, toolchain_home: Path
+    ) -> None:
+        """Create a minimal ARM environment and executable for CLI tests."""
+
+        environment = yicore / "environments" / "test" / "mcu-a.json"
+        environment.parent.mkdir(parents=True, exist_ok=True)
+        environment.write_text(
+            '{"schema_version":1,"id":"test-mcu-a-gcc",'
+            '"vendor":"test","model":"mcu-a",'
+            '"toolchain":{"id":"arm-gnu-toolchain",'
+            '"version":"1.0.0","compiler_prefix":"arm-none-eabi"},'
+            '"cmake":{"adapter":"product"}}\n',
+            encoding="utf-8",
+        )
+        compiler = (
+            toolchain_home
+            / "arm-gnu-toolchain"
+            / "1.0.0"
+            / "bin"
+            / "arm-none-eabi-gcc.exe"
+        )
+        compiler.parent.mkdir(parents=True, exist_ok=True)
+        compiler.write_text("", encoding="utf-8")
+        (yicore / "Kconfig").write_text(
+            'mainmenu "YiCore test configuration"\n\n'
+            "config YICORE\n"
+            "    bool\n"
+            "    default y\n",
+            encoding="utf-8",
+        )
+
     def test_build_parser_accepts_short_board_and_pristine_options(self):
         """Common west-build style flags map to YiCore build settings."""
 
@@ -231,9 +263,12 @@ class YiCliTests(unittest.TestCase):
             board.mkdir(parents=True)
             toolchain.parent.mkdir(parents=True)
             (board / "board.json").write_text(
-                '{"model": "mcu-a"}\n', encoding="utf-8"
+                '{"vendor":"test","model":"mcu-a"}\n',
+                encoding="utf-8",
             )
             toolchain.write_text("# toolchain\n", encoding="utf-8")
+            toolchain_home = root / "toolchains"
+            self._write_test_environment(yicore, toolchain_home)
             app = create_app("Demo", root)
             ninja = root / "ninja.exe"
             ninja.write_text("", encoding="utf-8")
@@ -241,6 +276,10 @@ class YiCliTests(unittest.TestCase):
             with (
                 patch("yi_cli._find_ninja", return_value=ninja),
                 patch("yi_cli.subprocess.run") as run,
+                patch.dict(
+                    "os.environ",
+                    {"YI_TOOLCHAIN_HOME": str(toolchain_home)},
+                ),
             ):
                 result = build_app(yicore, app, "board-a")
 
@@ -278,12 +317,26 @@ class YiCliTests(unittest.TestCase):
             (source / "arm-none-eabi.cmake").write_text(
                 "# toolchain\n", encoding="utf-8"
             )
+            yicore = product / "YiCore"
+            toolchain_home = product / "toolchains"
+            self._write_test_environment(yicore, toolchain_home)
+            board = product / "boards" / "board-a"
+            board.mkdir(parents=True)
+            (board / "board.json").write_text(
+                '{"id":"board-a","vendor":"test",'
+                '"model":"mcu-a"}\n',
+                encoding="utf-8",
+            )
             ninja = product / "ninja.exe"
             ninja.write_text("", encoding="utf-8")
 
             with (
                 patch("yi_cli._find_ninja", return_value=ninja),
                 patch("yi_cli.subprocess.run") as run,
+                patch.dict(
+                    "os.environ",
+                    {"YI_TOOLCHAIN_HOME": str(toolchain_home)},
+                ),
             ):
                 result = build_product(product, image="test")
 

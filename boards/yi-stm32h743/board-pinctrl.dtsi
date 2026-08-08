@@ -1,0 +1,33 @@
+/*
+ * File: board-pinctrl.dtsi
+ * Description: Assign STM32H743 USART1 to PA9 and PA10 using AF7.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+usart1_tx_pin: usart1-tx-pin {
+    compatible = "yi,stm32-pinmux";
+    port = "GPIOA";
+    pin = <9>;
+    function = "uart-tx";
+    alternate = <7>;
+    mode = "alternate-push-pull";
+    pull = "up";
+    speed = "high";
+    clocks = <&clk_gpioa>;
+    status = "available";
+};
+
+usart1_rx_pin: usart1-rx-pin {
+    compatible = "yi,stm32-pinmux";
+    port = "GPIOA";
+    pin = <10>;
+    function = "uart-rx";
+    alternate = <7>;
+    mode = "alternate-push-pull";
+    pull = "up";
+    speed = "high";
+    clocks = <&clk_gpioa>;
+    status = "available";
+};

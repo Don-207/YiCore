@@ -445,7 +445,8 @@ fpga_update()
 - UART公共API位于 `drivers/uart/yi_uart.h`，STM32句柄和IRQ配置隔离在
   `soc/st/stm32/stm32f1/yi_uart_stm32.h`
 - STM32 HAL仍是当前backend；替换芯片平台时新增对应SoC backend，不改应用接口
-- CMSIS和STM32Cube原厂代码集中在 `vendor/st/`，保持上游文件不修改
+- CMSIS 和 STM32Cube 原厂代码由工作区 `modules/hal/st/` 中固定版本的
+  YiHAL-ST 模块提供，YiCore 仓库不保存回退副本
 - STM32 HAL、LL和CMSIS Device调用只允许出现在 `soc/st/stm32/` 后端
 
 边界结构：

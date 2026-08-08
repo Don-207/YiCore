@@ -1,0 +1,30 @@
+/*
+ * File: soc.dtsi
+ * Description: Describe the CH32H417 V3F CPU and first-stage memory map.
+ * Author: Don
+ * Date: 2026-07-31
+ * Version: 1.0.0
+ */
+
+/ {
+    cpus {
+        cpu0: cpu@0 {
+            compatible = "wch,qingke-v3f";
+            reg = <0>;
+            clock-frequency = <100000000>;
+            riscv,isa = "rv32imacxw";
+            status = "available";
+        };
+    };
+
+    flash@0 {
+        compatible = "wch,ch32h417-flash";
+        reg = <0x00000000 0x00010000>;
+        status = "available";
+    };
+
+    memory@20100000 {
+        device_type = "memory";
+        reg = <0x20100000 0x00080000>;
+    };
+};
