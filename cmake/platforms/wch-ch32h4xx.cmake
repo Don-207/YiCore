@@ -9,7 +9,7 @@ include(CMakeParseArguments)
 # Build one CH32H417 core image from application and YiCore sources.
 function(yi_platform_application)
     set(_options)
-    set(_one_value NAME CORE)
+    set(_one_value NAME CORE FLASH_ORIGIN FLASH_LENGTH)
     set(_multi_value SOURCES INCLUDE_DIRS COMPILE_DEFINITIONS)
     cmake_parse_arguments(
         YI_PLATFORM "${_options}" "${_one_value}" "${_multi_value}" ${ARGN}
@@ -76,6 +76,20 @@ function(yi_platform_application)
         set(_startup_file "${YI_HAL_WCH_ROOT}/Startup/startup_ch32h417_v5f.S")
         set(_linker_script "${YI_HAL_WCH_ROOT}/Ld/V5F/Link_v5f.ld")
         set(_core_definition Core_V5F)
+    endif()
+    if(DEFINED YI_APP_FLASH_ORIGIN AND NOT YI_APP_FLASH_ORIGIN STREQUAL "")
+        if(NOT DEFINED YI_APP_FLASH_LENGTH OR YI_APP_FLASH_LENGTH STREQUAL "")
+            message(FATAL_ERROR "FLASH_ORIGIN requires FLASH_LENGTH")
+        endif()
+        file(READ "${_linker_script}" _linker_text)
+        string(REGEX REPLACE
+            "FLASH \\(rx\\) : ORIGIN = [^,]+, LENGTH = [^ \r\n]+"
+            "FLASH (rx) : ORIGIN = ${YI_APP_FLASH_ORIGIN}, LENGTH = ${YI_APP_FLASH_LENGTH}"
+            _linker_text "${_linker_text}")
+        set(_generated_linker
+            "${CMAKE_CURRENT_BINARY_DIR}/${YI_PLATFORM_NAME}.ld")
+        file(WRITE "${_generated_linker}" "${_linker_text}")
+        set(_linker_script "${_generated_linker}")
     endif()
     add_executable(
         "${_target}"
